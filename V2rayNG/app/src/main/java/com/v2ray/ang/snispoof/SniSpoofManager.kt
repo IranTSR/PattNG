@@ -291,6 +291,14 @@ object SniSpoofManager {
             // before spawning so its port and netfilter rules never leak into this run.
             reapStalePidFile(pidFile, bin.name)
             if (pidFile.exists()) pidFile.delete()
+            // A previous run can orphan the daemon outside the PID file's reach
+            // (app process death, a failed stop). Sweep by exact process name so a
+            // stale sidecar never survives next to the new one; pkill exits 1 when
+            // nothing matches, which is fine.
+            RootProcessRunner.run(
+                listOf("su", "-c", "pkill -x ${shQuote(AppConfig.SNI_SPOOF_BIN_NAME)}"),
+                5_000
+            )
 
             val argv = buildArgs(profile, port).joinToString(" ") { shQuote(it) }
             val script = buildString {
