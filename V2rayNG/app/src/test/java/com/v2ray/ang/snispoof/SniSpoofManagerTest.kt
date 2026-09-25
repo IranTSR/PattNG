@@ -93,4 +93,59 @@ class SniSpoofManagerTest {
         assertEquals("passive", SniSpoofManager.normalizeInjector("PASSIVE"))
         assertEquals("active", SniSpoofManager.normalizeInjector("ACTIVE"))
     }
+
+    @Test
+    fun connectTargetPrefersTheOverrideOverTheProfileAddress() {
+        val withOverride = ProfileItem.create(EConfigType.VLESS).apply {
+            server = "203.0.113.7"
+            serverPort = "443"
+            sniSpoofConnect = "104.19.229.21:8443"
+        }
+        assertEquals("104.19.229.21:8443", SniSpoofManager.connectTarget(withOverride))
+        assertEquals(
+            "104.19.229.21:8443",
+            SniSpoofManager.buildArgs(withOverride, 40443).let { args ->
+                args[args.indexOf("-connect") + 1]
+            }
+        )
+
+        val blankOverride = ProfileItem.create(EConfigType.VLESS).apply {
+            server = "203.0.113.7"
+            serverPort = "443"
+            sniSpoofConnect = "   "
+        }
+        assertEquals("203.0.113.7:443", SniSpoofManager.connectTarget(blankOverride))
+
+        val unset = ProfileItem.create(EConfigType.VLESS).apply {
+            server = "example.com"
+            serverPort = "443"
+        }
+        assertEquals("example.com:443", SniSpoofManager.connectTarget(unset))
+    }
+
+    @Test
+    fun connectTargetIpDetectionHandlesHostAndPortForms() {
+        assertTrue(SniSpoofManager.isConnectTargetIp("104.19.229.21:443"))
+        assertTrue(SniSpoofManager.isConnectTargetIp("[::1]:443"))
+        assertFalse(SniSpoofManager.isConnectTargetIp("example.com:443"))
+        assertFalse(SniSpoofManager.isConnectTargetIp("example.com"))
+    }
+
+    @Test
+    fun connectTargetValidationAcceptsHostPortAndRejectsGarbage() {
+        assertTrue(SniSpoofManager.isValidConnectTarget("104.19.229.21:443"))
+        assertTrue(SniSpoofManager.isValidConnectTarget("example.com:8443"))
+        assertTrue(SniSpoofManager.isValidConnectTarget("[::1]:443"))
+        assertTrue(SniSpoofManager.isValidConnectTarget("  1.2.3.4:443  "))
+
+        assertFalse(SniSpoofManager.isValidConnectTarget(""))
+        assertFalse(SniSpoofManager.isValidConnectTarget("   "))
+        assertFalse(SniSpoofManager.isValidConnectTarget("104.19.229.21"))
+        assertFalse(SniSpoofManager.isValidConnectTarget("104.19.229.21:"))
+        assertFalse(SniSpoofManager.isValidConnectTarget(":443"))
+        assertFalse(SniSpoofManager.isValidConnectTarget("example.com:0"))
+        assertFalse(SniSpoofManager.isValidConnectTarget("example.com:99999"))
+        assertFalse(SniSpoofManager.isValidConnectTarget("example.com:notaport"))
+        assertFalse(SniSpoofManager.isValidConnectTarget("[::1]"))
+    }
 }

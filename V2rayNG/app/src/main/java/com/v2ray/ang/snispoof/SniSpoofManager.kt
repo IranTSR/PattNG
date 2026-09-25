@@ -200,12 +200,63 @@ object SniSpoofManager {
     }
 
     /**
+     * Resolves the sidecar's -connect upstream. Pure: unit-tested.
+     *
+     * The optional per-profile override (IP:port or host:port) wins; otherwise the
+     * profile's own server address and port are used, matching the CLI's `-connect`.
+     */
+    internal fun connectTarget(profile: ProfileItem): String {
+        val override = profile.sniSpoofConnect?.trim().orEmpty()
+        if (override.isNotEmpty()) return override
+        return "${profile.server.orEmpty()}:${profile.serverPort.orEmpty()}"
+    }
+
+    /**
+     * True when the -connect target's host part is a literal IP address.
+     * The sidecar then requires an explicit -fake-sni decoy. Pure: unit-tested.
+     */
+    internal fun isConnectTargetIp(target: String): Boolean {
+        return Utils.isPureIpAddress(connectHost(target))
+    }
+
+    /**
+     * True when the target looks like host:port with a valid port number.
+     * IPv6 hosts must use brackets, e.g. [::1]:443. Pure: unit-tested.
+     */
+    internal fun isValidConnectTarget(target: String): Boolean {
+        val t = target.trim()
+        if (t.isEmpty()) return false
+        val host: String
+        val portStr: String
+        if (t.startsWith("[")) {
+            host = t.substringAfter("[").substringBefore("]")
+            val rest = t.substringAfter("]", "")
+            if (!rest.startsWith(":")) return false
+            portStr = rest.drop(1)
+        } else {
+            val idx = t.lastIndexOf(":")
+            if (idx <= 0) return false
+            host = t.substring(0, idx)
+            portStr = t.substring(idx + 1)
+        }
+        if (host.isEmpty() || portStr.isEmpty()) return false
+        val port = portStr.toIntOrNull() ?: return false
+        return port in 1..65535
+    }
+
+    private fun connectHost(target: String): String {
+        val t = target.trim()
+        return if (t.startsWith("[")) t.substringAfter("[").substringBefore("]")
+        else t.substringBefore(":")
+    }
+
+    /**
      * Builds the exact argv for the sidecar. Pure: unit-tested.
      */
     internal fun buildArgs(profile: ProfileItem, port: Int): List<String> {
         val args = mutableListOf(
             "-listen", "${AppConfig.LOOPBACK}:$port",
-            "-connect", "${profile.server.orEmpty()}:${profile.serverPort.orEmpty()}",
+            "-connect", connectTarget(profile),
         )
         profile.sniSpoofFakeSni?.takeIf { it.isNotBlank() }?.let {
             args += listOf("-fake-sni", it.trim())

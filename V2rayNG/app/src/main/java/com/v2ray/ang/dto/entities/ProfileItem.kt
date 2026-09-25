@@ -141,6 +141,12 @@ data class ProfileItem(
 
     /** Injector backend ("active" or "passive"); null means the default. */
     var sniSpoofInjector: String? = null,
+
+    /**
+     * Optional override for the sidecar's -connect upstream (IP:port or host:port).
+     * When null or blank, the sidecar connects to this profile's own server address and port.
+     */
+    var sniSpoofConnect: String? = null,
 ) {
 
     companion object {

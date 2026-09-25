@@ -49,7 +49,6 @@ import com.v2ray.ang.ui.compose.NavigationBarsSpacer
 import com.v2ray.ang.ui.compose.SettingsSwitchItem
 import com.v2ray.ang.ui.compose.verticalScrollbar
 import com.v2ray.ang.util.JsonUtil
-import com.v2ray.ang.util.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -415,6 +414,18 @@ abstract class BaseServerActivity : BaseComponentActivity() {
             )
             if (state.sniSpoofEnabled) {
                 FormTextField(
+                    label = stringResource(R.string.server_lab_sni_spoof_connect),
+                    value = state.sniSpoofConnect,
+                    onValueChange = {
+                        state.sniSpoofConnect = it
+                        state.isSniSpoofConnectError = false
+                    },
+                    placeholder = stringResource(R.string.server_lab_sni_spoof_connect_hint),
+                    isError = state.isSniSpoofConnectError,
+                    supportingText = if (state.isSniSpoofConnectError)
+                        stringResource(R.string.server_lab_sni_spoof_connect_invalid) else null,
+                )
+                FormTextField(
                     label = stringResource(R.string.server_lab_sni_spoof_fake_sni),
                     value = state.sniSpoofFakeSni,
                     onValueChange = {
@@ -491,14 +502,25 @@ abstract class BaseServerActivity : BaseComponentActivity() {
             toast(R.string.server_lab_final_mask)
             return false
         }
-        // The sidecar can only reuse the upstream hostname as the decoy SNI; with an IP
-        // upstream a decoy hostname is mandatory, otherwise it has nothing to inject.
+        // The sidecar's -connect upstream: the optional override wins, otherwise the
+        // profile's own server address. With an IP upstream a decoy hostname is
+        // mandatory, otherwise the sidecar has nothing to inject.
+        val spoofConnectTarget = SniSpoofManager.connectTarget(config)
         if (config.sniSpoofEnabled == true &&
-            Utils.isPureIpAddress(config.server.orEmpty()) &&
+            SniSpoofManager.isConnectTargetIp(spoofConnectTarget) &&
             config.sniSpoofFakeSni.isNullOrBlank()
         ) {
             state.isSniSpoofFakeSniError = true
             toast(R.string.server_lab_sni_spoof_fake_sni)
+            return false
+        }
+        // A non-blank override must be a valid host:port, e.g. 104.19.229.21:443.
+        if (config.sniSpoofEnabled == true &&
+            !config.sniSpoofConnect.isNullOrBlank() &&
+            !SniSpoofManager.isValidConnectTarget(config.sniSpoofConnect.orEmpty())
+        ) {
+            state.isSniSpoofConnectError = true
+            toast(R.string.server_lab_sni_spoof_connect)
             return false
         }
         return true

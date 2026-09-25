@@ -262,12 +262,14 @@ class ServerUiStateTest {
         assertEquals("", state.sniSpoofFakeSni)
         assertEquals(AppConfig.SNI_SPOOF_DEFAULT_UTLS, state.sniSpoofUtls)
         assertEquals(AppConfig.SNI_SPOOF_DEFAULT_INJECTOR, state.sniSpoofInjector)
+        assertEquals("", state.sniSpoofConnect)
 
         val stored = state.toProfileItem(profile)
         assertNull(stored.sniSpoofEnabled)
         assertNull(stored.sniSpoofFakeSni)
         assertNull(stored.sniSpoofUtls)
         assertNull(stored.sniSpoofInjector)
+        assertNull(stored.sniSpoofConnect)
     }
 
     @Test
@@ -278,6 +280,7 @@ class ServerUiStateTest {
             sniSpoofFakeSni = "hcaptcha.com"
             sniSpoofUtls = "firefox"
             sniSpoofInjector = "passive"
+            sniSpoofConnect = "104.19.229.21:443"
         }
 
         val stored = state.toProfileItem(profile)
@@ -285,12 +288,14 @@ class ServerUiStateTest {
         assertEquals("hcaptcha.com", stored.sniSpoofFakeSni)
         assertEquals("firefox", stored.sniSpoofUtls)
         assertEquals("passive", stored.sniSpoofInjector)
+        assertEquals("104.19.229.21:443", stored.sniSpoofConnect)
 
         val restored = ServerUiState.from(stored)
         assertEquals(true, restored.sniSpoofEnabled)
         assertEquals("hcaptcha.com", restored.sniSpoofFakeSni)
         assertEquals("firefox", restored.sniSpoofUtls)
         assertEquals("passive", restored.sniSpoofInjector)
+        assertEquals("104.19.229.21:443", restored.sniSpoofConnect)
     }
 
     @Test

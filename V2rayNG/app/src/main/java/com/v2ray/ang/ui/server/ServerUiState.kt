@@ -114,6 +114,7 @@ class ServerUiState(
     sniSpoofFakeSni: String = "",
     sniSpoofUtls: String = SNI_SPOOF_DEFAULT_UTLS,
     sniSpoofInjector: String = SNI_SPOOF_DEFAULT_INJECTOR,
+    sniSpoofConnect: String = "",
 ) {
     var configType by mutableStateOf(configType)
     var remarks by mutableStateOf(remarks)
@@ -206,6 +207,7 @@ class ServerUiState(
     var sniSpoofFakeSni by mutableStateOf(sniSpoofFakeSni)
     var sniSpoofUtls by mutableStateOf(sniSpoofUtls)
     var sniSpoofInjector by mutableStateOf(sniSpoofInjector)
+    var sniSpoofConnect by mutableStateOf(sniSpoofConnect)
 
     /**
      * Whether an Aether setting the editor keeps folded away holds a value of its own, so that the
@@ -222,6 +224,7 @@ class ServerUiState(
     var isPortError by mutableStateOf(false)
     var isPasswordError by mutableStateOf(false)
     var isSniSpoofFakeSniError by mutableStateOf(false)
+    var isSniSpoofConnectError by mutableStateOf(false)
 
     fun toProfileItem(initialConfig: ProfileItem): ProfileItem {
         val isVmess = configType == EConfigType.VMESS
@@ -327,6 +330,7 @@ class ServerUiState(
             sniSpoofFakeSni = sniSpoofFakeSni.nullIfBlank(),
             sniSpoofUtls = sniSpoofUtls.takeUnless { it.isBlank() || it == SNI_SPOOF_DEFAULT_UTLS },
             sniSpoofInjector = sniSpoofInjector.takeUnless { it.isBlank() || it == SNI_SPOOF_DEFAULT_INJECTOR },
+            sniSpoofConnect = sniSpoofConnect.nullIfBlank(),
         )
         if (!isAether) return profile
         // A command that says what the settings say is no command of its own: the profile follows the settings.
@@ -421,6 +425,7 @@ class ServerUiState(
                 sniSpoofFakeSni = initialConfig.sniSpoofFakeSni ?: "",
                 sniSpoofUtls = initialConfig.sniSpoofUtls ?: SNI_SPOOF_DEFAULT_UTLS,
                 sniSpoofInjector = initialConfig.sniSpoofInjector ?: SNI_SPOOF_DEFAULT_INJECTOR,
+                sniSpoofConnect = initialConfig.sniSpoofConnect ?: "",
             )
 
         fun from(
