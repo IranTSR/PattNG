@@ -252,4 +252,52 @@ class ServerUiStateTest {
         val state = ServerUiState.from(vless).apply { aetherListenPort = "20808" }
         assertNull(state.toProfileItem(vless).aetherListenPort)
     }
+
+    @Test
+    fun sniSpoofingDefaultsToOffAndStoresNothingUntilTouched() {
+        val profile = ProfileItem.create(EConfigType.VLESS)
+        val state = ServerUiState.from(profile)
+
+        assertEquals(false, state.sniSpoofEnabled)
+        assertEquals("", state.sniSpoofFakeSni)
+        assertEquals(AppConfig.SNI_SPOOF_DEFAULT_UTLS, state.sniSpoofUtls)
+        assertEquals(AppConfig.SNI_SPOOF_DEFAULT_INJECTOR, state.sniSpoofInjector)
+
+        val stored = state.toProfileItem(profile)
+        assertNull(stored.sniSpoofEnabled)
+        assertNull(stored.sniSpoofFakeSni)
+        assertNull(stored.sniSpoofUtls)
+        assertNull(stored.sniSpoofInjector)
+    }
+
+    @Test
+    fun sniSpoofingSettingsRoundTripThroughTheProfile() {
+        val profile = ProfileItem.create(EConfigType.TROJAN)
+        val state = ServerUiState.from(profile).apply {
+            sniSpoofEnabled = true
+            sniSpoofFakeSni = "hcaptcha.com"
+            sniSpoofUtls = "firefox"
+            sniSpoofInjector = "passive"
+        }
+
+        val stored = state.toProfileItem(profile)
+        assertEquals(true, stored.sniSpoofEnabled)
+        assertEquals("hcaptcha.com", stored.sniSpoofFakeSni)
+        assertEquals("firefox", stored.sniSpoofUtls)
+        assertEquals("passive", stored.sniSpoofInjector)
+
+        val restored = ServerUiState.from(stored)
+        assertEquals(true, restored.sniSpoofEnabled)
+        assertEquals("hcaptcha.com", restored.sniSpoofFakeSni)
+        assertEquals("firefox", restored.sniSpoofUtls)
+        assertEquals("passive", restored.sniSpoofInjector)
+    }
+
+    @Test
+    fun sniSpoofingFlagIsDroppedForProtocolsTheSidecarCannotFront() {
+        val profile = ProfileItem.create(EConfigType.WIREGUARD)
+        val state = ServerUiState.from(profile).apply { sniSpoofEnabled = true }
+
+        assertNull(state.toProfileItem(profile).sniSpoofEnabled)
+    }
 }

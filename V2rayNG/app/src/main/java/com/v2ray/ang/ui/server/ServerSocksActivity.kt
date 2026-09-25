@@ -31,7 +31,7 @@ class ServerSocksActivity : BaseServerActivity() {
             SocksProtocolFields(uiState)
             CommonDialModeField(uiState)
             CommonTargetStrategyField(uiState)
-
+            CommonSniSpoofingFields(uiState)
         }
     }
 

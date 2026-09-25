@@ -31,7 +31,7 @@ class ServerHttpActivity : BaseServerActivity() {
             HttpProtocolFields(uiState)
             CommonDialModeField(uiState)
             CommonTargetStrategyField(uiState)
-
+            CommonSniSpoofingFields(uiState)
         }
     }
 

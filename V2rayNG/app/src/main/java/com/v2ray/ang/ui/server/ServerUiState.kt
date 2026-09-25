@@ -7,6 +7,8 @@ import androidx.compose.runtime.setValue
 import com.v2ray.ang.AppConfig.DEFAULT_PORT
 import com.v2ray.ang.AppConfig.PORT_AETHER_SOCKS
 import com.v2ray.ang.AppConfig.REALITY
+import com.v2ray.ang.AppConfig.SNI_SPOOF_DEFAULT_INJECTOR
+import com.v2ray.ang.AppConfig.SNI_SPOOF_DEFAULT_UTLS
 import com.v2ray.ang.AppConfig.TARGET_STRATEGY_AS_IS
 import com.v2ray.ang.AppConfig.WIREGUARD_LOCAL_ADDRESS_V4
 import com.v2ray.ang.AppConfig.WIREGUARD_LOCAL_MTU
@@ -27,6 +29,7 @@ import com.v2ray.ang.enums.AetherTransport
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.enums.NetworkType
 import com.v2ray.ang.extension.nullIfBlank
+import com.v2ray.ang.snispoof.SniSpoofManager
 import com.v2ray.ang.util.JsonUtil
 
 class ServerUiState(
@@ -106,7 +109,11 @@ class ServerUiState(
     aetherTorBridges: String = AetherTorBridges.AUTO.type,
     aetherTorBridgeLines: String = "",
     aetherTorRelays: String = AetherTorRelays.AUTO.type,
-    aetherCommand: String = ""
+    aetherCommand: String = "",
+    sniSpoofEnabled: Boolean = false,
+    sniSpoofFakeSni: String = "",
+    sniSpoofUtls: String = SNI_SPOOF_DEFAULT_UTLS,
+    sniSpoofInjector: String = SNI_SPOOF_DEFAULT_INJECTOR,
 ) {
     var configType by mutableStateOf(configType)
     var remarks by mutableStateOf(remarks)
@@ -195,6 +202,10 @@ class ServerUiState(
     var aetherTorBridgeLines by mutableStateOf(aetherTorBridgeLines)
     var aetherTorRelays by mutableStateOf(aetherTorRelays)
     var aetherCommand by mutableStateOf(aetherCommand)
+    var sniSpoofEnabled by mutableStateOf(sniSpoofEnabled)
+    var sniSpoofFakeSni by mutableStateOf(sniSpoofFakeSni)
+    var sniSpoofUtls by mutableStateOf(sniSpoofUtls)
+    var sniSpoofInjector by mutableStateOf(sniSpoofInjector)
 
     /**
      * Whether an Aether setting the editor keeps folded away holds a value of its own, so that the
@@ -210,6 +221,7 @@ class ServerUiState(
     var isAddressError by mutableStateOf(false)
     var isPortError by mutableStateOf(false)
     var isPasswordError by mutableStateOf(false)
+    var isSniSpoofFakeSniError by mutableStateOf(false)
 
     fun toProfileItem(initialConfig: ProfileItem): ProfileItem {
         val isVmess = configType == EConfigType.VMESS
@@ -311,6 +323,10 @@ class ServerUiState(
             aetherTorBridgeLines = if (isTor) aetherTorBridgeLines.nullIfBlank() else null,
             aetherTorRelays = if (isTor) aetherTorRelays else null,
             aetherCommand = null,
+            sniSpoofEnabled = if (sniSpoofEnabled && SniSpoofManager.isSupportedType(configType)) true else null,
+            sniSpoofFakeSni = sniSpoofFakeSni.nullIfBlank(),
+            sniSpoofUtls = sniSpoofUtls.takeUnless { it.isBlank() || it == SNI_SPOOF_DEFAULT_UTLS },
+            sniSpoofInjector = sniSpoofInjector.takeUnless { it.isBlank() || it == SNI_SPOOF_DEFAULT_INJECTOR },
         )
         if (!isAether) return profile
         // A command that says what the settings say is no command of its own: the profile follows the settings.
@@ -400,7 +416,11 @@ class ServerUiState(
                 aetherTorBridges = AetherTorBridges.fromString(initialConfig.aetherTorBridges).type,
                 aetherTorBridgeLines = initialConfig.aetherTorBridgeLines ?: "",
                 aetherTorRelays = AetherTorRelays.fromString(initialConfig.aetherTorRelays).type,
-                aetherCommand = initialConfig.aetherCommand ?: ""
+                aetherCommand = initialConfig.aetherCommand ?: "",
+                sniSpoofEnabled = initialConfig.sniSpoofEnabled == true,
+                sniSpoofFakeSni = initialConfig.sniSpoofFakeSni ?: "",
+                sniSpoofUtls = initialConfig.sniSpoofUtls ?: SNI_SPOOF_DEFAULT_UTLS,
+                sniSpoofInjector = initialConfig.sniSpoofInjector ?: SNI_SPOOF_DEFAULT_INJECTOR,
             )
 
         fun from(

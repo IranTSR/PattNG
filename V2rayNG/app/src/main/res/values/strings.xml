@@ -87,6 +87,15 @@
     <string name="server_lab_cipher_suites">Cipher Suites</string>
     <string name="server_lab_allow_insecure">allowInsecure</string>
     <string name="server_lab_sni" translatable="false">SNI</string>
+    <string name="server_lab_sni_spoof_enable">SNI Spoofing (root)</string>
+    <string name="server_lab_sni_spoof_enable_summary">Route this profile through the SNI-Spoofing-Go sidecar (fake ClientHello injection). Requires root.</string>
+    <string name="server_lab_sni_spoof_fake_sni" translatable="false">Decoy SNI</string>
+    <string name="server_lab_sni_spoof_fake_sni_hint">e.g. hcaptcha.com — blank lets the sidecar decide</string>
+    <string name="server_lab_sni_spoof_fake_sni_required">A decoy SNI is required when the server address is an IP</string>
+    <string name="server_lab_sni_spoof_utls" translatable="false">uTLS fingerprint</string>
+    <string name="server_lab_sni_spoof_injector" translatable="false">Injector</string>
+    <string name="sni_spoof_needs_root">SNI Spoofing needs root access</string>
+    <string name="sni_spoof_start_failed">SNI Spoofing failed to start</string>
     <string name="server_lab_address3">address</string>
     <string name="server_lab_port3">port</string>
     <string name="server_lab_id3">password</string>

@@ -181,6 +181,16 @@ object AppConfig {
     const val WIREGUARD_LOCAL_REMOTE_DNS = "1.1.1.1,1.0.0.1,2606:4700:4700::1111,2606:4700:4700::1001"
     const val LOOPBACK = "127.0.0.1"
 
+    /** SNI-Spoofing-Go root sidecar (fake TLS ClientHello injection proxy, personal/root use). */
+    const val SNI_SPOOF_ASSET_ARM64 = "sni_spoofing_arm64"
+    const val SNI_SPOOF_ASSET_SHA256 = "cc7fbcd57afaacbc18bf016421981c96f7e18ddae229fc236c167ca847c4e1b7"
+    const val SNI_SPOOF_BIN_NAME = "sni-spoofing"
+    const val SNI_SPOOF_RUNTIME_DIR = "sni_spoof"
+    const val SNI_SPOOF_PID_FILE = "sni-spoofing.pid"
+    const val SNI_SPOOF_DEFAULT_PORT = 40443
+    const val SNI_SPOOF_DEFAULT_UTLS = "chrome"
+    const val SNI_SPOOF_DEFAULT_INJECTOR = "active"
+
     /** Shared defaults for settings shown in the UI and consumed by config generation. */
     const val DEFAULT_SOCKS_ENABLE_UDP = true
     const val DEFAULT_OUTBOUND_DOMAIN_RESOLVE_METHOD = "0"

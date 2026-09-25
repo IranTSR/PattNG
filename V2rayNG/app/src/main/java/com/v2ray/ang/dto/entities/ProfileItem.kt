@@ -129,6 +129,18 @@ data class ProfileItem(
 
     /** The command line of this profile's core, written by hand in place of the one built from the settings; null follows the settings. */
     var aetherCommand: String? = null,
+
+    /** SNI-Spoofing-Go sidecar enabled for this profile; null means disabled. Requires root. */
+    var sniSpoofEnabled: Boolean? = null,
+
+    /** Decoy SNI sent in the injected fake ClientHello; null or blank lets the sidecar decide. */
+    var sniSpoofFakeSni: String? = null,
+
+    /** uTLS fingerprint preset for the fake ClientHello; null means the default. */
+    var sniSpoofUtls: String? = null,
+
+    /** Injector backend ("active" or "passive"); null means the default. */
+    var sniSpoofInjector: String? = null,
 ) {
 
     companion object {

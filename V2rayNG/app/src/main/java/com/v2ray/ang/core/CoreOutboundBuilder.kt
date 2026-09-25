@@ -10,6 +10,7 @@ import com.v2ray.ang.enums.NetworkType
 import com.v2ray.ang.extension.isNotNullEmpty
 import com.v2ray.ang.extension.nullIfBlank
 import com.v2ray.ang.handler.MmkvManager
+import com.v2ray.ang.snispoof.SniSpoofManager
 import com.v2ray.ang.util.HttpUtil
 import com.v2ray.ang.util.JsonUtil
 import com.v2ray.ang.util.LogUtil
@@ -37,6 +38,8 @@ object CoreOutboundBuilder {
         }
 
         outbound ?: return null
+        // SNI-Spoofing-Go sidecar: dial loopback when a live session serves this profile.
+        SniSpoofManager.applyLoopbackRewrite(outbound, profileItem)
         applyDialMode(outbound, profileItem)
         applyTargetStrategy(outbound, profileItem)
         val ret = updateOutboundWithGlobalSettings(outbound)
