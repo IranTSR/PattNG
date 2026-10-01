@@ -185,6 +185,11 @@ object AppConfig {
     const val PORT_LOCAL_DNS = "10853"
     const val PORT_SOCKS = "10808"
     const val PORT_AETHER_SOCKS = "10819"
+
+    /** PattNG: where the Aether core asks for the ECH key, and the domain whose key it takes, unless a profile names others. */
+    const val AETHER_ECH_DNS = "udp://1.1.1.1"
+    const val AETHER_ECH_DOMAIN = "cloudflare-ech.com"
+
     const val WIREGUARD_LOCAL_ADDRESS_V4 = "172.16.0.2/32"
     const val WIREGUARD_LOCAL_ADDRESS_V6 = "2606:4700:110:8f81:d551:a0:532e:a2b3/128"
     const val WIREGUARD_LOCAL_MTU = "1420"

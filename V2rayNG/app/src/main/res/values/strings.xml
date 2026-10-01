@@ -626,6 +626,10 @@
     <string name="aether_tor_bridges_missing">Write at least one bridge line, or choose another bridge setting</string>
     <string name="aether_lab_ech">Encrypted Client Hello</string>
     <string name="aether_hint_ech">Hides the server name of the MASQUE handshake, when its key can be fetched</string>
+    <string name="aether_lab_ech_dns">ECH DNS</string>
+    <string name="aether_lab_ech_domain">ECH domain</string>
+    <string name="aether_invalid_ech_dns">The ECH DNS must be udp://IP, tcp://IP or the https:// address of a DNS-over-HTTPS server</string>
+    <string name="aether_invalid_ech_domain">The ECH domain must be a domain name, such as cloudflare-ech.com</string>
     <string name="aether_lab_dns">DNS inside the tunnel</string>
     <string name="aether_hint_dns">Comma-separated; leave blank for 1.1.1.1 and 1.0.0.1</string>
     <string name="aether_invalid_dns">Write resolver addresses such as 1.1.1.1 or 10.0.0.1:5353, separated by commas</string>

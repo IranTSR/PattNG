@@ -622,6 +622,10 @@
     <string name="aether_tor_bridges_missing">کم‌کم یه خط پل بنویسین، یا یه تنظیم دیه سی پل‌یا انتخاب کنین</string>
     <string name="aether_lab_ech">Encrypted Client Hello (ECH)</string>
     <string name="aether_hint_ech">نوم سرور من دست‌دادن MASQUE قایم اکنه، وختی کلیدس قابل گرهدن بۊ</string>
+    <string name="aether_lab_ech_dns">DNS سی ECH</string>
+    <string name="aether_lab_ech_domain">دامنه ECH</string>
+    <string name="aether_invalid_ech_dns">DNS سی ECH باید udp://IP، tcp://IP یا نشونی https:// یه سرور DNS-over-HTTPS بۊ</string>
+    <string name="aether_invalid_ech_domain">دامنه ECH باید یه نوم دامنه بۊ، چی cloudflare-ech.com</string>
     <string name="aether_lab_dns">DNS من تونل</string>
     <string name="aether_hint_dns">وا کاما سوا کنین؛ خالی بیلین تا 1.1.1.1 و 1.0.0.1 استفاده بۊ</string>
     <string name="aether_invalid_dns">نشونی‌یای DNS مثل 1.1.1.1 یا 10.0.0.1:5353 نه وا کاما سوا بنویسین</string>

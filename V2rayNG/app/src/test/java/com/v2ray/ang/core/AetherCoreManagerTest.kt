@@ -690,6 +690,22 @@ class AetherCoreManagerTest {
         assertEquals("1.1.1.1,10.0.0.1:5353", valueAfter(arguments, "--dns"))
         assertEquals("!IR,RU", valueAfter(arguments, "--exit-loc"))
 
+        // The key is asked of the default resolver for the default domain, unless the profile names others.
+        assertEquals("udp://1.1.1.1", valueAfter(arguments, "--ech-dns"))
+        assertEquals("cloudflare-ech.com", valueAfter(arguments, "--ech-domain"))
+        val named = AetherCoreManager.buildArguments(
+            tuned.copy(aetherEchDns = " https://doq.dns4all.eu/dns-query ", aetherEchDomain = "ip.gs"),
+            10819,
+        )
+        assertEquals("https://doq.dns4all.eu/dns-query", valueAfter(named, "--ech-dns"))
+        assertEquals("ip.gs", valueAfter(named, "--ech-domain"))
+        val blank = AetherCoreManager.buildArguments(tuned.copy(aetherEchDns = " ", aetherEchDomain = ""), 10819)
+        assertEquals("udp://1.1.1.1", valueAfter(blank, "--ech-dns"))
+        assertEquals("cloudflare-ech.com", valueAfter(blank, "--ech-domain"))
+        val off = AetherCoreManager.buildArguments(profile().copy(aetherEchDns = "tcp://1.1.1.1", aetherEchDomain = "ip.gs"), 10819)
+        assertNull(valueAfter(off, "--ech-dns"))
+        assertNull(valueAfter(off, "--ech-domain"))
+
         // ECH belongs to the MASQUE handshake, on either carrier and both hops.
         assertEquals("auto", valueAfter(AetherCoreManager.buildArguments(tuned.copy(aetherProtocol = "mim"), 10819), "--ech"))
         assertNull(valueAfter(AetherCoreManager.buildArguments(tuned.copy(aetherProtocol = "wg"), 10819), "--ech"))
@@ -698,6 +714,8 @@ class AetherCoreManagerTest {
         // A scan runs under the same conditions, the exit rule included, so it ends on an endpoint the session will accept.
         val scan = AetherCoreManager.buildArguments(tuned, 0, scan = true)
         assertEquals("auto", valueAfter(scan, "--ech"))
+        assertEquals("udp://1.1.1.1", valueAfter(scan, "--ech-dns"))
+        assertEquals("cloudflare-ech.com", valueAfter(scan, "--ech-domain"))
         assertEquals("1.1.1.1,10.0.0.1:5353", valueAfter(scan, "--dns"))
         assertEquals("!IR,RU", valueAfter(scan, "--exit-loc"))
 

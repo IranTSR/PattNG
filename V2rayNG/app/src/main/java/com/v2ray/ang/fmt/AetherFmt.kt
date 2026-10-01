@@ -1,5 +1,6 @@
 package com.v2ray.ang.fmt
 
+import com.v2ray.ang.AppConfig
 import com.v2ray.ang.core.AetherCore
 import com.v2ray.ang.core.AetherCoreManager
 import com.v2ray.ang.dto.AetherEndpoint
@@ -31,6 +32,8 @@ object AetherFmt : FmtBase() {
         INVALID_FRAGMENT,
         INVALID_DNS,
         INVALID_EXIT_LOC,
+        INVALID_ECH_DNS,
+        INVALID_ECH_DOMAIN,
         LISTEN_PORT_TAKEN,
         PSIPHON_NEEDS_MASQUE,
         NEXT_PORT_TAKEN,
@@ -57,6 +60,8 @@ object AetherFmt : FmtBase() {
         config.aetherFragmentSize = AetherRange.parse(queryParam["fragment_size"], AetherRange.FRAGMENT_SIZE)?.toString()
         config.aetherFragmentDelay = AetherRange.parse(queryParam["fragment_delay"], AetherRange.FRAGMENT_DELAY)?.toString()
         config.aetherEch = queryParam["ech"] == "1"
+        config.aetherEchDns = queryParam["ech_dns"]?.takeIf { config.aetherEch == true }
+        config.aetherEchDomain = queryParam["ech_domain"]?.takeIf { config.aetherEch == true }
         config.aetherDns = queryParam["dns"]
         config.aetherExitLoc = queryParam["exit_loc"]
         // A link from before the Aether listen port was one setting for every profile may name a port of its own, which counts no more.
@@ -109,7 +114,11 @@ object AetherFmt : FmtBase() {
                 AetherRange.parse(config.aetherFragmentDelay, AetherRange.FRAGMENT_DELAY)
                     ?.let { query["fragment_delay"] = it.toString() }
             }
-            if (config.aetherEch == true) query["ech"] = "1"
+            if (config.aetherEch == true) {
+                query["ech"] = "1"
+                config.aetherEchDns?.takeIf { it.isNotBlank() }?.let { query["ech_dns"] = it }
+                config.aetherEchDomain?.takeIf { it.isNotBlank() }?.let { query["ech_domain"] = it }
+            }
         }
         if (protocol.twoHops) {
             AetherEndpoint.parse(config.aetherWiwOuter)?.let { query["outer"] = it.toString() }
@@ -150,6 +159,7 @@ object AetherFmt : FmtBase() {
             ?: normalizeEndpoints(config)
             ?: normalizeDns(config)
             ?: normalizeExitLoc(config)
+            ?: normalizeEch(config)
             ?: normalizePsiphon(config)
             ?: normalizeTor(config)
             ?: normalizeListenPort(config, takenPorts)
@@ -197,6 +207,48 @@ object AetherFmt : FmtBase() {
     }
 
     private val exitRule = Regex("!?[A-Z]{2}(,[A-Z]{2})*")
+
+    /**
+     * Where the ECH key comes from, as the core reads it: the resolver and the domain, kept while ECH is on and
+     * left out when they are the defaults, so that a profile follows the defaults.
+     */
+    private fun normalizeEch(config: ProfileItem): Problem? {
+        if (config.aetherEch != true) {
+            config.aetherEchDns = null
+            config.aetherEchDomain = null
+            return null
+        }
+        val dns = config.aetherEchDns?.trim().orEmpty()
+        if (dns.isNotEmpty() && !isEchDns(dns)) return Problem.INVALID_ECH_DNS
+        val domain = config.aetherEchDomain?.trim().orEmpty()
+        if (domain.isNotEmpty() && !isEchDomain(domain)) return Problem.INVALID_ECH_DOMAIN
+        config.aetherEchDns = dns.takeUnless { it.isEmpty() || it == AppConfig.AETHER_ECH_DNS }
+        config.aetherEchDomain = domain.takeUnless { it.isEmpty() || it == AppConfig.AETHER_ECH_DOMAIN }
+        return null
+    }
+
+    /**
+     * Whether [value] names a resolver the core asks for the ECH key, as its --ech-dns takes it: udp:// or tcp:// and
+     * an IP address, on port 53 unless one is given, or the https:// URL of a DNS-over-HTTPS server, on port 443
+     * unless it names one.
+     */
+    internal fun isEchDns(value: String): Boolean {
+        val scheme = value.substringBefore("://", "").lowercase(Locale.ROOT)
+        val rest = value.substringAfter("://", "")
+        return when (scheme) {
+            "https" -> rest.takeWhile { it !in "/?#" }.isNotEmpty() && value.none { it.isWhitespace() }
+            "udp", "tcp" -> rest.trimEnd('/').let { AetherEndpoint.parse(it) ?: AetherEndpoint.of(it, "53") } != null
+            else -> false
+        }
+    }
+
+    /** Whether [value] is a domain whose HTTPS record can be asked for, as the core's --ech-domain takes it. */
+    internal fun isEchDomain(value: String): Boolean {
+        val name = value.removeSuffix(".")
+        return name.isNotEmpty() && name.length <= 253 && name.split('.').all { echDomainLabel.matches(it) }
+    }
+
+    private val echDomainLabel = Regex("[A-Za-z0-9_-]{1,63}")
 
     private fun normalizePsiphon(config: ProfileItem): Problem? {
         val psiphon = AetherPsiphon.fromString(config.aetherPsiphon)

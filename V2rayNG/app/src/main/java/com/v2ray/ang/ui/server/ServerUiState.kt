@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.setValue
+import com.v2ray.ang.AppConfig.AETHER_ECH_DNS
+import com.v2ray.ang.AppConfig.AETHER_ECH_DOMAIN
 import com.v2ray.ang.AppConfig.DEFAULT_PORT
 import com.v2ray.ang.AppConfig.REALITY
 import com.v2ray.ang.AppConfig.TARGET_STRATEGY_AS_IS
@@ -93,6 +95,8 @@ class ServerUiState(
     aetherFragmentSize: String = "",
     aetherFragmentDelay: String = "",
     aetherEch: Boolean = false,
+    aetherEchDns: String = AETHER_ECH_DNS,
+    aetherEchDomain: String = AETHER_ECH_DOMAIN,
     aetherDns: String = "",
     aetherExitLoc: String = "",
     aetherPsiphon: String = AetherPsiphon.OFF.type,
@@ -171,6 +175,8 @@ class ServerUiState(
     var aetherFragmentSize by mutableStateOf(aetherFragmentSize)
     var aetherFragmentDelay by mutableStateOf(aetherFragmentDelay)
     var aetherEch by mutableStateOf(aetherEch)
+    var aetherEchDns by mutableStateOf(aetherEchDns)
+    var aetherEchDomain by mutableStateOf(aetherEchDomain)
     var aetherDns by mutableStateOf(aetherDns)
     var aetherExitLoc by mutableStateOf(aetherExitLoc)
     var aetherPsiphon by mutableStateOf(aetherPsiphon)
@@ -301,6 +307,8 @@ class ServerUiState(
             aetherFragmentSize = if (isAether) aetherFragmentSize.nullIfBlank() else null,
             aetherFragmentDelay = if (isAether) aetherFragmentDelay.nullIfBlank() else null,
             aetherEch = if (isAether) aetherEch else null,
+            aetherEchDns = if (isAether && aetherEch) aetherEchDns.nullIfBlank() else null,
+            aetherEchDomain = if (isAether && aetherEch) aetherEchDomain.nullIfBlank() else null,
             aetherDns = if (isAether) aetherDns.nullIfBlank() else null,
             aetherExitLoc = if (isAether) aetherExitLoc.nullIfBlank() else null,
             aetherPsiphon = if (isPsiphon) aetherPsiphon else null,
@@ -391,6 +399,9 @@ class ServerUiState(
                 aetherFragmentSize = initialConfig.aetherFragmentSize ?: "",
                 aetherFragmentDelay = initialConfig.aetherFragmentDelay ?: "",
                 aetherEch = initialConfig.aetherEch == true,
+                // Shown filled in, so that what the core is told is in sight.
+                aetherEchDns = initialConfig.aetherEchDns.nullIfBlank() ?: AETHER_ECH_DNS,
+                aetherEchDomain = initialConfig.aetherEchDomain.nullIfBlank() ?: AETHER_ECH_DOMAIN,
                 aetherDns = initialConfig.aetherDns ?: "",
                 aetherExitLoc = initialConfig.aetherExitLoc ?: "",
                 aetherPsiphon = AetherPsiphon.fromString(initialConfig.aetherPsiphon).type,

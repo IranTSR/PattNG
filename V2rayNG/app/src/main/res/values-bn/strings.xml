@@ -622,6 +622,10 @@
     <string name="aether_tor_bridges_missing">অন্তত একটি ব্রিজ লাইন লিখুন, অথবা অন্য ব্রিজ সেটিং বেছে নিন</string>
     <string name="aether_lab_ech">Encrypted Client Hello (ECH)</string>
     <string name="aether_hint_ech">MASQUE হ্যান্ডশেকের সার্ভার নাম লুকায়, যখন এর কী আনা যায়</string>
+    <string name="aether_lab_ech_dns">ECH DNS</string>
+    <string name="aether_lab_ech_domain">ECH ডোমেইন</string>
+    <string name="aether_invalid_ech_dns">ECH DNS হতে হবে udp://IP, tcp://IP অথবা কোনো DNS-over-HTTPS সার্ভারের https:// ঠিকানা</string>
+    <string name="aether_invalid_ech_domain">ECH ডোমেইন একটি ডোমেইন নাম হতে হবে, যেমন cloudflare-ech.com</string>
     <string name="aether_lab_dns">টানেলের ভিতরের DNS</string>
     <string name="aether_hint_dns">কমা দিয়ে আলাদা করুন; খালি রাখলে 1.1.1.1 ও 1.0.0.1</string>
     <string name="aether_invalid_dns">1.1.1.1 বা 10.0.0.1:5353-এর মতো রিজলভার ঠিকানা কমা দিয়ে আলাদা করে লিখুন</string>

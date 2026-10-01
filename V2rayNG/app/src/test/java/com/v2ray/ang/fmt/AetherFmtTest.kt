@@ -1,5 +1,6 @@
 package com.v2ray.ang.fmt
 
+import com.v2ray.ang.AppConfig
 import com.v2ray.ang.core.AetherCore
 import com.v2ray.ang.core.AetherCoreManager
 import com.v2ray.ang.dto.entities.ProfileItem
@@ -300,6 +301,76 @@ class AetherFmtTest {
         for (named in listOf("off", "light", "firewall", "balanced", "gfw", "aggressive")) {
             assertEquals(named, AetherFmt.parse(link(profile { aetherObfuscation = named }))?.aetherObfuscation)
         }
+    }
+
+    @Test
+    fun theEchResolverAndDomainSurviveTheRoundTripWhileEchIsOn() {
+        val tuned = profile {
+            aetherEch = true
+            aetherEchDns = "https://doq.dns4all.eu/dns-query"
+            aetherEchDomain = "ip.gs"
+        }
+        val parsed = AetherFmt.parse(link(tuned))
+        assertEquals("https://doq.dns4all.eu/dns-query", parsed?.aetherEchDns)
+        assertEquals("ip.gs", parsed?.aetherEchDomain)
+
+        // Without ECH a link says nothing of them, and they are not taken from one.
+        val off = link(profile { aetherEchDns = "tcp://1.1.1.1"; aetherEchDomain = "ip.gs" })
+        assertFalse(off.contains("ech_dns="))
+        assertFalse(off.contains("ech_domain="))
+        val plain = link(profile {})
+        val strayLink = plain.substringBefore('#') + "&ech_dns=tcp%3A%2F%2F1.1.1.1&ech_domain=ip.gs#" + plain.substringAfter('#')
+        assertTrue(strayLink, strayLink.substringBefore('#').contains("ech_dns="))
+        val stray = AetherFmt.parse(strayLink)
+        assertNull(stray?.aetherEchDns)
+        assertNull(stray?.aetherEchDomain)
+    }
+
+    @Test
+    fun theEchResolverIsUdpOrTcpWithAnIpAddressOrAnHttpsUrl() {
+        val good = listOf(
+            "udp://1.0.0.1",
+            "udp://1.1.1.1:5353",
+            "tcp://8.8.8.8",
+            "TCP://[2606:4700:4700::1111]:53",
+            "tcp://[::1]",
+            "https://doq.dns4all.eu/dns-query",
+            "https://1.1.1.1:8443/dns-query",
+        )
+        for (dns in good) {
+            val config = profile { aetherEch = true; aetherEchDns = " $dns " }
+            assertNull(dns, AetherFmt.normalize(config))
+            assertEquals(dns, config.aetherEchDns)
+        }
+        val bad = listOf("1.1.1.1", "udp://dns.google", "tls://1.1.1.1", "udp://1.1.1.1:70000", "udp://", "https://", "https:///dns-query")
+        for (dns in bad) {
+            assertEquals(dns, AetherFmt.Problem.INVALID_ECH_DNS, AetherFmt.normalize(profile { aetherEch = true; aetherEchDns = dns }))
+        }
+    }
+
+    @Test
+    fun theEchDomainIsADomainName() {
+        for (domain in listOf("crypto.cloudflare.com", "ip.gs", "ip.gs.", "_ech.example.com")) {
+            val config = profile { aetherEch = true; aetherEchDomain = domain }
+            assertNull(domain, AetherFmt.normalize(config))
+            assertEquals(domain, config.aetherEchDomain)
+        }
+        for (domain in listOf("a..b", "with space.com", "https://ip.gs", "ip.gs/", "${"a".repeat(64)}.com")) {
+            assertEquals(domain, AetherFmt.Problem.INVALID_ECH_DOMAIN, AetherFmt.normalize(profile { aetherEch = true; aetherEchDomain = domain }))
+        }
+    }
+
+    @Test
+    fun theDefaultEchResolverAndDomainAreLeftToTheDefaults() {
+        val config = profile { aetherEch = true; aetherEchDns = AppConfig.AETHER_ECH_DNS; aetherEchDomain = " ${AppConfig.AETHER_ECH_DOMAIN} " }
+        assertNull(AetherFmt.normalize(config))
+        assertNull(config.aetherEchDns)
+        assertNull(config.aetherEchDomain)
+        // Nor are others kept once ECH is off.
+        val off = profile { aetherEchDns = "tcp://1.1.1.1"; aetherEchDomain = "ip.gs" }
+        assertNull(AetherFmt.normalize(off))
+        assertNull(off.aetherEchDns)
+        assertNull(off.aetherEchDomain)
     }
 
     @Test

@@ -620,6 +620,10 @@
     <string name="aether_tor_bridges_missing">請至少填寫一條橋接行，或選擇其他橋接設定</string>
     <string name="aether_lab_ech">加密用戶端問候（ECH）</string>
     <string name="aether_hint_ech">隱藏 MASQUE 交握中的伺服器名稱（需要能取得其金鑰）</string>
+    <string name="aether_lab_ech_dns">ECH DNS</string>
+    <string name="aether_lab_ech_domain">ECH 網域</string>
+    <string name="aether_invalid_ech_dns">ECH DNS 必須是 udp://IP、tcp://IP 或 DNS-over-HTTPS 伺服器的 https:// 位址</string>
+    <string name="aether_invalid_ech_domain">ECH 網域必須是網域名稱，例如 cloudflare-ech.com</string>
     <string name="aether_lab_dns">通道內 DNS</string>
     <string name="aether_hint_dns">以逗號分隔；留空則使用 1.1.1.1 和 1.0.0.1</string>
     <string name="aether_invalid_dns">請填寫解析器位址，例如 1.1.1.1 或 10.0.0.1:5353，以逗號分隔</string>

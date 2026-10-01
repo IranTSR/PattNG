@@ -52,6 +52,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.core.AetherCore
 import com.v2ray.ang.core.AetherCoreManager
@@ -215,6 +216,23 @@ class ServerAetherActivity : BaseServerActivity() {
                         checked = uiState.aetherEch,
                         onCheckedChange = { uiState.aetherEch = it }
                     )
+                    // Where the key comes from: the HTTPS record of the ECH domain, asked of the ECH DNS.
+                    if (uiState.aetherEch) {
+                        FormTextField(
+                            stringResource(R.string.aether_lab_ech_dns),
+                            uiState.aetherEchDns,
+                            { uiState.aetherEchDns = it },
+                            keyboardType = KeyboardType.Uri,
+                            placeholder = AppConfig.AETHER_ECH_DNS
+                        )
+                        FormTextField(
+                            stringResource(R.string.aether_lab_ech_domain),
+                            uiState.aetherEchDomain,
+                            { uiState.aetherEchDomain = it },
+                            keyboardType = KeyboardType.Uri,
+                            placeholder = AppConfig.AETHER_ECH_DOMAIN
+                        )
+                    }
                 }
                 AetherDropdownField(
                     label = R.string.aether_lab_scan_mode,
@@ -583,6 +601,8 @@ class ServerAetherActivity : BaseServerActivity() {
                 AetherFmt.Problem.INVALID_FRAGMENT -> R.string.aether_invalid_fragment
                 AetherFmt.Problem.INVALID_DNS -> R.string.aether_invalid_dns
                 AetherFmt.Problem.INVALID_EXIT_LOC -> R.string.aether_invalid_exit_loc
+                AetherFmt.Problem.INVALID_ECH_DNS -> R.string.aether_invalid_ech_dns
+                AetherFmt.Problem.INVALID_ECH_DOMAIN -> R.string.aether_invalid_ech_domain
                 AetherFmt.Problem.LISTEN_PORT_TAKEN -> R.string.aether_listen_port_taken
                 AetherFmt.Problem.PSIPHON_NEEDS_MASQUE -> R.string.aether_psiphon_needs_masque
                 AetherFmt.Problem.NEXT_PORT_TAKEN -> R.string.aether_next_port_taken

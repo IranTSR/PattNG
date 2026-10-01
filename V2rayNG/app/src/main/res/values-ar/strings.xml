@@ -630,6 +630,10 @@
     <string name="aether_tor_bridges_missing">اكتب سطر جسر واحدًا على الأقل، أو اختر إعدادًا آخر للجسور</string>
     <string name="aether_lab_ech">Encrypted Client Hello (ECH)</string>
     <string name="aether_hint_ech">يخفي اسم الخادم في مصافحة MASQUE عندما يمكن جلب مفتاحه</string>
+    <string name="aether_lab_ech_dns">DNS لـ ECH</string>
+    <string name="aether_lab_ech_domain">نطاق ECH</string>
+    <string name="aether_invalid_ech_dns">يجب أن يكون DNS لـ ECH بالشكل udp://IP أو tcp://IP أو عنوان https:// لخادم DNS-over-HTTPS</string>
+    <string name="aether_invalid_ech_domain">يجب أن يكون نطاق ECH اسم نطاق، مثل cloudflare-ech.com</string>
     <string name="aether_lab_dns">DNS داخل النفق</string>
     <string name="aether_hint_dns">مفصولة بفواصل؛ اتركه فارغًا لاستخدام 1.1.1.1 و1.0.0.1</string>
     <string name="aether_invalid_dns">اكتب عناوين محلّلات مثل 1.1.1.1 أو 10.0.0.1:5353 مفصولة بفواصل</string>

@@ -626,6 +626,10 @@
     <string name="aether_tor_bridges_missing">Введите хотя бы одну строку моста или выберите другую настройку мостов</string>
     <string name="aether_lab_ech">Encrypted Client Hello (ECH)</string>
     <string name="aether_hint_ech">Скрывает имя сервера в рукопожатии MASQUE, если удаётся получить ключ</string>
+    <string name="aether_lab_ech_dns">DNS для ECH</string>
+    <string name="aether_lab_ech_domain">Домен ECH</string>
+    <string name="aether_invalid_ech_dns">DNS для ECH должен быть udp://IP, tcp://IP или адресом https:// сервера DNS-over-HTTPS</string>
+    <string name="aether_invalid_ech_domain">Домен ECH должен быть доменным именем, например cloudflare-ech.com</string>
     <string name="aether_lab_dns">DNS внутри туннеля</string>
     <string name="aether_hint_dns">Через запятую; оставьте пустым для 1.1.1.1 и 1.0.0.1</string>
     <string name="aether_invalid_dns">Укажите адреса резолверов, например 1.1.1.1 или 10.0.0.1:5353, через запятую</string>

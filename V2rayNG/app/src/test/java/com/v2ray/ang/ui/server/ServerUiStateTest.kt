@@ -234,6 +234,32 @@ class ServerUiStateTest {
     }
 
     @Test
+    fun theEchResolverAndDomainStartAtTheirDefaultsAndAreStoredOnlyWhileEchIsOn() {
+        val profile = ProfileItem.create(EConfigType.AETHER)
+        val state = ServerUiState.from(profile)
+        assertEquals(AppConfig.AETHER_ECH_DNS, state.aetherEchDns)
+        assertEquals(AppConfig.AETHER_ECH_DOMAIN, state.aetherEchDomain)
+
+        state.aetherEchDns = "https://doq.dns4all.eu/dns-query"
+        state.aetherEchDomain = "ip.gs"
+        assertNull(state.toProfileItem(profile).aetherEchDns)
+        assertNull(state.toProfileItem(profile).aetherEchDomain)
+
+        state.aetherEch = true
+        val stored = state.toProfileItem(profile)
+        assertEquals("https://doq.dns4all.eu/dns-query", stored.aetherEchDns)
+        assertEquals("ip.gs", stored.aetherEchDomain)
+        val reloaded = ServerUiState.from(stored)
+        assertEquals("https://doq.dns4all.eu/dns-query", reloaded.aetherEchDns)
+        assertEquals("ip.gs", reloaded.aetherEchDomain)
+
+        // A field left empty is the default again.
+        state.aetherEchDns = " "
+        assertNull(state.toProfileItem(profile).aetherEchDns)
+        assertEquals(AppConfig.AETHER_ECH_DNS, ServerUiState.from(state.toProfileItem(profile)).aetherEchDns)
+    }
+
+    @Test
     fun aCommandIsStoredOnlyWhenItSaysMoreThanTheSettings() {
         val profile = ProfileItem.create(EConfigType.AETHER)
         val state = ServerUiState.from(profile)

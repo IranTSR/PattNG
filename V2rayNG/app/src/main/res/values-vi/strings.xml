@@ -620,6 +620,10 @@
     <string name="aether_tor_bridges_missing">Hãy nhập ít nhất một dòng bridge, hoặc chọn thiết lập bridge khác</string>
     <string name="aether_lab_ech">Encrypted Client Hello (ECH)</string>
     <string name="aether_hint_ech">Ẩn tên máy chủ trong bắt tay MASQUE, khi lấy được khóa</string>
+    <string name="aether_lab_ech_dns">DNS cho ECH</string>
+    <string name="aether_lab_ech_domain">Tên miền ECH</string>
+    <string name="aether_invalid_ech_dns">DNS cho ECH phải là udp://IP, tcp://IP hoặc địa chỉ https:// của máy chủ DNS-over-HTTPS</string>
+    <string name="aether_invalid_ech_domain">Tên miền ECH phải là một tên miền, ví dụ cloudflare-ech.com</string>
     <string name="aether_lab_dns">DNS trong đường hầm</string>
     <string name="aether_hint_dns">Phân cách bằng dấu phẩy; để trống để dùng 1.1.1.1 và 1.0.0.1</string>
     <string name="aether_invalid_dns">Hãy nhập địa chỉ máy phân giải như 1.1.1.1 hoặc 10.0.0.1:5353, phân cách bằng dấu phẩy</string>

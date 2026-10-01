@@ -312,8 +312,13 @@ object AetherCoreManager {
                             ?.let { addAll(listOf("--fragment-delay", it.toString())) }
                     }
                 }
-                // Encrypted Client Hello hides the server name of the MASQUE handshake, on either carrier and both hops.
-                if (protocol.overMasque && profile.aetherEch == true) addAll(listOf("--ech", "auto"))
+                // Encrypted Client Hello hides the server name of the MASQUE handshake, on either carrier and both hops,
+                // with the key of the HTTPS record of the ECH domain, asked of the ECH resolver.
+                if (protocol.overMasque && profile.aetherEch == true) {
+                    addAll(listOf("--ech", "auto"))
+                    addAll(listOf("--ech-dns", profile.aetherEchDns?.trim()?.ifEmpty { null } ?: AppConfig.AETHER_ECH_DNS))
+                    addAll(listOf("--ech-domain", profile.aetherEchDomain?.trim()?.ifEmpty { null } ?: AppConfig.AETHER_ECH_DOMAIN))
+                }
 
                 if (protocol.twoHops) {
                     val hop = if (protocol == AetherProtocol.MIM) "--mim" else "--wiw"

@@ -96,6 +96,12 @@ data class ProfileItem(
     /** Whether the MASQUE handshake hides its server name with Encrypted Client Hello; null means it does not. */
     var aetherEch: Boolean? = null,
 
+    /** The resolver the core asks for the ECH key: udp://, tcp:// or https://; null means AppConfig.AETHER_ECH_DNS. */
+    var aetherEchDns: String? = null,
+
+    /** The domain whose HTTPS record gives the ECH key; null means AppConfig.AETHER_ECH_DOMAIN. */
+    var aetherEchDomain: String? = null,
+
     /** The resolvers names are looked up with inside the tunnel, comma-separated; null means the core's own. */
     var aetherDns: String? = null,
 
