@@ -12,6 +12,7 @@ class ZeptunConfigTest {
         socksPassword = null,
         mtu = 1500,
         logLevel = "warn",
+        tunFd = 42,
     )
 
     @Test
@@ -30,6 +31,15 @@ class ZeptunConfigTest {
         // VpnService.Builder.establish() already created and addressed it.
         val toml = ZeptunConfig.buildToml(base)
         assertTrue(toml.contains("configure = false"))
+    }
+
+    @Test
+    fun `toml carries the tun fd so zeptun uses our interface`() {
+        // Without `fd = N` zeptun keeps device kind `tun` and opens a new dead
+        // interface via /dev/net/tun instead of reading our VpnService fd:
+        // connects fine, tunnels nothing.
+        val toml = ZeptunConfig.buildToml(base)
+        assertTrue(toml.contains("fd = 42"))
     }
 
     @Test

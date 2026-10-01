@@ -34,6 +34,10 @@ class ZeptunTunService(
                         AppConfig.PREF_HEV_TUNNEL_LOGLEVEL,
                         AppConfig.DEFAULT_HEV_TUNNEL_LOGLEVEL
                     ) ?: AppConfig.DEFAULT_HEV_TUNNEL_LOGLEVEL,
+                    // The fd must be in the TOML (see ZeptunConfig.Params): only
+                    // then does zeptun use this interface instead of opening a
+                    // new dead one.
+                    tunFd = vpnInterface.fd,
                 )
             )
             // Never log the config: it carries the SOCKS credentials.

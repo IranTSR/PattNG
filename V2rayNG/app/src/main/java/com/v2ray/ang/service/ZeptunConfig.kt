@@ -12,6 +12,14 @@ object ZeptunConfig {
         val socksPassword: String?,
         val mtu: Int,
         val logLevel: String,
+        /**
+         * The fd of the TUN interface created by VpnService.Builder.establish().
+         * Writing it into [tun] is what flips zeptun's device kind from `tun`
+         * to `fd`: the config parser sets kind=.fd when fd >= 0, and only then
+         * does the engine read packets from our interface instead of trying to
+         * open a new (dead) one via /dev/net/tun.
+         */
+        val tunFd: Int,
     )
 
     fun buildToml(params: Params): String = buildString {
@@ -24,9 +32,13 @@ object ZeptunConfig {
         appendLine()
         appendLine("[tun]")
         // The interface already exists: VpnService.Builder.establish() created
-        // and addressed it, so zeptun must not configure it. The fd is handed
-        // over separately through the JNI call.
+        // and addressed it, so zeptun must not configure it. The fd is written
+        // here (not only passed through JNI) because zeptun's JNI setDeviceFd
+        // sets the fd number but leaves device kind at `tun`; only a
+        // `fd = N` entry in the config flips the kind to `fd`, which is what
+        // makes the engine actually read packets from our interface.
         appendLine("configure = false")
+        appendLine("fd = ${params.tunFd}")
         appendLine("mtu = ${params.mtu}")
         appendLine()
         appendLine("[handler]")
