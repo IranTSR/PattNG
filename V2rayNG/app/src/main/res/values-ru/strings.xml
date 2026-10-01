@@ -625,7 +625,7 @@
     <string name="aether_tor_psiphon_conflict">Tor и Psiphon сочетаются только так: один внутри туннеля, другой снаружи</string>
     <string name="aether_tor_bridges_missing">Введите хотя бы одну строку моста или выберите другую настройку мостов</string>
     <string name="aether_lab_ech">Encrypted Client Hello (ECH)</string>
-    <string name="aether_hint_ech">Скрывает имя сервера в рукопожатии MASQUE, если удаётся получить ключ</string>
+    <string name="aether_hint_ech">Скрывает имя сервера в рукопожатии MASQUE; без пригодного ключа Aether не подключается</string>
     <string name="aether_lab_ech_dns">DNS для ECH</string>
     <string name="aether_lab_ech_domain">Домен ECH</string>
     <string name="aether_invalid_ech_dns">DNS для ECH должен быть udp://IP, tcp://IP или адресом https:// сервера DNS-over-HTTPS</string>
@@ -644,6 +644,7 @@
     <string name="aether_invalid_command">Команда должна содержать аргументы ядра Aether, с портом прослушивания после --bind</string>
     <string name="aether_unsupported_abi">Ядро Aether недоступно для этого устройства</string>
     <string name="aether_core_stopped">Ядро Aether остановлено</string>
+    <string name="aether_core_stopped_no_ech_key">Ядро Aether остановлено: ECH включён, но пригодный ключ ECH не найден. Без него имя сервера ушло бы в открытом виде.</string>
     <string name="aether_core_connecting">Ядро Aether ещё подключается</string>
     <string name="menu_item_import_config_manually_aether">Добавить конфигурацию Aether вручную</string>
     <string name="aether_action_renew_key">Получить новый ключ WARP</string>

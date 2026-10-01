@@ -2,10 +2,12 @@ package com.v2ray.ang.core
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.StringRes
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.v2ray.ang.AppConfig
+import com.v2ray.ang.R
 import com.v2ray.ang.dto.AetherEndpoint
 import com.v2ray.ang.dto.AetherRange
 import com.v2ray.ang.dto.entities.ProfileItem
@@ -171,6 +173,12 @@ object AetherCoreManager {
      */
     private val psiphonReady = Regex("""psiphon is ready""")
 
+    /**
+     * The core's word that it did not start the session for want of an ECH key: ECH is on, and it had no key it
+     * could offer, so it stopped rather than send the server name in the clear.
+     */
+    private val noEchKey = Regex("""ECH is on but there is no ECH key to offer""")
+
     /** The levels at which the core writes its info lines, the ready word among them. */
     private val infoLevels = setOf("info", "debug", "trace")
 
@@ -244,6 +252,10 @@ object AetherCoreManager {
 
     @Volatile
     private var session: Session? = null
+
+    /** Whether the session core that ended on its own last stopped for want of an ECH key; see [stoppedMessage]. */
+    @Volatile
+    private var stoppedForEchKey = false
 
     val isRunning: Boolean get() = session != null
 
@@ -721,6 +733,7 @@ object AetherCoreManager {
         val arguments = withLogLevel(core.arguments, logLevel)
         val next = Session(core.port, needsWord = readyNeedsWord(arguments) && showsInfo(arguments), context = appContext, onExit = onExit)
         session = next
+        stoppedForEchKey = false
         lifecycle.execute { open(next, appContext, arguments, afterProbes, core.exit.key) }
     }
 
@@ -733,6 +746,18 @@ object AetherCoreManager {
 
     /** True when [line] is the core's word that the listener the app dials carries traffic now. */
     internal fun isReadyWord(line: String): Boolean = psiphonReady.containsMatchIn(line)
+
+    /** True when [line] is the core's word that it stopped for want of an ECH key; see [noEchKey]. */
+    internal fun isNoEchKeyWord(line: String): Boolean = noEchKey.containsMatchIn(line)
+
+    /** What to tell the user of the session core that ended on its own last, in the words it ended with. */
+    @StringRes
+    fun stoppedMessage(): Int = stoppedMessage(stoppedForEchKey)
+
+    /** What to tell the user of a session core that ended on its own, with [noEchKey] when it ended for want of an ECH key. */
+    @StringRes
+    internal fun stoppedMessage(noEchKey: Boolean): Int =
+        if (noEchKey) R.string.aether_core_stopped_no_ech_key else R.string.aether_core_stopped
 
     /** True when a core started with [arguments] writes its info lines, at the level named or at the default. */
     internal fun showsInfo(arguments: List<String>): Boolean =
@@ -1216,6 +1241,7 @@ object AetherCoreManager {
             process.inputStream.bufferedReader().forEachLine { line ->
                 relay(line, "aether")
                 if (!target.wordSeen && isReadyWord(line)) target.wordSeen = true
+                if (isNoEchKeyWord(line)) target.noEchKey = true
             }
         } catch (e: IOException) {
             LogUtil.d(AppConfig.TAG, "AetherCore: output closed: ${e.message}")
@@ -1231,6 +1257,8 @@ object AetherCoreManager {
     private fun release(target: Session): Boolean {
         if (session !== target) return false
         session = null
+        // Set before the exit is reported, which reads it; the core has written its last line by now.
+        stoppedForEchKey = target.noEchKey
         return true
     }
 
@@ -1240,5 +1268,9 @@ object AetherCoreManager {
 
         @Volatile
         var wordSeen: Boolean = !needsWord
+
+        /** Whether the core said it stopped for want of an ECH key. */
+        @Volatile
+        var noEchKey: Boolean = false
     }
 }

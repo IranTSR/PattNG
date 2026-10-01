@@ -619,7 +619,7 @@
     <string name="aether_tor_psiphon_conflict">Tor 与 Psiphon 只能一个在隧道内、一个在隧道外地组合使用</string>
     <string name="aether_tor_bridges_missing">请至少填写一条网桥行，或选择其他网桥设置</string>
     <string name="aether_lab_ech">加密客户端问候（ECH）</string>
-    <string name="aether_hint_ech">隐藏 MASQUE 握手中的服务器名称（需要能获取其密钥）</string>
+    <string name="aether_hint_ech">隐藏 MASQUE 握手中的服务器名称；没有可用的密钥时 Aether 不会连接</string>
     <string name="aether_lab_ech_dns">ECH DNS</string>
     <string name="aether_lab_ech_domain">ECH 域名</string>
     <string name="aether_invalid_ech_dns">ECH DNS 必须是 udp://IP、tcp://IP 或 DNS-over-HTTPS 服务器的 https:// 地址</string>
@@ -638,6 +638,7 @@
     <string name="aether_invalid_command">命令必须包含 Aether 内核的参数，并在 --bind 后给出监听端口</string>
     <string name="aether_unsupported_abi">此设备不支持 Aether 内核</string>
     <string name="aether_core_stopped">Aether 内核已停止运行</string>
+    <string name="aether_core_stopped_no_ech_key">Aether 内核已停止：ECH 已开启，但没有找到可用的 ECH 密钥。没有密钥，服务器名称就会以明文发送。</string>
     <string name="aether_core_connecting">Aether 内核仍在连接中</string>
     <string name="menu_item_import_config_manually_aether">手动添加 Aether 配置</string>
     <string name="aether_action_renew_key">获取新的 WARP 密钥</string>

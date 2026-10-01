@@ -2,6 +2,7 @@ package com.v2ray.ang.core
 
 import android.util.Log
 import com.google.gson.JsonParser
+import com.v2ray.ang.R
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.AetherIpVersion
 import com.v2ray.ang.enums.AetherObfuscation
@@ -827,6 +828,21 @@ class AetherCoreManagerTest {
         assertTrue(AetherCoreManager.showsInfo(listOf("--psiphon", "--verbose")))
         assertFalse(AetherCoreManager.showsInfo(listOf("--psiphon", "--log-level", "warn")))
         assertFalse(AetherCoreManager.showsInfo(listOf("--psiphon", "--log-level", "error")))
+    }
+
+    @Test
+    fun aCoreThatStoppedForWantOfAnEchKeyIsReportedSo() {
+        // The core's last line as its main prints the error it ends with (fork aether/src/lib.rs, session_ech_key).
+        val stopped = "Error: Ech(\"ECH is on but there is no ECH key to offer (udp://1.1.1.1:53 did not answer for " +
+            "cloudflare-ech.com); stopping rather than send the server name in the clear\")"
+        assertTrue(AetherCoreManager.isNoEchKeyWord(stopped))
+        assertEquals(Log.ERROR, AetherCoreManager.outputPriority(stopped))
+        assertFalse(AetherCoreManager.isNoEchKeyWord("[2026-10-01T10:00:00.000Z INFO  aether] [+] fetched ECHConfigList automatically (71 bytes)"))
+        assertFalse(AetherCoreManager.isNoEchKeyWord("[2026-10-01T10:00:00.000Z INFO  aether] [+] ECH off; the server name goes out in cleartext"))
+        assertFalse(AetherCoreManager.isNoEchKeyWord("Error: Api(\"too many registrations\")"))
+
+        assertEquals(R.string.aether_core_stopped_no_ech_key, AetherCoreManager.stoppedMessage(noEchKey = true))
+        assertEquals(R.string.aether_core_stopped, AetherCoreManager.stoppedMessage(noEchKey = false))
     }
 
     @Test

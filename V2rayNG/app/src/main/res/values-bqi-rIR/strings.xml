@@ -621,7 +621,7 @@
     <string name="aether_tor_psiphon_conflict">تور و سایفون فقط ای‌جور وا هم کار اکنن: یکی من تونل و اۊ یکی دور تونل</string>
     <string name="aether_tor_bridges_missing">کم‌کم یه خط پل بنویسین، یا یه تنظیم دیه سی پل‌یا انتخاب کنین</string>
     <string name="aether_lab_ech">Encrypted Client Hello (ECH)</string>
-    <string name="aether_hint_ech">نوم سرور من دست‌دادن MASQUE قایم اکنه، وختی کلیدس قابل گرهدن بۊ</string>
+    <string name="aether_hint_ech">نوم سرور من دست‌دادن MASQUE قایم اکنه؛ بی کلید قابل استفاده، Aether وصل نیبۊ</string>
     <string name="aether_lab_ech_dns">DNS سی ECH</string>
     <string name="aether_lab_ech_domain">دامنه ECH</string>
     <string name="aether_invalid_ech_dns">DNS سی ECH باید udp://IP، tcp://IP یا نشونی https:// یه سرور DNS-over-HTTPS بۊ</string>
@@ -640,6 +640,7 @@
     <string name="aether_invalid_command">فرمان باید آرگومان‌های هسته Aether داشته بۊ وو پورت گوش‌دادن پس زه --bind بیا</string>
     <string name="aether_unsupported_abi">هسته Aether سی ای دستگاه د دسترس نیه</string>
     <string name="aether_core_stopped">هسته Aether وستاده</string>
+    <string name="aether_core_stopped_no_ech_key">هسته Aether وستاده: ECH روشن هئ ولی کلید ECH قابل استفاده‌ای پیدا نبی؛ بی او، نوم سرور بی رمزنگاری فرستاده ابی</string>
     <string name="aether_core_connecting">هسته Aether هونی وصل ابۊ</string>
     <string name="menu_item_import_config_manually_aether">افزودن دستی کانفیگ Aether</string>
     <string name="aether_action_renew_key">گرفتن کلید تازه WARP</string>

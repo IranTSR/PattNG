@@ -625,7 +625,7 @@
     <string name="aether_tor_psiphon_conflict">Tor and Psiphon go together only with one inside the tunnel and the other around it</string>
     <string name="aether_tor_bridges_missing">Write at least one bridge line, or choose another bridge setting</string>
     <string name="aether_lab_ech">Encrypted Client Hello</string>
-    <string name="aether_hint_ech">Hides the server name of the MASQUE handshake, when its key can be fetched</string>
+    <string name="aether_hint_ech">Hides the server name of the MASQUE handshake; without a usable key, Aether does not connect</string>
     <string name="aether_lab_ech_dns">ECH DNS</string>
     <string name="aether_lab_ech_domain">ECH domain</string>
     <string name="aether_invalid_ech_dns">The ECH DNS must be udp://IP, tcp://IP or the https:// address of a DNS-over-HTTPS server</string>
@@ -644,6 +644,7 @@
     <string name="aether_invalid_command">The command has to name arguments for the Aether core, with the port it listens on after --bind</string>
     <string name="aether_unsupported_abi">The Aether core is not available for this device</string>
     <string name="aether_core_stopped">The Aether core stopped running</string>
+    <string name="aether_core_stopped_no_ech_key">The Aether core stopped: ECH is on, but no usable ECH key was found. Without one, the server name would have gone out in the clear.</string>
     <string name="aether_core_connecting">The Aether core is still connecting</string>
     <string name="menu_item_import_config_manually_aether">Add Aether config manually</string>
     <string name="aether_action_renew_key">Get a new WARP key</string>

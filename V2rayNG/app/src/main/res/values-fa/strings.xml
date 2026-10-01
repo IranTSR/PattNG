@@ -621,7 +621,7 @@
     <string name="aether_tor_psiphon_conflict">تور و سایفون فقط به این شکل با هم کار می‌کنند: یکی درون تونل و دیگری دور آن</string>
     <string name="aether_tor_bridges_missing">دست‌کم یک خط پل بنویسید، یا تنظیم دیگری برای پل‌ها انتخاب کنید</string>
     <string name="aether_lab_ech">Encrypted Client Hello (ECH)</string>
-    <string name="aether_hint_ech">نام سرور را در دست‌دهی MASQUE پنهان می‌کند، وقتی کلید آن قابل دریافت باشد</string>
+    <string name="aether_hint_ech">نام سرور را در دست‌دهی MASQUE پنهان می‌کند؛ بدون کلید قابل استفاده، Aether وصل نمی‌شود</string>
     <string name="aether_lab_ech_dns">DNS برای ECH</string>
     <string name="aether_lab_ech_domain">دامنه‌ی ECH</string>
     <string name="aether_invalid_ech_dns">DNS برای ECH باید udp://IP، tcp://IP یا نشانی https:// یک سرور DNS-over-HTTPS باشد</string>
@@ -640,6 +640,7 @@
     <string name="aether_invalid_command">فرمان باید آرگومان‌های هسته Aether را داشته باشد و پورت گوش‌دادن پس از --bind بیاید</string>
     <string name="aether_unsupported_abi">هسته Aether برای این دستگاه در دسترس نیست</string>
     <string name="aether_core_stopped">هسته Aether متوقف شده است</string>
+    <string name="aether_core_stopped_no_ech_key">هسته Aether متوقف شد: ECH روشن است ولی هیچ کلید ECH قابل استفاده‌ای پیدا نشد. بدون آن، نام سرور به‌صورت آشکار فرستاده می‌شد.</string>
     <string name="aether_core_connecting">هسته Aether هنوز در حال اتصال است</string>
     <string name="menu_item_import_config_manually_aether">افزودن دستی کانفیگ Aether</string>
     <string name="aether_action_renew_key">دریافت کلید جدید WARP</string>

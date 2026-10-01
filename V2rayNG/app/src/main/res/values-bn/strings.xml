@@ -621,7 +621,7 @@
     <string name="aether_tor_psiphon_conflict">Tor ও Psiphon একসাথে শুধু তখনই চলে যখন একটি টানেলের ভিতরে আর অন্যটি তার চারপাশে থাকে</string>
     <string name="aether_tor_bridges_missing">অন্তত একটি ব্রিজ লাইন লিখুন, অথবা অন্য ব্রিজ সেটিং বেছে নিন</string>
     <string name="aether_lab_ech">Encrypted Client Hello (ECH)</string>
-    <string name="aether_hint_ech">MASQUE হ্যান্ডশেকের সার্ভার নাম লুকায়, যখন এর কী আনা যায়</string>
+    <string name="aether_hint_ech">MASQUE হ্যান্ডশেকের সার্ভার নাম লুকায়; ব্যবহারযোগ্য কী ছাড়া Aether সংযোগ করে না</string>
     <string name="aether_lab_ech_dns">ECH DNS</string>
     <string name="aether_lab_ech_domain">ECH ডোমেইন</string>
     <string name="aether_invalid_ech_dns">ECH DNS হতে হবে udp://IP, tcp://IP অথবা কোনো DNS-over-HTTPS সার্ভারের https:// ঠিকানা</string>
@@ -640,6 +640,7 @@
     <string name="aether_invalid_command">কমান্ডে Aether কোরের আর্গুমেন্ট থাকতে হবে, --bind এর পরে শোনার পোর্টসহ</string>
     <string name="aether_unsupported_abi">এই ডিভাইসের জন্য Aether কোর উপলব্ধ নয়</string>
     <string name="aether_core_stopped">Aether কোর চলা বন্ধ হয়ে গেছে</string>
+    <string name="aether_core_stopped_no_ech_key">Aether কোর বন্ধ হয়ে গেছে: ECH চালু আছে, কিন্তু কোনো ব্যবহারযোগ্য ECH কী পাওয়া যায়নি। কী ছাড়া সার্ভারের নাম খোলাখুলি পাঠানো হতো।</string>
     <string name="aether_core_connecting">Aether কোর এখনও সংযোগ করছে</string>
     <string name="menu_item_import_config_manually_aether">ম্যানুয়ালি Aether কনফিগ যোগ করুন</string>
     <string name="aether_action_renew_key">নতুন WARP কী নিন</string>

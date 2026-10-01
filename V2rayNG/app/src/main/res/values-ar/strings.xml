@@ -629,7 +629,7 @@
     <string name="aether_tor_psiphon_conflict">لا يمكن الجمع بين تور وسايفون إلا بأن يكون أحدهما داخل النفق والآخر حوله</string>
     <string name="aether_tor_bridges_missing">اكتب سطر جسر واحدًا على الأقل، أو اختر إعدادًا آخر للجسور</string>
     <string name="aether_lab_ech">Encrypted Client Hello (ECH)</string>
-    <string name="aether_hint_ech">يخفي اسم الخادم في مصافحة MASQUE عندما يمكن جلب مفتاحه</string>
+    <string name="aether_hint_ech">يخفي اسم الخادم في مصافحة MASQUE؛ بدون مفتاح صالح للاستخدام لا يتصل Aether</string>
     <string name="aether_lab_ech_dns">DNS لـ ECH</string>
     <string name="aether_lab_ech_domain">نطاق ECH</string>
     <string name="aether_invalid_ech_dns">يجب أن يكون DNS لـ ECH بالشكل udp://IP أو tcp://IP أو عنوان https:// لخادم DNS-over-HTTPS</string>
@@ -648,6 +648,7 @@
     <string name="aether_invalid_command">يجب أن يحتوي الأمر على وسائط نواة Aether، مع منفذ الاستماع بعد --bind</string>
     <string name="aether_unsupported_abi">نواة Aether غير متوفرة لهذا الجهاز</string>
     <string name="aether_core_stopped">توقفت نواة Aether عن العمل</string>
+    <string name="aether_core_stopped_no_ech_key">توقفت نواة Aether: ميزة ECH مفعّلة لكن لم يُعثر على مفتاح ECH صالح للاستخدام. بدونه كان اسم الخادم سيُرسل بنص واضح.</string>
     <string name="aether_core_connecting">لا تزال نواة Aether قيد الاتصال</string>
     <string name="menu_item_import_config_manually_aether">إضافة إعداد Aether يدويًا</string>
     <string name="aether_action_renew_key">الحصول على مفتاح WARP جديد</string>
