@@ -34,9 +34,10 @@ object ZeptunConfig {
         appendLine()
         appendLine("[handler.socks5]")
         appendLine("server = \"127.0.0.1:${params.socksPort}\"")
-        // UdpMode is an enum ("enabled"/"disabled"); a bare boolean is rejected
-        // by the TOML parser.
-        appendLine("udp = \"enabled\"")
+        // The TOML document schema declares handler.socks5.udp as a bool
+        // (true -> UdpMode.enabled); a quoted "enabled" string fails the
+        // bool scalar parser with ConfigError (rc=-16).
+        appendLine("udp = true")
         if (!params.socksUsername.isNullOrEmpty() && params.socksPassword != null) {
             appendLine("username = \"${tomlEscape(params.socksUsername)}\"")
             appendLine("password = \"${tomlEscape(params.socksPassword)}\"")

@@ -20,8 +20,9 @@ class ZeptunConfigTest {
         assertTrue(toml.contains("preset = \"mobile\""))
         assertTrue(toml.contains("kind = \"socks5\""))
         assertTrue(toml.contains("server = \"127.0.0.1:10808\""))
-        // UdpMode is an enum in zeptun's TOML schema; a bare boolean is rejected.
-        assertTrue(toml.contains("udp = \"enabled\""))
+        // The TOML document schema declares handler.socks5.udp as a bool;
+        // a quoted "enabled" string is rejected with ConfigError (rc=-16).
+        assertTrue(toml.contains("udp = true"))
     }
 
     @Test
@@ -132,9 +133,8 @@ class ZeptunConfigTest {
     }
 
     @Test
-    fun `root json uses boolean udp unlike toml`() {
-        // The JSON parser declares the socks5 udp field as a bool; the TOML
-        // parser wants the enum string "enabled". Both enable UDP.
+    fun `root json uses boolean udp like toml`() {
+        // Both document schemas declare the socks5 udp field as a bool.
         val json = ZeptunConfig.buildRootJson(rootBase)
         assertTrue(json.contains("\"udp\": true"))
     }
