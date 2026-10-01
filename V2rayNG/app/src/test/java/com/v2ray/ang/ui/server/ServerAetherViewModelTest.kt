@@ -13,10 +13,12 @@ import com.v2ray.ang.enums.EConfigType
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -316,6 +318,74 @@ class ServerAetherViewModelTest {
         // Nothing is busy any more: the next action starts.
         var scans = 0
         source.scanner = { _, _ -> scans++; null }
+        viewModel.scan(profile)
+        assertEquals(1, scans)
+    }
+
+    @Test
+    fun aCancelledScanStaysBusyUntilItHasStopped() {
+        val stopped = CompletableDeferred<Unit>()
+        var scans = 0
+        source.scanner = { _, _ ->
+            scans++
+            try {
+                awaitCancellation()
+            } finally {
+                // The core is still being ended, as a real one takes a moment to.
+                withContext(NonCancellable) { stopped.await() }
+            }
+        }
+        val viewModel = viewModel()
+
+        viewModel.scan(profile)
+        viewModel.cancelScan()
+
+        assertEquals(AetherScanState.Scanning, viewModel.scanState.value)
+        viewModel.scan(profile)
+        viewModel.renewIdentity(profile)
+        viewModel.cancelScan()
+        assertEquals(1, scans)
+        assertFalse(viewModel.isRenewingIdentity.value)
+        assertEquals(1, viewModel.texts().count { it == resource(R.string.aether_log_scan_cancelled) })
+
+        stopped.complete(Unit)
+
+        assertEquals(AetherScanState.Idle, viewModel.scanState.value)
+        viewModel.scan(profile)
+        assertEquals(2, scans)
+    }
+
+    @Test
+    fun aCancelledKeyRenewalStaysBusyUntilItHasStopped() {
+        val stopped = CompletableDeferred<Unit>()
+        var renewals = 0
+        var scans = 0
+        source.renewer = { _, _ ->
+            renewals++
+            try {
+                awaitCancellation()
+            } finally {
+                withContext(NonCancellable) { stopped.await() }
+            }
+        }
+        source.scanner = { _, _ -> scans++; null }
+        val viewModel = viewModel()
+
+        viewModel.renewIdentity(profile)
+        viewModel.cancelRenewal()
+
+        // Its core is still being ended: nothing else starts, and a second cancel adds nothing.
+        assertTrue(viewModel.isRenewingIdentity.value)
+        viewModel.renewIdentity(profile)
+        viewModel.scan(profile)
+        viewModel.cancelRenewal()
+        assertEquals(1, renewals)
+        assertEquals(0, scans)
+        assertEquals(1, viewModel.texts().count { it == resource(R.string.aether_log_key_renew_cancelled) })
+
+        stopped.complete(Unit)
+
+        assertFalse(viewModel.isRenewingIdentity.value)
         viewModel.scan(profile)
         assertEquals(1, scans)
     }

@@ -98,27 +98,33 @@ class ServerAetherViewModel(
         if (isBusy) return
         _scanState.value = AetherScanState.Scanning
         scanJob = viewModelScope.launch {
-            // Checked at the tap: a second tunnel on the key of a live session would disturb it.
-            val session = source.activeSession()
-            _session.value = session
-            if (session?.disturbedByScanOf(AetherProtocol.fromString(profile.aetherProtocol)) == true) {
-                _scanState.value = AetherScanState.Idle
-                append(Log.WARN, AetherLogText.Resource(R.string.aether_scan_blocked))
-                return@launch
+            try {
+                // Checked at the tap: a second tunnel on the key of a live session would disturb it.
+                val session = source.activeSession()
+                _session.value = session
+                if (session?.disturbedByScanOf(AetherProtocol.fromString(profile.aetherProtocol)) == true) {
+                    _scanState.value = AetherScanState.Idle
+                    append(Log.WARN, AetherLogText.Resource(R.string.aether_scan_blocked))
+                    return@launch
+                }
+                append(Log.INFO, AetherLogText.Resource(R.string.aether_log_scan_started))
+                val result = source.scan(profile, ::appendOutput)
+                _scanState.value = result?.let(AetherScanState::Found) ?: AetherScanState.NotFound
+                append(if (result == null) Log.WARN else Log.INFO, scanOutcome(result))
+                reportIdentity(source.identityStatus(AetherProtocol.fromString(profile.aetherProtocol)), onlyChanges = true)
+            } finally {
+                // A cancelled scan stops being one here, once its core and whatever that started have ended.
+                if (_scanState.value == AetherScanState.Scanning) _scanState.value = AetherScanState.Idle
             }
-            append(Log.INFO, AetherLogText.Resource(R.string.aether_log_scan_started))
-            val result = source.scan(profile, ::appendOutput)
-            _scanState.value = result?.let(AetherScanState::Found) ?: AetherScanState.NotFound
-            append(if (result == null) Log.WARN else Log.INFO, scanOutcome(result))
-            reportIdentity(source.identityStatus(AetherProtocol.fromString(profile.aetherProtocol)), onlyChanges = true)
         }
     }
 
+    /** Stops the scan, which shows as running until its core, with whatever that started, has ended. */
     fun cancelScan() {
-        if (_scanState.value != AetherScanState.Scanning) return
-        scanJob?.cancel()
-        _scanState.value = AetherScanState.Idle
+        val job = scanJob ?: return
+        if (_scanState.value != AetherScanState.Scanning || job.isCancelled) return
         append(Log.WARN, AetherLogText.Resource(R.string.aether_log_scan_cancelled))
+        job.cancel()
     }
 
     fun onScanHandled() {
@@ -165,13 +171,13 @@ class ServerAetherViewModel(
     }
 
     /**
-     * Stops getting new keys: the core that registers them ends, with whatever it started. The keys
-     * in use stay, unless every new key was ready already; see [com.v2ray.ang.core.AetherIdentityManager.renew].
+     * Stops getting new keys: the core that registers them ends, with whatever it started, and until
+     * then the renewal shows as running. The keys in use stay, unless every new key was ready already;
+     * see [com.v2ray.ang.core.AetherIdentityManager.renew].
      */
     fun cancelRenewal() {
         val job = renewJob ?: return
-        if (!_isRenewingIdentity.value) return
-        _isRenewingIdentity.value = false
+        if (!_isRenewingIdentity.value || job.isCancelled) return
         append(Log.WARN, AetherLogText.Resource(R.string.aether_log_key_renew_cancelled))
         job.cancel()
     }
