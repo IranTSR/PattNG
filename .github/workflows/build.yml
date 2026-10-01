@@ -284,7 +284,7 @@ jobs:
   sign-and-release:
     needs: build
     runs-on: ubuntu-26.04
-    if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+    if: github.event_name == 'workflow_dispatch' && (inputs.release_tag != '' || github.ref == 'refs/heads/zeptun')
 
     steps:
       - name: Download APK artifacts
@@ -292,7 +292,17 @@ jobs:
         with:
           path: release
 
-      - name: Sign APK files
+      - name: Resolve release tag
+        id: tag
+        run: |
+          if [ -n "${{ inputs.release_tag }}" ]; then
+            echo "name=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=zeptun-nightly" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sign APK files (GPG detached signatures)
+        if: secrets.GPG_PRIVATE_KEY != ''
         run: |
           printf '%s' "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           KEY=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ {print $10; exit}')
@@ -305,13 +315,19 @@ jobs:
 
           gpg --armor --export "$KEY" > release-files/PattNG-public-key.asc
 
-      - name: Upload APKs, signatures and public key to release
+      - name: Collect APKs (no GPG key configured)
+        if: secrets.GPG_PRIVATE_KEY == ''
+        run: |
+          mkdir -p release-files
+          find release -type f -name '*.apk' -exec cp {} release-files/ \;
+
+      - name: Upload APKs to release
         uses: svenstaro/upload-release-action@v2
         with:
           file: release-files/*
-          tag: ${{ inputs.release_tag }}
-          release_name: PattNG v${{ inputs.release_tag }}
-          body: "."
+          tag: ${{ steps.tag.outputs.name }}
+          release_name: PattNG ${{ steps.tag.outputs.name }}
+          body: "Automated build from the zeptun branch (Zeptun TUN engine, no SNI spoofing). Prerelease for testing."
           target_commit: ${{ github.sha }}
           file_glob: true
           prerelease: true
