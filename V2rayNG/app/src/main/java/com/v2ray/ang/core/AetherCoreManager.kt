@@ -2,6 +2,9 @@ package com.v2ray.ang.core
 
 import android.content.Context
 import android.util.Log
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.AetherEndpoint
 import com.v2ray.ang.dto.AetherRange
@@ -526,7 +529,10 @@ object AetherCoreManager {
         block: suspend (output: ReceiveChannel<String>) -> T?,
     ): T? = throughExit(
         turns = exitTurns,
-        open = { openExit(context, exitConfiguration(exit, configuration), source) },
+        open = {
+            val logLevel = MmkvManager.decodeSettingsString(AppConfig.PREF_LOGLEVEL) ?: DEFAULT_XRAY_LOG_LEVEL
+            openExit(context, exitConfiguration(exit, configuration, logLevel), source)
+        },
         close = { CoreNativeManager.closeExit() },
     ) { exitPort ->
         coroutineScope { runCore(context, standaloneArguments(arguments, exitPort), source, onOutput, keysDir, block) }
@@ -619,13 +625,31 @@ object AetherCoreManager {
 
     /**
      * The configuration the exit of a core of its own opens with, whose outbound tagged exit-node the
-     * core dials out through: [configuration], the configuration under test, when the core dials out
-     * through a hop of its proxy chain, which is that configuration's exit-node; otherwise one with the
-     * plain exit-node of [exit] alone.
+     * core dials out by: [configuration], the configuration under test, when it has such an outbound,
+     * as that of a core dialling out through a hop of its proxy chain has, or a custom configuration
+     * exported from a session; otherwise one with the plain exit-node of [exit] alone, which logs at
+     * [logLevel], the Xray log level of the app, should it start the shared Xray of the process.
      */
-    internal fun exitConfiguration(exit: AetherExit, configuration: String?): String =
-        configuration?.takeIf { exit.hops != null }
-            ?: """{"outbounds": [${JsonUtil.toJson(CoreOutboundBuilder.toOutboundAetherExit(exit))}]}"""
+    internal fun exitConfiguration(exit: AetherExit, configuration: String?, logLevel: String): String =
+        configuration?.takeIf(::hasExitNode) ?: JsonObject().apply {
+            add("log", JsonObject().apply { addProperty("loglevel", logLevel) })
+            add("outbounds", JsonArray().apply { add(JsonParser.parseString(JsonUtil.toJson(CoreOutboundBuilder.toOutboundAetherExit(exit)))) })
+        }.toString()
+
+    /** Whether the configuration [content] has an outbound tagged exit-node. */
+    private fun hasExitNode(content: String): Boolean = try {
+        JsonParser.parseString(content).takeIf { it.isJsonObject }?.asJsonObject
+            ?.get("outbounds")?.takeIf { it.isJsonArray }?.asJsonArray
+            ?.any { outbound ->
+                val tag = outbound.takeIf { it.isJsonObject }?.asJsonObject?.get("tag")
+                tag != null && tag.isJsonPrimitive && tag.asString == AppConfig.TAG_EXIT_NODE
+            } == true
+    } catch (_: RuntimeException) {
+        false
+    }
+
+    /** The Xray log level the app uses unless the settings name another. */
+    private const val DEFAULT_XRAY_LOG_LEVEL = "warning"
 
     internal suspend fun <T : Any> runUntil(
         context: Context,

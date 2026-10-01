@@ -1016,18 +1016,29 @@ class AetherCoreManagerTest {
 
     @Test
     fun theExitOfACoreOfItsOwnOpensWithItsExitNode() {
-        val plain = JsonParser.parseString(AetherCoreManager.exitConfiguration(AetherExit(dialMode = "code-1"), configuration = """{"outbounds": []}"""))
-            .asJsonObject.getAsJsonArray("outbounds").single().asJsonObject
-        assertEquals("exit-node", plain.get("tag").asString)
-        assertEquals("freedom", plain.get("protocol").asString)
-        assertEquals("code-1", plain.getAsJsonObject("streamSettings").getAsJsonObject("sockopt").get("dialMode").asString)
+        val plain = JsonParser.parseString(
+            AetherCoreManager.exitConfiguration(AetherExit(dialMode = "code-1"), configuration = """{"outbounds": []}""", logLevel = "none")
+        ).asJsonObject
+        val exitNode = plain.getAsJsonArray("outbounds").single().asJsonObject
+        assertEquals("exit-node", exitNode.get("tag").asString)
+        assertEquals("freedom", exitNode.get("protocol").asString)
+        assertEquals("code-1", exitNode.getAsJsonObject("streamSettings").getAsJsonObject("sockopt").get("dialMode").asString)
+        // It logs at the level of the app, should it start the shared Xray of the process.
+        assertEquals("none", plain.getAsJsonObject("log").get("loglevel").asString)
+
         // A core that dials out through a hop of its chain takes the hop from the configuration under test.
         val chained = """{"outbounds": [{"tag": "proxy", "protocol": "socks"}, {"tag": "exit-node", "protocol": "vless"}]}"""
-        assertEquals(chained, AetherCoreManager.exitConfiguration(AetherExit.through(listOf(profile())), chained))
-        assertEquals(
-            AetherCoreManager.exitConfiguration(AetherExit.PLAIN, null),
-            AetherCoreManager.exitConfiguration(AetherExit.PLAIN, chained),
-        )
+        assertEquals(chained, AetherCoreManager.exitConfiguration(AetherExit.through(listOf(profile())), chained, "warning"))
+        // So does the core of a custom configuration exported from a session, whose exit-node it carries.
+        assertEquals(chained, AetherCoreManager.exitConfiguration(AetherExit.PLAIN, chained, "warning"))
+        // A configuration without one gives its core the plain exit-node, whatever its core is.
+        val bare = """{"outbounds": [{"tag": "proxy", "protocol": "socks"}]}"""
+        for (configuration in listOf(bare, null, "not json {", "[]")) {
+            assertEquals(
+                AetherCoreManager.exitConfiguration(AetherExit.through(listOf(profile())), configuration = null, logLevel = "warning"),
+                AetherCoreManager.exitConfiguration(AetherExit.through(listOf(profile())), configuration, "warning"),
+            )
+        }
     }
 
     @Test
