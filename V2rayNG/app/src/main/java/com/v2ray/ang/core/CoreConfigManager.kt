@@ -88,8 +88,9 @@ object CoreConfigManager {
             val v2rayConfig = buildUnifiedConfig(configContext)
             postProcessForSpeedtest(v2rayConfig)
 
-            // Not routed through Xray: a test's core of its own runs beside no Xray inbound it could dial
-            // out through, and the session's core, which a test may measure through, already has one.
+            // Not routed through an inbound of this configuration: a test's core of its own dials out through
+            // the exit of the process's Xray, see AetherCoreManager.exitConfiguration, and the session's core,
+            // which a test may measure through, through the session's inbound.
             val core = (dependency as? AetherDependency.Single)?.core
             if (core != null && lacksChainHop(core, v2rayConfig.outbounds)) return chainHopFailure(context, guid)
             return toConfigResult(context, configContext, v2rayConfig, core)

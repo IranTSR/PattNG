@@ -764,8 +764,8 @@ object AetherCoreManager {
     }
 
     /**
-     * Decides what the warm-up wait reports. The exit callback cannot stop the service while
-     * Xray is still starting, so a core that died in that window is caught here instead.
+     * Decides what the warm-up wait reports. A core that died before its listener came up is reported
+     * here as well as by its exit callback, and the service stops on whichever comes first.
      */
     internal fun warmUpOutcome(listening: Boolean, active: Boolean, serviceRunning: Boolean): WarmUpOutcome = when {
         !active || !serviceRunning -> WarmUpOutcome.ABANDONED

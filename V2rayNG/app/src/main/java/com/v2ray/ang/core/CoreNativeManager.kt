@@ -98,22 +98,24 @@ object CoreNativeManager {
     }
 
     /**
-     * PattNG: opens the exit of this process's Xray with [outbound], the JSON of an outbound, as its
-     * exit-node, the exit-node of an Aether profile, and returns the port of its inbound: a mixed inbound
-     * on the loopback address, which stays, with its routing rule, while the instance runs. The Aether
-     * core of a scan, a key renewal or a latency test dials out through it, one at a time. The exit is
-     * part of the instance that the process measures delays in, since a second instance would take the
-     * dialer of the process from the measurements. Each successful call must be followed by [closeExit].
+     * PattNG: opens the exit of this process's Xray and returns the port of its inbound: a mixed inbound
+     * on the loopback address, which stays, with its routing rule, while the instance runs. Its exit-node
+     * is the outbound tagged exit-node of [configuration], the JSON of an Xray configuration, and comes
+     * with the outbounds it dials through; of the rest only the log counts, should the exit start the
+     * instance. The Aether core of a scan, a key renewal or a latency test dials out through it, one at
+     * a time. The exit is part of the instance that the process measures delays in, since a second
+     * instance would take the dialer of the process from the measurements. Each successful call must be
+     * followed by [closeExit].
      *
      * @throws Exception when the exit does not open, or another core holds it
      */
-    fun openExit(context: Context, outbound: String): Int {
+    fun openExit(context: Context, configuration: String): Int {
         initCoreEnv(context)
-        return Libv2ray.openExit(outbound).toInt()
+        return Libv2ray.openExit(configuration).toInt()
     }
 
     /**
-     * Close the exit [openExit] opened: its exit-node goes.
+     * Close the exit [openExit] opened: its exit-node goes, with the outbounds it dials through.
      */
     fun closeExit() {
         try {

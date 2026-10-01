@@ -312,7 +312,7 @@ object CoreServiceManager {
             }
             when (AetherCoreManager.warmUpOutcome(listening, isActive, isRunning())) {
                 AetherCoreManager.WarmUpOutcome.ABANDONED -> Unit
-                // The exit callback ran while Xray was still starting and found nothing to stop.
+                // The core's exit callback reports it as well; the service stops on whichever comes first.
                 AetherCoreManager.WarmUpOutcome.CORE_EXITED -> onAetherExit(guid)
                 AetherCoreManager.WarmUpOutcome.LISTENING -> {
                     NotificationManager.setStatusLine(null)

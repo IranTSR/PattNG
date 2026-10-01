@@ -1068,7 +1068,7 @@ class AetherCoreManagerTest {
     }
 
     @Test
-    fun theSessionCoreCarriesTheKeyOfItsExitNode() {
+    fun theKeyOfTheExitNodeIsReadFromTheEnvironmentOfACore() {
         assertEquals("abc", AetherCoreManager.exitKeyOf(listOf("HOME=/x", "${AetherCoreManager.EXIT_ENV}=abc")))
         assertNull(AetherCoreManager.exitKeyOf(listOf("HOME=/x", "${AetherCoreManager.SESSION_ENV}=1")))
         assertNull(AetherCoreManager.exitKeyOf(listOf("${AetherCoreManager.EXIT_ENV}=")))
