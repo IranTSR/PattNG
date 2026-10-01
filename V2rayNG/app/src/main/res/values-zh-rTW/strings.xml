@@ -658,6 +658,8 @@
     <string name="aether_renew_blocked">請先中斷 Aether 連線，再取得新的 WARP 金鑰；目前的連線正在使用現有金鑰</string>
     <string name="aether_scan_blocked">請先中斷 Aether 連線，再進行掃描；掃描會使用目前連線的金鑰開啟第二條隧道</string>
     <string name="aether_chain_one_profile">一個代理鏈只能包含一個 Aether 設定檔</string>
+    <string name="aether_exit_node_name_taken">此處路由使用了名為 exit-node 的設定檔，而 exit-node 是 Aether 核心向外連線所經出站的名稱；請重新命名該設定檔</string>
+    <string name="aether_chain_hop_missing">無法建立此代理鏈中 Aether 設定檔向外連線所經的那一跳，Aether 核心將會不經它直接連線網際網路</string>
     <string name="aether_config_single_profile">一個設定只能使用一個 Aether 設定檔</string>
     <string name="aether_custom_no_outbound">設定中沒有 SOCKS 出站連線到 %1$s:%2$d，而 Aether 命令在該處監聽</string>
     <string name="aether_custom_invalid_command">aetherCommand 必須是 Aether 核心的命令列文字，並在 --bind 後給出其監聽位址：%1$s</string>

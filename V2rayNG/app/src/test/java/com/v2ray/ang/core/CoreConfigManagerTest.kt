@@ -1,9 +1,14 @@
 package com.v2ray.ang.core
 
 import com.v2ray.ang.AppConfig
+import com.v2ray.ang.dto.CoreConfigContext
 import com.v2ray.ang.dto.V2rayConfig
+import com.v2ray.ang.dto.entities.ProfileItem
+import com.v2ray.ang.enums.CoreResolvedType
+import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.util.JsonUtil
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -14,6 +19,34 @@ class CoreConfigManagerTest {
         protocol = "socks",
         settings = V2rayConfig.OutboundBean.OutSettingsBean(address = address, port = port),
     )
+
+    @Test
+    fun aProfileNamedExitNodeCannotRouteBesideAnAetherCore() {
+        val warp = ProfileItem.create(EConfigType.AETHER).apply { remarks = "warp"; aetherProtocol = "wg" }
+        val named = ProfileItem.create(EConfigType.VLESS).apply { remarks = AppConfig.TAG_EXIT_NODE; server = "1.2.3.4"; serverPort = "443" }
+        val outbounds = listOf(
+            CoreConfigContext.ResolvedOutbound(AppConfig.TAG_PROXY, warp, listOf(warp), CoreResolvedType.NORMAL),
+            CoreConfigContext.ResolvedOutbound(AppConfig.TAG_EXIT_NODE, named, listOf(named), CoreResolvedType.NORMAL),
+        )
+        assertTrue(CoreConfigManager.takesExitNodeName(AetherDependency.of(outbounds), outbounds))
+        // Without an Aether core the name is nobody's.
+        assertFalse(CoreConfigManager.takesExitNodeName(AetherDependency.None, outbounds))
+        assertFalse(CoreConfigManager.takesExitNodeName(AetherDependency.of(outbounds.take(1)), outbounds.take(1)))
+    }
+
+    @Test
+    fun aCoreThatDialsOutThroughAChainHopNeedsThatHop() {
+        val warp = ProfileItem.create(EConfigType.AETHER).apply { remarks = "warp"; aetherProtocol = "wg" }
+        val hop = ProfileItem.create(EConfigType.VLESS).apply { remarks = "hop"; server = "1.2.3.4"; serverPort = "443" }
+        val chained = AetherCore.of(warp).copy(exit = AetherExit.through(listOf(hop)))
+        val exitNode = V2rayConfig.OutboundBean(tag = AppConfig.TAG_EXIT_NODE, protocol = "vless")
+        val toCore = socks(AppConfig.LOOPBACK, 10819).apply { tag = AppConfig.TAG_PROXY }
+
+        assertTrue(CoreConfigManager.lacksChainHop(chained, listOf(toCore)))
+        assertFalse(CoreConfigManager.lacksChainHop(chained, listOf(toCore, exitNode)))
+        // A core that dials out plainly gets its own exit-node.
+        assertFalse(CoreConfigManager.lacksChainHop(AetherCore.of(warp), listOf(toCore)))
+    }
 
     @Test
     fun whatTheAetherCoreSendsOutLeavesThroughXray() {

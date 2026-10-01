@@ -660,6 +660,8 @@
     <string name="aether_renew_blocked">پیش زه گرفتن کلید تازه WARP، اتصال Aether نه قطع کنین؛ اتصال ایسا زه کلید ایسا استفاده ایکنه</string>
     <string name="aether_scan_blocked">پیش زه اسکن، اتصال Aether نه قطع کنین؛ اسکن یه تونل دوم وا کلید اتصال ایسا وا ایکنه</string>
     <string name="aether_chain_one_profile">یه زنجیره پروکسی فقط ایتره یه پروفایل Aether داشته بۊ</string>
+    <string name="aether_exit_node_name_taken">یه پروفایل وا نوم exit-node ایچو من مسیریابی استفاده ابۊ، وو exit-node نوم outbound ـیه که هسته Aether زه ری وو بیرون وصل ابۊ؛ نوم او پروفایل نه آلشت کنین</string>
+    <string name="aether_chain_hop_missing">گامی که پروفایل Aether ای زنجیره پروکسی زه ری وو بیرون وصل ابۊ ساخته نبی، وو هسته Aether بی او وو اینترنت ارسی</string>
     <string name="aether_config_single_profile">یه پیکربندی فقط ایتره زه یه پروفایل Aether استفاده کنه</string>
     <string name="aether_custom_no_outbound">هیچ خروجی SOCKS من پیکربندی به %1$s:%2$d وصل نیبۊ؛ فرمان Aether همۊچو گوش اکنه</string>
     <string name="aether_custom_invalid_command">aetherCommand باید خط فرمان هسته Aether به شکل متن بۊ وو نشونی گوش‌دادنش پس زه --bind بیا: %1$s</string>

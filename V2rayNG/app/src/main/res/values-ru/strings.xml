@@ -664,6 +664,8 @@
     <string name="aether_renew_blocked">Отключите профиль Aether, прежде чем получать новый ключ WARP: текущее подключение использует этот ключ</string>
     <string name="aether_scan_blocked">Отключите профиль Aether, прежде чем сканировать: сканирование откроет второй туннель с ключом текущего подключения</string>
     <string name="aether_chain_one_profile">В цепочке прокси может быть только один профиль Aether</string>
+    <string name="aether_exit_node_name_taken">Здесь маршрутизация использует профиль с именем exit-node, а exit-node — это имя исходящего подключения, через которое ядро Aether выходит наружу; переименуйте этот профиль</string>
+    <string name="aether_chain_hop_missing">Не удалось построить звено, через которое профиль Aether в этой цепочке прокси выходит наружу, и ядро Aether вышло бы в интернет без него</string>
     <string name="aether_config_single_profile">Конфигурация может использовать только один профиль Aether</string>
     <string name="aether_custom_no_outbound">Ни один исходящий SOCKS конфигурации не подключается к %1$s:%2$d, где слушает команда Aether</string>
     <string name="aether_custom_invalid_command">aetherCommand должен быть командной строкой ядра Aether в виде текста, с адресом прослушивания после --bind: %1$s</string>

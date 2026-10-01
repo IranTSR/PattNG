@@ -664,6 +664,8 @@
     <string name="aether_renew_blocked">Disconnect the Aether profile before getting a new WARP key; the running connection uses the current key</string>
     <string name="aether_scan_blocked">Disconnect the Aether profile before scanning; a scan would open a second tunnel on the running connection\'s key</string>
     <string name="aether_chain_one_profile">A proxy chain can have only one Aether profile</string>
+    <string name="aether_exit_node_name_taken">A profile named exit-node is used by routing here, and exit-node is the name of the outbound the Aether core dials out by; rename that profile</string>
+    <string name="aether_chain_hop_missing">The hop the Aether profile of this proxy chain dials out through could not be built, and the Aether core would reach the internet without it</string>
     <string name="aether_config_single_profile">A configuration can use only one Aether profile</string>
     <string name="aether_custom_no_outbound">No SOCKS outbound of the configuration dials %1$s:%2$d, where the Aether command listens</string>
     <string name="aether_custom_invalid_command">aetherCommand has to be the command line of the Aether core, as text, with the address it listens on after --bind: %1$s</string>

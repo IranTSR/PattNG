@@ -45,10 +45,12 @@ object CoreConfigManager {
             }
             val dependency = AetherDependency.of(configContext.resolvedOutbounds)
             aetherFailure(context, guid, dependency)?.let { return it }
+            if (takesExitNodeName(dependency, configContext.resolvedOutbounds)) return exitNodeNameFailure(context, guid)
             val v2rayConfig = buildUnifiedConfig(configContext)
             // PattNG: what the Aether core sends out leaves through Xray.
             val secondaryPort = AetherCoreManager.secondarySocksPort
             val core = (dependency as? AetherDependency.Single)?.core?.let {
+                if (lacksChainHop(it, v2rayConfig.outbounds)) return chainHopFailure(context, guid)
                 routeAetherThroughXray(v2rayConfig, it, secondaryPort) ?: return secondaryPortFailure(context, guid, secondaryPort)
             }
             return toConfigResult(context, configContext, v2rayConfig, core)
@@ -82,12 +84,14 @@ object CoreConfigManager {
             // Only the primary outbound is measured; the routing outbounds lose their rules below.
             val dependency = AetherDependency.of(configContext.resolvedOutbounds.take(1))
             aetherFailure(context, guid, dependency)?.let { return it }
+            if (takesExitNodeName(dependency, configContext.resolvedOutbounds)) return exitNodeNameFailure(context, guid)
             val v2rayConfig = buildUnifiedConfig(configContext)
             postProcessForSpeedtest(v2rayConfig)
 
             // Not routed through Xray: a test's core of its own runs beside no Xray inbound it could dial
             // out through, and the session's core, which a test may measure through, already has one.
             val core = (dependency as? AetherDependency.Single)?.core
+            if (core != null && lacksChainHop(core, v2rayConfig.outbounds)) return chainHopFailure(context, guid)
             return toConfigResult(context, configContext, v2rayConfig, core)
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "Failed to get V2ray config for speedtest", e)
@@ -597,6 +601,43 @@ object CoreConfigManager {
             status = false,
             guid = guid,
             errorMessage = context.getString(R.string.aether_secondary_port_taken, port),
+            localizedError = true,
+        )
+    }
+
+    /**
+     * PattNG: true when a configuration on an Aether core, [dependency], has among [outbounds] a routing
+     * target or a fallback named exit-node, an outbound tag of its own. That tag is the one the core
+     * dials out by: the core would take that profile for its exit-node, or dial into itself.
+     */
+    internal fun takesExitNodeName(dependency: AetherDependency, outbounds: List<CoreConfigContext.ResolvedOutbound>): Boolean =
+        dependency is AetherDependency.Single && outbounds.any { it.tag == AppConfig.TAG_EXIT_NODE }
+
+    /** PattNG: see [takesExitNodeName], as a failure whose message is meant for the screen. */
+    private fun exitNodeNameFailure(context: Context, guid: String): ConfigResult {
+        LogUtil.w(AppConfig.TAG, "A routing target or a fallback is named ${AppConfig.TAG_EXIT_NODE}, the tag of the Aether exit-node, guid=$guid")
+        return ConfigResult(
+            status = false,
+            guid = guid,
+            errorMessage = context.getString(R.string.aether_exit_node_name_taken),
+            localizedError = true,
+        )
+    }
+
+    /**
+     * PattNG: true when [core] dials out through a hop of its proxy chain, but [outbounds] have no
+     * exit-node: the hop could not be built, and the core would reach WARP without it.
+     */
+    internal fun lacksChainHop(core: AetherCore, outbounds: List<V2rayConfig.OutboundBean>): Boolean =
+        core.exit.hops != null && outbounds.none { it.tag == AppConfig.TAG_EXIT_NODE }
+
+    /** PattNG: see [lacksChainHop], as a failure whose message is meant for the screen. */
+    private fun chainHopFailure(context: Context, guid: String): ConfigResult {
+        LogUtil.w(AppConfig.TAG, "The chain hop the Aether core dials out through could not be built, guid=$guid")
+        return ConfigResult(
+            status = false,
+            guid = guid,
+            errorMessage = context.getString(R.string.aether_chain_hop_missing),
             localizedError = true,
         )
     }
