@@ -25,6 +25,9 @@ jobs:
       # aether/psiphon-build.sh and aether/pt-build.sh pin the programs themselves. Bump it when a
       # bumped aether submodule pins a program that asks for a newer line.
       GO_VERSION: "1.26"
+      # The Zig line zeptun's own CI uses at the pinned revision in compile-zeptun.sh.
+      # Bump it together with the zeptun pin.
+      ZIG_VERSION: "0.16.0"
 
     steps:
     - name: Checkout code
@@ -68,6 +71,27 @@ jobs:
       with:
         path: ${{ github.workspace }}/libs
         key: libhevtun-${{ runner.os }}-${{ env.NDK_HOME }}-${{ hashFiles('.git/modules/hev-socks5-tunnel/HEAD') }}-${{ hashFiles('compile-hevtun.sh') }}
+
+    # Zeptun is fetched at a pinned revision inside compile-zeptun.sh, so the
+    # script hash covers the pin; no submodule hash is needed.
+    - name: Restore cached libzeptun
+      id: cache-libzeptun-restore
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ github.workspace }}/libs-zeptun
+        key: libzeptun-${{ runner.os }}-zig${{ env.ZIG_VERSION }}-${{ env.NDK_HOME }}-${{ hashFiles('compile-zeptun.sh') }}
+
+    - name: Build libzeptun
+      if: steps.cache-libzeptun-restore.outputs.cache-hit != 'true'
+      run: |
+        bash compile-zeptun.sh
+
+    - name: Save libzeptun
+      if: steps.cache-libzeptun-restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: ${{ github.workspace }}/libs-zeptun
+        key: libzeptun-${{ runner.os }}-zig${{ env.ZIG_VERSION }}-${{ env.NDK_HOME }}-${{ hashFiles('compile-zeptun.sh') }}
 
     - name: Install Rust
       uses: dtolnay/rust-toolchain@master
@@ -146,6 +170,7 @@ jobs:
     - name: Stage the native libraries
       run: |
         cp -r ${{ github.workspace }}/libs ${{ github.workspace }}/V2rayNG/app
+        cp -r ${{ github.workspace }}/libs-zeptun/. ${{ github.workspace }}/V2rayNG/app/libs/
         cp -r ${{ github.workspace }}/libs-aether/. ${{ github.workspace }}/V2rayNG/app/libs/
         cp -r ${{ github.workspace }}/libs-psiphon/. ${{ github.workspace }}/V2rayNG/app/libs/
         cp -r ${{ github.workspace }}/libs-pt/. ${{ github.workspace }}/V2rayNG/app/libs/
@@ -208,6 +233,17 @@ jobs:
           for abi in arm64-v8a armeabi-v7a x86_64; do
             echo "$entries" | grep -q "^lib/$abi/" || continue
             for lib in libaether.so libpsiphon-tunnel-core.so liblyrebird.so; do
+              if ! echo "$entries" | grep -qx "lib/$abi/$lib"; then
+                echo "::error::$(basename "$apk") lacks lib/$abi/$lib"
+                status=1
+              fi
+            done
+          done
+          # Zeptun is built for all four ABIs: the JNI engine plus the root-mode
+          # CLI executable shipped as libzeptuncli.so.
+          for abi in arm64-v8a armeabi-v7a x86_64 x86; do
+            echo "$entries" | grep -q "^lib/$abi/" || continue
+            for lib in libzeptun.so libzeptun-jni.so libzeptuncli.so; do
               if ! echo "$entries" | grep -qx "lib/$abi/$lib"; then
                 echo "::error::$(basename "$apk") lacks lib/$abi/$lib"
                 status=1

@@ -311,6 +311,11 @@
     <string name="title_pref_dynamic_color">Bật màu động</string>
     <string name="summary_pref_dynamic_color">Chỉ hoạt động trên Android 12+</string>
     <string name="title_pref_use_hev_tunnel">Dùng Hev TUN</string>
+    <string name="title_pref_tun_engine">Engine TUN</string>
+    <string name="zeptun_root_apps_title">Ứng dụng root Zeptun</string>
+    <string name="zeptun_root_apps_subtitle">Chọn ứng dụng dùng tunnel ở chế độ root</string>
+    <string name="zeptun_root_apps_bypass_on">Chế độ bỏ qua: ứng dụng đã chọn không qua tunnel</string>
+    <string name="zeptun_root_apps_bypass_off">Chế độ chỉ định: chỉ ứng dụng đã chọn dùng tunnel</string>
     <string name="summary_pref_use_hev_tunnel">Khi bật, TUN sẽ dùng hev-socks5-tunnel; nếu không, TUN sẽ dùng xray-core.</string>
     <string name="title_pref_hev_tunnel_loglevel">Mức nhật ký Hev TUN</string>
     <string name="title_pref_hev_tunnel_rw_timeout">Thời gian chờ đọc/ghi của Hev TUN (giây; mặc định TCP/UDP: 300/60)</string>

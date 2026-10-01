@@ -87,6 +87,15 @@ object AppConfig {
     const val PREF_USE_HEV_TUNNEL = "pref_use_hev_tunnel_v2"
     const val PREF_HEV_TUNNEL_LOGLEVEL = "pref_hev_tunnel_loglevel"
     const val PREF_HEV_TUNNEL_RW_TIMEOUT = "pref_hev_tunnel_rw_timeout_v2"
+    /** TUN engine selection: one of TUN_ENGINE_HEV / TUN_ENGINE_ZEPTUN / TUN_ENGINE_XRAY. */
+    const val PREF_TUN_ENGINE = "pref_tun_engine"
+    const val TUN_ENGINE_HEV = "hev"
+    const val TUN_ENGINE_ZEPTUN = "zeptun"
+    const val TUN_ENGINE_XRAY = "xray"
+    /** Per-app package set for the zeptun root mode (PREF_PER_APP_PROXY_SET is the VPN-mode one). */
+    const val PREF_ZEPTUN_ROOT_APP_SET = "pref_zeptun_root_app_set"
+    /** true = selected packages bypass the tunnel, false = only selected packages use it. */
+    const val PREF_ZEPTUN_ROOT_BYPASS_MODE = "pref_zeptun_root_bypass_mode"
     const val PREF_UPDATE_SUBSCRIPTION = "pref_update_subscription"
     const val PREF_AUTO_TEST_AFTER_UPDATE_SUBSCRIPTION = "pref_auto_test_after_update_subscription"
     const val PREF_AUTO_REMOVE_INVALID_AFTER_TEST = "pref_auto_remove_invalid_after_test"
@@ -254,6 +263,16 @@ object AppConfig {
     // hev-socks5-tunnel run as a standalone root binary (reuses the same project already
     // bundled for the VPN hev path; distinct filename from the JNI lib to avoid collision).
     const val ROOT_TUN2SOCKS_BIN = "libhevsockstun.so"
+    // zeptun CLI run as a standalone root binary (distinct filename from its JNI libs).
+    const val ROOT_ZEPTUN_BIN = "libzeptuncli.so"
+    /** TUN interface name the zeptun CLI creates in root mode. */
+    const val ROOT_ZEPTUN_TUN = "zeptun0"
+    /** Policy-routing mark/mask and rule priority zeptun installs on Android; removed on teardown. */
+    const val ZEPTUN_ANDROID_FWMARK = "0x200000"
+    const val ZEPTUN_ANDROID_RULE_PRIORITY = "9000"
+    /** zeptun installs rules across [ZEPTUN_ANDROID_RULE_PRIORITY, +SPAN) into this table. */
+    const val ZEPTUN_ANDROID_RULE_SPAN = 10
+    const val ZEPTUN_ANDROID_TABLE = "2022"
     const val ROOT_FWD_CHAIN = "CORE_FWD"   // FORWARD chain for LAN/tethering sharing
     const val ROOT_DNS_CHAIN = "CORE_DNS"   // nat chain for tethered-client DNS DNAT
     const val ROOT_V6_CHAIN = "CORE6_FILTER"       // ip6tables filter/OUTPUT chain: blackhole native IPv6 when it isn't tunneled

@@ -311,6 +311,11 @@
     <string name="title_pref_dynamic_color">ডায়নামিক রঙ চালু করুন</string>
     <string name="summary_pref_dynamic_color">শুধুমাত্র Android 12+ ডিভাইসে কাজ করে</string>
     <string name="title_pref_use_hev_tunnel">Hev TUN সুবিধা চালু করুন</string>
+    <string name="title_pref_tun_engine">TUN ইঞ্জিন</string>
+    <string name="zeptun_root_apps_title">Zeptun রুট অ্যাপস</string>
+    <string name="zeptun_root_apps_subtitle">রুট মোডে কোন অ্যাপ টানেল ব্যবহার করবে তা বেছে নিন</string>
+    <string name="zeptun_root_apps_bypass_on">বাইপাস মোড: নির্বাচিত অ্যাপ টানেল এড়িয়ে যাবে</string>
+    <string name="zeptun_root_apps_bypass_off">শুধুমাত্র মোড: শুধু নির্বাচিত অ্যাপ টানেল ব্যবহার করবে</string>
     <string name="summary_pref_use_hev_tunnel">চালু থাকলে TUN hev-socks5-tunnel ব্যবহার করবে; অন্যথায় xray-core ব্যবহার করবে।</string>
     <string name="title_pref_hev_tunnel_loglevel">Hev TUN লগ স্তর</string>
     <string name="title_pref_hev_tunnel_rw_timeout">Hev TUN পড়া/লেখার সময়সীমা (সেকেন্ড; TCP/UDP-এর ডিফল্ট: 300/60)</string>

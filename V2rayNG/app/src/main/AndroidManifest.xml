@@ -134,6 +134,9 @@
             android:name=".ui.perappproxy.PerAppProxyActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.zeptunroot.ZeptunRootAppsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.apppicker.AppPickerActivity"
             android:exported="false" />
         <activity

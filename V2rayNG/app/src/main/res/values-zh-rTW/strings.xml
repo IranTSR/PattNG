@@ -311,6 +311,11 @@
     <string name="title_pref_dynamic_color">開啟莫奈取色</string>
     <string name="summary_pref_dynamic_color">僅在 Android 12+ 裝置上工作</string>
     <string name="title_pref_use_hev_tunnel">啟用 Hev TUN 功能</string>
+    <string name="title_pref_tun_engine">TUN 引擎</string>
+    <string name="zeptun_root_apps_title">Zeptun root 模式應用</string>
+    <string name="zeptun_root_apps_subtitle">選擇在 root 模式下使用隧道的 App</string>
+    <string name="zeptun_root_apps_bypass_on">繞行模式：所選應用不走隧道</string>
+    <string name="zeptun_root_apps_bypass_off">僅選模式：只有所選應用走隧道</string>
     <string name="summary_pref_use_hev_tunnel">啟用後，TUN 會使用 hev-socks5-tunnel；否則使用 xray-core。</string>
     <string name="title_pref_hev_tunnel_loglevel">Hev TUN 日誌層級</string>
     <string name="title_pref_hev_tunnel_rw_timeout">Hev TUN 讀寫逾時（秒；TCP/UDP 預設 300/60）</string>

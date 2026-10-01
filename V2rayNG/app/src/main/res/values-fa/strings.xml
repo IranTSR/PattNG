@@ -311,6 +311,11 @@
     <string name="title_pref_dynamic_color">فعال‌سازی رنگ پویا</string>
     <string name="summary_pref_dynamic_color">فقط روی اندروید ۱۲+ کار می‌کند</string>
     <string name="title_pref_use_hev_tunnel">استفاده از Hev TUN</string>
+    <string name="title_pref_tun_engine">موتور TUN</string>
+    <string name="zeptun_root_apps_title">اپ‌های حالت روت Zeptun</string>
+    <string name="zeptun_root_apps_subtitle">انتخاب اپ‌هایی که در حالت روت از تونل استفاده می‌کنند</string>
+    <string name="zeptun_root_apps_bypass_on">حالت دور زدن: اپ‌های انتخاب‌شده از تونل رد نمی‌شوند</string>
+    <string name="zeptun_root_apps_bypass_off">حالت فقط: فقط اپ‌های انتخاب‌شده از تونل استفاده می‌کنند</string>
     <string name="summary_pref_use_hev_tunnel">اگر فعال باشد، تونل VPN از hev-socks5-tunnel استفاده می‌کند؛ در غیر این صورت از xray-core استفاده خواهد شد.</string>
     <string name="title_pref_hev_tunnel_loglevel">سطح گزارش‌های Hev TUN</string>
     <string name="title_pref_hev_tunnel_rw_timeout">مهلت خواندن/نوشتن Hev TUN (ثانیه؛ پیش‌فرض TCP/UDP: 300/60)</string>

@@ -1,0 +1,306 @@
+diff --git a/src/config.zig b/src/config.zig
+index 74a2142..027892c 100644
+--- a/src/config.zig
++++ b/src/config.zig
+@@ -506,6 +506,10 @@ pub const Config = struct {
+         if (c.route.auto_redirect and !build_options.enable_system_stack) return error.NotSupported;
+         if (c.dns.fake_ip and c.handler.kind != .socks5) return error.InvalidArgument;
+         if (c.dns.fake_ip and c.dns.fake_range4 == null and c.dns.fake_range6 == null) return error.InvalidArgument;
++        if (c.stack.icmp == .forward and c.handler.kind == .socks5) {
++            log.err("icmp.forward cannot be combined with a socks5 handler: echo requests would leave from the host's real address, bypassing the proxy. Use icmp.local, icmp.drop, or the direct handler", .{});
++            return error.InvalidArgument;
++        }
+     }
+ };
+ 
+@@ -570,3 +574,20 @@ test "guid parsing accepts both spellings" {
+     try std.testing.expectError(error.InvalidArgument, Guid.parse("nope"));
+     try std.testing.expectError(error.InvalidArgument, Guid.parse("24198F4C78954 34C-AD35-9E29A92DDC51"));
+ }
++
++test "icmp forward with a socks5 handler is rejected" {
++    var cfg = Config.fromPreset(.desktop);
++    cfg.handler.kind = .socks5;
++    cfg.handler.socks5.server = addr.Endpoint.parse("127.0.0.1:1080") catch unreachable;
++    cfg.stack.icmp = .forward;
++    try std.testing.expectError(error.InvalidArgument, cfg.validate());
++
++    cfg.stack.icmp = .auto;
++    try std.testing.expect(!cfg.icmpForward());
++    try cfg.validate();
++
++    cfg.handler.kind = .direct;
++    cfg.stack.icmp = .forward;
++    try std.testing.expect(cfg.icmpForward());
++    try cfg.validate();
++}
+diff --git a/src/engine.zig b/src/engine.zig
+index da9f125..8f61cc8 100644
+--- a/src/engine.zig
++++ b/src/engine.zig
+@@ -938,14 +938,25 @@ pub const Engine = struct {
+         return e;
+     }
+ 
++    extern "advapi32" fn SystemFunction036(buf: [*]u8, len: u32) callconv(.winapi) u8;
++
+     fn fillRandom(buf: []u8) void {
+-        if (sys.is_linux) {
+-            _ = std.os.linux.getrandom(buf.ptr, buf.len, 0);
+-        } else if (sys.is_darwin or sys.is_bsd) {
++        const filled = if (sys.is_linux)
++            std.os.linux.getrandom(buf.ptr, buf.len, 0) == buf.len
++        else if (sys.is_darwin or sys.is_bsd) blk: {
+             std.c.arc4random_buf(buf.ptr, buf.len);
+-        } else {
+-            const t = sys.monotonicNs();
+-            for (buf, 0..) |*b, i| b.* = @truncate(t >> @intCast((i * 8) % 64));
++            break :blk true;
++        } else if (sys.is_windows)
++            SystemFunction036(buf.ptr, @intCast(buf.len)) != 0
++        else
++            false;
++        if (filled) return;
++        var anchor: u8 = 0;
++        var s: u64 = sys.monotonicNs() *% 0x9e37_79b9_7f4a_7c15 ^ @as(u64, @intFromPtr(&anchor));
++        var i: usize = 0;
++        while (i < buf.len) : (i += 1) {
++            s = s *% 6364136223846793005 +% 1442695040888963407;
++            buf[i] = @truncate(s >> 33);
+         }
+     }
+ 
+@@ -1019,6 +1030,7 @@ pub const Engine = struct {
+ 
+     fn initElastic(e: *Engine, cap: u16) !void {
+         const el = try e.allocator.create(Elastic);
++        errdefer e.allocator.destroy(el);
+         el.* = .{ .mode = e.cfg.io.elastic, .cap = cap, .cpus = sys.cpuCount() };
+         e.elastic = el;
+     }
+@@ -1107,6 +1119,7 @@ pub const Engine = struct {
+             return;
+         }
+         if (el.failed.load(.acquire) or live >= el.cap) return;
++        if (live >= el.threads.len) return;
+         el.growing.store(true, .release);
+         e.spawned.store(live + 1, .release);
+         el.threads[live] = std.Thread.spawn(.{ .stack_size = 4 << 20 }, W.bootstrap, .{ e, live }) catch |err| {
+@@ -1433,8 +1446,10 @@ pub const Engine = struct {
+     }
+ 
+     fn joinAll(e: *Engine, comptime W: type, list: []*W) void {
++        const spawned = e.spawned.load(.acquire);
++        const max_join = @min(spawned, e.worker_cap);
+         var i: u16 = 0;
+-        while (i < e.spawned.load(.acquire)) : (i += 1) {
++        while (i < max_join) : (i += 1) {
+             if (i < e.worker_count) {
+                 const w = list[i];
+                 if (w.thread) |t| {
+@@ -1442,9 +1457,11 @@ pub const Engine = struct {
+                     w.thread = null;
+                 }
+             } else if (e.elastic) |el| {
+-                if (el.threads[i]) |t| {
+-                    t.join();
+-                    el.threads[i] = null;
++                if (i < el.threads.len) {
++                    if (el.threads[i]) |t| {
++                        t.join();
++                        el.threads[i] = null;
++                    }
+                 }
+             }
+         }
+@@ -1488,6 +1505,23 @@ pub const Engine = struct {
+         allocator.free(list);
+     }
+ 
++    fn destroyAllSafe(comptime W: type, allocator: std.mem.Allocator, list: []*W, live: u16) void {
++        const made = list[0..live];
++        for (made) |w| {
++            w.requestStop();
++        }
++        for (made) |w| {
++            if (w.thread) |t| {
++                t.join();
++                w.thread = null;
++            }
++        }
++        for (made) |w| w.drainInbox();
++        for (made) |w| _ = w.pool.drainRemote();
++        for (made) |w| w.destroy();
++        allocator.free(list);
++    }
++
+     pub fn snapshot(e: *const Engine, out: *stats.Snapshot) void {
+         stats.merge(out, e.counters);
+         out.workers = @max(1, e.live.load(.acquire));
+diff --git a/src/handler/handler.zig b/src/handler/handler.zig
+index d4e89e9..c393d0f 100644
+--- a/src/handler/handler.zig
++++ b/src/handler/handler.zig
+@@ -533,7 +533,7 @@ pub fn Handler(comptime W: type) type {
+             } else {
+                 h.proxy_rtt_us = h.proxy_rtt_us - h.proxy_rtt_us / 8 + rtt / 8;
+             }
+-            if (was_near != h.proxyNear()) log.debug("socks5: proxy round trip {d} us, connection pool {s}", .{ h.proxy_rtt_us, if (h.proxyNear()) "paused" else "active" });
++            if (was_near != h.proxyNear()) log.debug("socks5: proxy round trip updated, connection pool {s}", .{if (h.proxyNear()) "paused" else "active"});
+         }
+ 
+         fn proxyNear(h: *const Self) bool {
+@@ -697,7 +697,11 @@ pub fn Handler(comptime W: type) type {
+                 h.dropWarm(w, s, true);
+                 return .disarm;
+             };
+-            h.protect.apply(ufd, relay.addr.family) catch {};
++            h.protect.apply(ufd, relay.addr.family) catch {
++                sys.close(ufd);
++                h.dropWarm(w, s, true);
++                return .disarm;
++            };
+             s.relay = sys.Sockaddr.fromEndpoint(relay);
+             if (sys.connect(ufd, &s.relay) < 0) {
+                 sys.close(ufd);
+@@ -1108,7 +1112,12 @@ pub fn Handler(comptime W: type) type {
+                 W.onUdpClosed(w, s);
+                 return;
+             };
+-            h.protect.apply(fd, relay.addr.family) catch {};
++            h.protect.apply(fd, relay.addr.family) catch {
++                sys.close(fd);
++                h.dropPending(w, s);
++                W.onUdpClosed(w, s);
++                return;
++            };
+             direct.setDscp(fd, relay.addr.family, s.tos);
+             s.gro = direct.tuneUdp(fd);
+             const relay_sa = sys.Sockaddr.fromEndpoint(relay);
+diff --git a/src/route/linux.zig b/src/route/linux.zig
+index 522f8dd..02e3d2e 100644
+--- a/src/route/linux.zig
++++ b/src/route/linux.zig
+@@ -305,7 +305,10 @@ pub const Netlink = struct {
+             b.attrU32(FRA_FWMASK, spec.fwmask);
+         }
+         if (spec.suppress_prefixlen) |s| b.attrU32(FRA_SUPPRESS_PREFIXLEN, s);
+-        if (spec.uid_range) |r| b.attr(FRA_UID_RANGE, std.mem.sliceAsBytes(&r));
++        if (spec.uid_range) |r| {
++            const e = encodeUidRange(r);
++            b.attr(FRA_UID_RANGE, &e);
++        }
+         if (spec.iif) |name| {
+             var z: [17]u8 = @splat(0);
+             const l = @min(name.len, 15);
+@@ -313,12 +316,23 @@ pub const Netlink = struct {
+             b.attr(FRA_IIFNAME, z[0 .. l + 1]);
+         }
+         if (spec.dport) |p| {
+-            const range = [2]u16{ p, p };
+-            b.attr(FRA_DPORT_RANGE, std.mem.sliceAsBytes(&range));
++            const e = encodeDport(p);
++            b.attr(FRA_DPORT_RANGE, &e);
+         }
+         return n.transact(b.finish());
+     }
+ 
++    pub fn encodeDport(p: u16) [4]u8 {
++        return .{ @truncate(p >> 8), @truncate(p), @truncate(p >> 8), @truncate(p) };
++    }
++
++    pub fn encodeUidRange(r: [2]u32) [8]u8 {
++        var out: [8]u8 = undefined;
++        std.mem.writeInt(u32, out[0..4], r[0], .big);
++        std.mem.writeInt(u32, out[4..8], r[1], .big);
++        return out;
++    }
++
+     pub fn flushThrowRoutes(n: *Netlink, table: u32) void {
+         if (table == 0 or (table >= 253 and table <= 255)) return;
+         const families = [_]u8{ AF_INET, AF_INET6 };
+@@ -644,7 +658,10 @@ fn installAutoRoute(nl: *Netlink, index: u32, ar: AutoRoute, applied: *Applied)
+     const families = [_]bool{ false, true };
+     for (families) |v6| {
+         const enabled = if (v6) ar.ipv6 else ar.ipv4;
+-        if (!enabled and !ar.strict) continue;
++        if (!enabled and !ar.strict) {
++            log.warn("route: {s} is not being tunnelled and strict_route is off, so it leaves by the physical interface", .{if (v6) "ipv6" else "ipv4"});
++            continue;
++        }
+         var routed = enabled;
+         if (enabled) {
+             var any_include = false;
+@@ -731,3 +748,36 @@ test "netlink message layout" {
+     try std.testing.expectEqual(@sizeOf(FibRuleHdr), 12);
+     try std.testing.expectEqual(@sizeOf(IfInfoMsg), 16);
+ }
++
++fn kernelReadsBe16(b: [2]u8) u16 {
++    return std.mem.readInt(u16, &b, .big);
++}
++
++fn kernelReadsBe32(b: [4]u8) u32 {
++    return std.mem.readInt(u32, &b, .big);
++}
++
++test "rule port and uid ranges are encoded big endian, the way the kernel reads them" {
++    const ports = [_]u16{ 53, 443, 853, 1, 65535 };
++    for (ports) |p| {
++        const e = Netlink.encodeDport(p);
++        try std.testing.expectEqual(p, kernelReadsBe16(e[0..2].*));
++        try std.testing.expectEqual(p, kernelReadsBe16(e[2..4].*));
++    }
++    try std.testing.expectEqual([4]u8{ 0x00, 0x35, 0x00, 0x35 }, Netlink.encodeDport(53));
++
++    const port: u16 = 53;
++    const as_written_before = std.mem.asBytes(&port);
++    try std.testing.expectEqual(@as(u16, 13568), std.mem.readInt(u16, as_written_before, .big));
++    const v: u16 = 0x1234;
++    try std.testing.expectEqual(@as(u16, 0x3412), std.mem.readInt(u16, std.mem.asBytes(&v), .big));
++    const vbytes = Netlink.encodeDport(v);
++    try std.testing.expectEqual(v, kernelReadsBe16(.{ vbytes[0], vbytes[1] }));
++
++    const ranges = [_][2]u32{ .{ 0, 0 }, .{ 1000, 1999 }, .{ 0x0100_0000, 0x7fff_ffff } };
++    for (ranges) |r| {
++        const e = Netlink.encodeUidRange(r);
++        try std.testing.expectEqual(r[0], kernelReadsBe32(e[0..4].*));
++        try std.testing.expectEqual(r[1], kernelReadsBe32(e[4..8].*));
++    }
++}
+diff --git a/src/route/route.zig b/src/route/route.zig
+index 9e85775..1a03400 100644
+--- a/src/route/route.zig
++++ b/src/route/route.zig
+@@ -107,7 +107,7 @@ pub fn applyRoutes(cfg: *const config.Config, ifname: []const u8, state: *State)
+             .include_extra = cfg.route.include_extra,
+             .exclude_extra = cfg.route.exclude_extra,
+             .strict = cfg.route.strict,
+-            .dns_to_tunnel = cfg.dns.hijack,
++            .dns_to_tunnel = cfg.dns.hijack or cfg.dns.fake_ip,
+             .excluded_uids = uid_pairs[0..uids.len],
+             .include_interfaces = inc_if[0..cfg.route.include_interfaces.len],
+             .exclude_interfaces = exc_if[0..cfg.route.exclude_interfaces.len],
+@@ -118,6 +118,9 @@ pub fn applyRoutes(cfg: *const config.Config, ifname: []const u8, state: *State)
+         if (resolved.supported and ifname.len < state.ifname.len) {
+             @memcpy(state.ifname[0..ifname.len], ifname);
+             state.resolved = resolved.apply(cfg, ifname);
++            if (!state.resolved and cfg.dnsActive()) {
++                log.warn("route: systemd-resolved handover failed; DNS queries will leave this host over its real resolver and fake-ip will not be used", .{});
++            }
+         }
+         return;
+     }
+diff --git a/src/stack/tcp.zig b/src/stack/tcp.zig
+index d51f759..9396677 100644
+--- a/src/stack/tcp.zig
++++ b/src/stack/tcp.zig
+@@ -562,7 +562,7 @@ pub fn Tcp(comptime W: type) type {
+             }
+             if (result != .success) {
+                 w.counters.inc(.tcp_connect_failed);
+-                log.debug("tcp dial {f} failed: {t}", .{ c.target, result });
++                log.debug("tcp dial failed: {t}", .{result});
+                 t.abort(w, c, true);
+                 return;
+             }

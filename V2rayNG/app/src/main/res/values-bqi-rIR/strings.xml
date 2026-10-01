@@ -311,6 +311,11 @@
     <string name="title_pref_dynamic_color">فعال‌سازی رنگ پویا</string>
     <string name="summary_pref_dynamic_color">فقط روی اندروید ۱۲+ کار می‌کند</string>
     <string name="title_pref_use_hev_tunnel">و کار گرؽڌن ویژیی Hev TUN</string>
+    <string name="title_pref_tun_engine">موتور TUN</string>
+    <string name="zeptun_root_apps_title">اپ‌های حالت روت Zeptun</string>
+    <string name="zeptun_root_apps_subtitle">اپ‌هایی نه در حالت روت از تونل و کار اگرن انتخاب بکه</string>
+    <string name="zeptun_root_apps_bypass_on">حالت دور زدن: اپ‌های انتخاب‌کره‌ده از تونل رد نوونن</string>
+    <string name="zeptun_root_apps_bypass_off">حالت فقط: فقط اپ‌های انتخاب‌کره‌ده از تونل و کار اگرن</string>
     <string name="summary_pref_use_hev_tunnel">مجالی ک ره ونده بۊ، TUN ایا hev-socks5-tunnel ن و کار اگره؛ ٱر ره نوۊفته بۊ، همو xray-core ن و کار اگره.</string>
     <string name="title_pref_hev_tunnel_loglevel">Hev TUN سئت گوزارشا</string>
     <string name="title_pref_hev_tunnel_rw_timeout">زمووݩ مندیر بیڌن خوندن/هؽل کردن Hev TUN (ثانیه؛ پؽش‌فرض TCP/UDP: 300/60)</string>
