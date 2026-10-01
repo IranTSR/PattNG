@@ -97,17 +97,17 @@ class SubscriptionIndexTest {
     companion object {
         private val main: MMKV = mock()
         private val subs: MMKV = mock()
-        private val settings: MMKV = mock()
 
         @BeforeClass
         @JvmStatic
         fun initializeHandles() {
+            // Shared SETTINGS mock (see MmkvTestFixtures): MmkvManager's lazy
+            // settingsStorage is initialized once per test JVM.
+            MmkvTestFixtures.installSettingsMock()
             mockStatic(MMKV::class.java).use {
                 it.`when`<MMKV> { MMKV.mmkvWithID("MAIN", MMKV.MULTI_PROCESS_MODE) }.thenReturn(main)
                 it.`when`<MMKV> { MMKV.mmkvWithID("SUB", MMKV.MULTI_PROCESS_MODE) }.thenReturn(subs)
-                it.`when`<MMKV> { MMKV.mmkvWithID("SETTING", MMKV.MULTI_PROCESS_MODE) }.thenReturn(settings)
                 MmkvManager.decodeSubscriptions()
-                MmkvManager.decodeSettingsString("test-initialize")
             }
         }
     }

@@ -8,9 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
-import org.mockito.Mockito.mockStatic
 import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.whenever
 
@@ -86,17 +84,14 @@ class SettingsManagerTunEngineTest {
     }
 
     companion object {
-        private val settings: MMKV = mock()
+        // Shared mock: MmkvManager.settingsStorage is lazy and initialized once
+        // per test JVM, so all test classes must use the same instance.
+        private val settings: MMKV = MmkvTestFixtures.settings
 
         @BeforeClass
         @JvmStatic
         fun initializeHandles() {
-            mockStatic(MMKV::class.java).use {
-                it.`when`<MMKV> { MMKV.mmkvWithID("SETTING", MMKV.MULTI_PROCESS_MODE) }
-                    .thenReturn(settings)
-                // Force MmkvManager's lazy settingsStorage to capture the mock.
-                MmkvManager.decodeSettingsString("test-initialize")
-            }
+            MmkvTestFixtures.installSettingsMock()
         }
     }
 }

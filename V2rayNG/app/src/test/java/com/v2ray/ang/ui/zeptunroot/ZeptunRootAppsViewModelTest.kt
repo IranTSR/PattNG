@@ -3,14 +3,13 @@ package com.v2ray.ang.ui.zeptunroot
 import android.app.Application
 import com.tencent.mmkv.MMKV
 import com.v2ray.ang.AppConfig
-import com.v2ray.ang.handler.MmkvManager
+import com.v2ray.ang.handler.MmkvTestFixtures
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
-import org.mockito.Mockito.mockStatic
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
@@ -116,17 +115,14 @@ class ZeptunRootAppsViewModelTest {
     }
 
     companion object {
-        private val settings: MMKV = mock()
+        // Shared mock: MmkvManager.settingsStorage is lazy and initialized once
+        // per test JVM, so all test classes must use the same instance.
+        private val settings: MMKV = MmkvTestFixtures.settings
 
         @BeforeClass
         @JvmStatic
         fun initializeHandles() {
-            mockStatic(MMKV::class.java).use {
-                it.`when`<MMKV> { MMKV.mmkvWithID("SETTING", MMKV.MULTI_PROCESS_MODE) }
-                    .thenReturn(settings)
-                // Force MmkvManager's lazy settingsStorage to capture the mock.
-                MmkvManager.decodeSettingsString("test-initialize")
-            }
+            MmkvTestFixtures.installSettingsMock()
         }
     }
 }
