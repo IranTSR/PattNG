@@ -568,7 +568,8 @@ object AetherCoreManager {
     ): T? {
         // A cancellation can land while the spawn runs or while its result is on the way back to this
         // coroutine; either way the core would keep running with nobody holding its handle, so the
-        // handle is kept aside and the core is destroyed on that path.
+        // handle is kept aside and the core is ended on that path as on any other, before the exit
+        // closes and the next core may take the port.
         val spawned = AtomicReference<Process?>()
         val process = try {
             withContext(Dispatchers.IO) {
@@ -581,7 +582,7 @@ object AetherCoreManager {
                 }
             }
         } catch (e: CancellationException) {
-            spawned.get()?.destroy()
+            spawned.get()?.let { core -> withContext(NonCancellable + Dispatchers.IO) { end(core, context) } }
             throw e
         } ?: return null
 
