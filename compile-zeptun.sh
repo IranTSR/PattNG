@@ -8,6 +8,8 @@ set -o nounset
 # (memory-safety fixes) was still open when this was pinned, so re-check its
 # state before moving the pin.
 ZEPTUN_SHA="5620e57cdbf1a4464567a404adbff7cffd9b4bb9"
+# Set magic variables for current file & dir
+__dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Vendored security/correctness fixes from upstream PR #4
 # (https://github.com/Noisemux/zeptun/pull/4), applied on top of ZEPTUN_SHA.
 # The critical one for us is the netlink byte-order fix: without it the
@@ -18,8 +20,6 @@ ZEPTUN_SHA="5620e57cdbf1a4464567a404adbff7cffd9b4bb9"
 ZEPTUN_PR4_PATCH="$__dir/zeptun-pr4-security-fixes.patch"
 # Matches the Zig line zeptun's own CI uses at pin time.
 ZIG_VERSION="0.16.0"
-# Set magic variables for current file & dir
-__dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ ! -d $NDK_HOME ]]; then
   echo "Android NDK: NDK_HOME not found. please set env \$NDK_HOME"
   exit 1
