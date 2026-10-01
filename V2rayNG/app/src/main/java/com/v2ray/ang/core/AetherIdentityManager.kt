@@ -12,6 +12,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.concurrent.atomic.AtomicBoolean
 
 data class AetherIdentity(
@@ -223,21 +225,16 @@ object AetherIdentityManager {
     }
 
     /**
-     * Moves [source] over [target]; true once [source] is gone, moved by this call or by another
-     * process finishing the same renewal. On Android a rename replaces the key in use in one step,
-     * and a rename that fails leaves it in place. A Windows host, where the app's JVM tests may
-     * run, will not rename onto an existing file, so there, and only there, the key in use is
-     * removed first; the new key is complete and marked ready by then. Remove the fallback once
-     * minSdk reaches 26, where Files.move with REPLACE_EXISTING and ATOMIC_MOVE replaces on both.
+     * Moves [source] over [target] in one step that replaces the key in use, or leaves it as it
+     * was; true once [source] is gone, moved by this call or by another process finishing the same
+     * renewal.
      */
-    private fun moveOver(source: File, target: File): Boolean {
-        if (source.renameTo(target) || !source.isFile) return true
-        if (!onWindows) return false
-        target.delete()
-        return source.renameTo(target) || !source.isFile
+    private fun moveOver(source: File, target: File): Boolean = try {
+        Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+        true
+    } catch (_: IOException) {
+        !source.isFile
     }
-
-    private val onWindows = System.getProperty("os.name").orEmpty().startsWith("Windows")
 
     /** Whether every one of [KEY_FILES] is in [dir] and reads as a key. */
     internal fun isComplete(dir: File): Boolean = KEY_FILES.all { read(File(dir, it)) != null }
