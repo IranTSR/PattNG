@@ -100,20 +100,36 @@ object AetherDelayTester {
      */
     internal class LiveSession(val arguments: List<String>?, val port: Int, val listening: Boolean, val exit: String? = null)
 
+    private fun liveSession(context: Context, activeGuid: String?): LiveSession? =
+        liveSessionOf(
+            process = AetherCoreManager.sessionProcess(context),
+            processesListed = AetherCoreManager.canListProcesses(),
+            active = { activeGuid?.let(MmkvManager::decodeServerConfig) },
+            answers = AetherCoreManager::answersSocks,
+        )
+
     /**
-     * The daemon's live Aether session, or null without one. Its core process names the running
-     * profile and the port it listens on, whether it is still scanning or already listening; when
-     * /proc cannot be read, a selected Aether profile with a listener on its port stands in for it.
+     * The daemon's live Aether session, or null without one. Its core [process] names the running
+     * profile and the port it listens on, whether it is still scanning or already listening. Only
+     * where the processes cannot be listed does a listener on the port of the selected Aether profile,
+     * [active], stand in for it; elsewhere such a listener is the core of another test, which listens
+     * on that same port. [answers] tells whether a listener on a port answers.
      */
-    private fun liveSession(context: Context, activeGuid: String?): LiveSession? {
-        AetherCoreManager.sessionProcess(context)?.let { process ->
+    internal fun liveSessionOf(
+        process: AetherCoreManager.CoreProcess?,
+        processesListed: Boolean,
+        active: () -> ProfileItem?,
+        answers: (Int) -> Boolean,
+    ): LiveSession? {
+        if (process != null) {
             val arguments = process.argv.drop(1)
             val port = AetherCoreManager.listenerPortOf(arguments) ?: AetherCoreManager.socksPort
-            return LiveSession(arguments, port, AetherCoreManager.answersSocks(port), process.exit)
+            return LiveSession(arguments, port, answers(port), process.exit)
         }
-        val active = activeGuid?.let(MmkvManager::decodeServerConfig)?.takeIf { it.configType == EConfigType.AETHER } ?: return null
-        val port = AetherCore.of(active).port
-        if (!AetherCoreManager.answersSocks(port)) return null
+        if (processesListed) return null
+        val selected = active()?.takeIf { it.configType == EConfigType.AETHER } ?: return null
+        val port = AetherCore.of(selected).port
+        if (!answers(port)) return null
         return LiveSession(arguments = null, port = port, listening = true)
     }
 

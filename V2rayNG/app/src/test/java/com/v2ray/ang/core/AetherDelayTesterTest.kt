@@ -38,6 +38,46 @@ class AetherDelayTesterTest {
     ) = AetherDelayTester.LiveSession(running?.let { AetherCoreManager.buildArguments(it, port) }, port, listening, exit)
 
     @Test
+    fun aListenerOnTheAetherPortIsNoSessionWhereTheProcessesTellNone() {
+        // The core of another test listens on the one Aether port; the selected Aether profile does not run.
+        val selected = aether(AetherProtocol.WIREGUARD)
+        val session = AetherDelayTester.liveSessionOf(process = null, processesListed = true, active = { selected }, answers = { true })
+        assertEquals(null, session)
+        assertEquals(Route.NEW_TUNNEL, AetherDelayTester.route("a", AetherCore.of(aether(AetherProtocol.MASQUE)), "b", session))
+    }
+
+    @Test
+    fun withoutTheProcessesAListenerOnTheSelectedProfilesPortStandsInForTheSession() {
+        val selected = aether(AetherProtocol.WIREGUARD)
+        val port = AetherCore.of(selected).port
+        val session = AetherDelayTester.liveSessionOf(process = null, processesListed = false, active = { selected }, answers = { it == port })!!
+        assertEquals(null, session.arguments)
+        assertEquals(port, session.port)
+        assertTrue(session.listening)
+
+        assertEquals(null, AetherDelayTester.liveSessionOf(null, processesListed = false, active = { selected }, answers = { false }))
+        val vless = ProfileItem.create(EConfigType.VLESS)
+        assertEquals(null, AetherDelayTester.liveSessionOf(null, processesListed = false, active = { vless }, answers = { true }))
+        assertEquals(null, AetherDelayTester.liveSessionOf(null, processesListed = false, active = { null }, answers = { true }))
+    }
+
+    @Test
+    fun theSessionIsReadFromItsCoreProcess() {
+        val argv = listOf("/data/app/lib/libaether.so", "--bind", "127.0.0.1:20808", "--protocol", "wg")
+        val process = AetherCoreManager.CoreProcess(pid = 4242, argv = argv, ownerAlive = true, sessionMarked = true, exit = "key")
+        var asked: Int? = null
+        val session = AetherDelayTester.liveSessionOf(process, processesListed = true, active = { error("not asked") }) { port ->
+            asked = port
+            false
+        }!!
+        assertEquals(argv.drop(1), session.arguments)
+        assertEquals(20808, session.port)
+        assertEquals(20808, asked)
+        assertFalse(session.listening)
+        assertEquals("key", session.exit)
+    }
+
+    @Test
     fun withoutAnAetherSessionEachTestGetsItsOwnTunnel() {
         val masque = aether(AetherProtocol.MASQUE)
         assertEquals(Route.NEW_TUNNEL, AetherDelayTester.route("a", AetherCore.of(masque), "a", session = null))

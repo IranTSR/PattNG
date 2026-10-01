@@ -874,6 +874,13 @@ object AetherCoreManager {
      */
     fun sessionArguments(context: Context): List<String>? = sessionProcess(context)?.argv?.drop(1)
 
+    /**
+     * Whether this process can list the processes in /proc, where the session's core is told apart from
+     * the cores of tests and scans. Where it cannot, only a listener on the Aether port can stand in for
+     * a session, and a core of a test or a scan listens on that port as well.
+     */
+    internal fun canListProcesses(): Boolean = procDir.listFiles() != null
+
     /** The daemon's live session core as /proc shows it, or null without one; see [sessionArguments]. */
     internal fun sessionProcess(context: Context): CoreProcess? =
         coreProcesses(context).firstOrNull { isSession(it.argv, it.ownerAlive, it.sessionMarked, sessionAddress) }
