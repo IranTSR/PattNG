@@ -60,8 +60,9 @@ object AetherFmt : FmtBase() {
         config.aetherFragmentSize = AetherRange.parse(queryParam["fragment_size"], AetherRange.FRAGMENT_SIZE)?.toString()
         config.aetherFragmentDelay = AetherRange.parse(queryParam["fragment_delay"], AetherRange.FRAGMENT_DELAY)?.toString()
         config.aetherEch = queryParam["ech"] == "1"
-        config.aetherEchDns = queryParam["ech_dns"]?.takeIf { config.aetherEch == true }
-        config.aetherEchDomain = queryParam["ech_domain"]?.takeIf { config.aetherEch == true }
+        // A value the core would not take is left out; the profile then follows the default.
+        config.aetherEchDns = queryParam["ech_dns"]?.trim()?.takeIf { config.aetherEch == true && isEchDns(it) }
+        config.aetherEchDomain = queryParam["ech_domain"]?.trim()?.takeIf { config.aetherEch == true && isEchDomain(it) }
         config.aetherDns = queryParam["dns"]
         config.aetherExitLoc = queryParam["exit_loc"]
         // A link from before the Aether listen port was one setting for every profile may name a port of its own, which counts no more.
@@ -210,20 +211,22 @@ object AetherFmt : FmtBase() {
 
     /**
      * Where the ECH key comes from, as the core reads it: the resolver and the domain, kept while ECH is on and
-     * left out when they are the defaults, so that a profile follows the defaults.
+     * left out when they are the defaults, so that a profile follows the defaults. They are refused only where the
+     * editor shows them, over MASQUE with a WARP tunnel; elsewhere one the core would not take is dropped, as
+     * nothing on screen could put it right.
      */
     private fun normalizeEch(config: ProfileItem): Problem? {
-        if (config.aetherEch != true) {
-            config.aetherEchDns = null
-            config.aetherEchDomain = null
-            return null
-        }
         val dns = config.aetherEchDns?.trim().orEmpty()
-        if (dns.isNotEmpty() && !isEchDns(dns)) return Problem.INVALID_ECH_DNS
         val domain = config.aetherEchDomain?.trim().orEmpty()
-        if (domain.isNotEmpty() && !isEchDomain(domain)) return Problem.INVALID_ECH_DOMAIN
-        config.aetherEchDns = dns.takeUnless { it.isEmpty() || it == AppConfig.AETHER_ECH_DNS }
-        config.aetherEchDomain = domain.takeUnless { it.isEmpty() || it == AppConfig.AETHER_ECH_DOMAIN }
+        val ech = config.aetherEch == true
+        val inUse = ech &&
+            AetherProtocol.fromString(config.aetherProtocol).overMasque &&
+            AetherPsiphon.fromString(config.aetherPsiphon) != AetherPsiphon.ONLY &&
+            AetherTor.fromString(config.aetherTor) != AetherTor.ONLY
+        if (inUse && dns.isNotEmpty() && !isEchDns(dns)) return Problem.INVALID_ECH_DNS
+        if (inUse && domain.isNotEmpty() && !isEchDomain(domain)) return Problem.INVALID_ECH_DOMAIN
+        config.aetherEchDns = dns.takeIf { ech && it != AppConfig.AETHER_ECH_DNS && isEchDns(it) }
+        config.aetherEchDomain = domain.takeIf { ech && it != AppConfig.AETHER_ECH_DOMAIN && isEchDomain(it) }
         return null
     }
 
@@ -233,22 +236,32 @@ object AetherFmt : FmtBase() {
      * unless it names one.
      */
     internal fun isEchDns(value: String): Boolean {
+        // Quotes would not come back from the command line the editor shows, which is split into words.
+        if (value.any { it.isWhitespace() || it == '"' || it == '\'' }) return false
         val scheme = value.substringBefore("://", "").lowercase(Locale.ROOT)
         val rest = value.substringAfter("://", "")
         return when (scheme) {
-            "https" -> rest.takeWhile { it !in "/?#" }.isNotEmpty() && value.none { it.isWhitespace() }
-            "udp", "tcp" -> rest.trimEnd('/').let { AetherEndpoint.parse(it) ?: AetherEndpoint.of(it, "53") } != null
+            "https" -> rest.takeWhile { it !in "/?#" }.isNotEmpty()
+            "udp", "tcp" -> rest.trimEnd('/').let { address ->
+                // As the core reads an address: ASCII digits only, and brackets around an IPv6 address alone.
+                address.all { it.code < 0x80 } &&
+                    !(address.startsWith('[') && ':' !in address.substringBefore(']')) &&
+                    (AetherEndpoint.parse(address) ?: AetherEndpoint.of(address, "53")) != null
+            }
             else -> false
         }
     }
 
-    /** Whether [value] is a domain whose HTTPS record can be asked for, as the core's --ech-domain takes it. */
+    /**
+     * Whether [value] is a domain whose HTTPS record can be asked for, as the core's --ech-domain takes it. A label
+     * cannot start or end with '-' either, so that no value reads as an option of the core's command line.
+     */
     internal fun isEchDomain(value: String): Boolean {
         val name = value.removeSuffix(".")
         return name.isNotEmpty() && name.length <= 253 && name.split('.').all { echDomainLabel.matches(it) }
     }
 
-    private val echDomainLabel = Regex("[A-Za-z0-9_-]{1,63}")
+    private val echDomainLabel = Regex("[A-Za-z0-9_]([A-Za-z0-9_-]{0,61}[A-Za-z0-9_])?")
 
     private fun normalizePsiphon(config: ProfileItem): Problem? {
         val psiphon = AetherPsiphon.fromString(config.aetherPsiphon)

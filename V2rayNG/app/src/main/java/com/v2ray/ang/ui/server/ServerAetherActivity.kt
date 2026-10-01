@@ -52,7 +52,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.core.AetherCore
 import com.v2ray.ang.core.AetherCoreManager
@@ -222,15 +221,13 @@ class ServerAetherActivity : BaseServerActivity() {
                             stringResource(R.string.aether_lab_ech_dns),
                             uiState.aetherEchDns,
                             { uiState.aetherEchDns = it },
-                            keyboardType = KeyboardType.Uri,
-                            placeholder = AppConfig.AETHER_ECH_DNS
+                            keyboardType = KeyboardType.Uri
                         )
                         FormTextField(
                             stringResource(R.string.aether_lab_ech_domain),
                             uiState.aetherEchDomain,
                             { uiState.aetherEchDomain = it },
-                            keyboardType = KeyboardType.Uri,
-                            placeholder = AppConfig.AETHER_ECH_DOMAIN
+                            keyboardType = KeyboardType.Uri
                         )
                     }
                 }

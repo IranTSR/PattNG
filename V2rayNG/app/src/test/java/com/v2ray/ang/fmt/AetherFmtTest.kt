@@ -334,6 +334,7 @@ class AetherFmtTest {
             "tcp://8.8.8.8",
             "TCP://[2606:4700:4700::1111]:53",
             "tcp://[::1]",
+            "udp://2606:4700::1111",
             "https://doq.dns4all.eu/dns-query",
             "https://1.1.1.1:8443/dns-query",
         )
@@ -342,7 +343,26 @@ class AetherFmtTest {
             assertNull(dns, AetherFmt.normalize(config))
             assertEquals(dns, config.aetherEchDns)
         }
-        val bad = listOf("1.1.1.1", "udp://dns.google", "tls://1.1.1.1", "udp://1.1.1.1:70000", "udp://", "https://", "https:///dns-query")
+        val bad = listOf(
+            "1.1.1.1",
+            "udp://dns.google",
+            "tls://1.1.1.1",
+            "udp://1.1.1.1:70000",
+            "udp://",
+            "https://",
+            "https:///dns-query",
+            // The core reads no bracketed IPv4 address, no space and no digit outside ASCII, as a Persian keyboard types.
+            "udp://[1.1.1.1]",
+            "udp://[1.1.1.1]:53",
+            "udp:// 1.1.1.1",
+            "udp://1.1.1.1 :53",
+            "udp://1.1.1.1: 53",
+            "udp://\u06f1.\u06f1.\u06f1.\u06f1",
+            "udp://1.1.1.1:\u06f5\u06f3",
+            "udp://\uff11.\uff11.\uff11.\uff11",
+            "https://dns example/dns-query",
+            "https://dns.example/dns-query?x='1'",
+        )
         for (dns in bad) {
             assertEquals(dns, AetherFmt.Problem.INVALID_ECH_DNS, AetherFmt.normalize(profile { aetherEch = true; aetherEchDns = dns }))
         }
@@ -355,9 +375,44 @@ class AetherFmtTest {
             assertNull(domain, AetherFmt.normalize(config))
             assertEquals(domain, config.aetherEchDomain)
         }
-        for (domain in listOf("a..b", "with space.com", "https://ip.gs", "ip.gs/", "${"a".repeat(64)}.com")) {
+        for (domain in listOf("a..b", "with space.com", "https://ip.gs", "ip.gs/", "${"a".repeat(64)}.com", "--upstream", "-ip.gs", "ip-.gs")) {
             assertEquals(domain, AetherFmt.Problem.INVALID_ECH_DOMAIN, AetherFmt.normalize(profile { aetherEch = true; aetherEchDomain = domain }))
         }
+    }
+
+    @Test
+    fun echFieldsTheEditorDoesNotShowNeitherBlockSavingNorKeepAValueTheCoreWouldRefuse() {
+        val masque = profile { aetherEch = true; aetherEchDns = "udp://dns.google"; aetherEchDomain = "--upstream" }
+        assertEquals(AetherFmt.Problem.INVALID_ECH_DNS, AetherFmt.normalize(masque))
+
+        val shapes = listOf<ProfileItem.() -> Unit>(
+            { aetherProtocol = AetherProtocol.WIREGUARD.type },
+            { aetherPsiphon = "only" },
+            { aetherTor = "only" },
+        )
+        for (shape in shapes) {
+            val hidden = profile { aetherEch = true; aetherEchDns = "udp://dns.google"; aetherEchDomain = "--upstream"; shape() }
+            assertNull(AetherFmt.normalize(hidden))
+            assertNull(hidden.aetherEchDns)
+            assertNull(hidden.aetherEchDomain)
+
+            // A value the core would take stays, for when the profile is back over MASQUE.
+            val kept = profile { aetherEch = true; aetherEchDns = "tcp://8.8.8.8"; aetherEchDomain = "ip.gs"; shape() }
+            assertNull(AetherFmt.normalize(kept))
+            assertEquals("tcp://8.8.8.8", kept.aetherEchDns)
+            assertEquals("ip.gs", kept.aetherEchDomain)
+        }
+    }
+
+    @Test
+    fun aLinkGivesNoEchResolverOrDomainTheCoreWouldRefuse() {
+        val plain = link(profile { aetherEch = true })
+        val crafted = plain.substringBefore('#') + "&ech_dns=udp%3A%2F%2F%5B1.1.1.1%5D&ech_domain=--upstream#" + plain.substringAfter('#')
+        assertTrue(crafted, crafted.substringBefore('#').contains("ech_domain="))
+        val parsed = AetherFmt.parse(crafted)
+        assertEquals(true, parsed?.aetherEch)
+        assertNull(parsed?.aetherEchDns)
+        assertNull(parsed?.aetherEchDomain)
     }
 
     @Test
