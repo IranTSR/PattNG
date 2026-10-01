@@ -1,5 +1,6 @@
 package com.v2ray.ang.core
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
@@ -108,6 +109,71 @@ sealed interface AetherDependency {
             val core = config.get(COMMAND_KEY)?.let(::textOf)?.let(AetherCore::ofCommand) ?: return
             if (core.port == from) config.addProperty(COMMAND_KEY, core.on(port).command)
         }
+
+        /**
+         * Has what the Aether [core] of the custom configuration [config] sends out leave through
+         * Xray, as the configuration of a profile does: an inbound the core dials out through, after
+         * the other inbounds, a freedom outbound after the other outbounds, and a rule ahead of every
+         * other that joins the two. Returns the core told to dial out through that inbound, which is
+         * also written back as aetherCommand. A core that names an upstream of its own, as one
+         * exported from the app does, is left as it is with the configuration; so is a configuration
+         * that already has an inbound or an outbound under those tags, or something else than a list
+         * where they would go.
+         */
+        fun routeThroughXray(config: JsonObject, core: AetherCore): AetherCore {
+            if (core.hasUpstream) return core
+            val inbounds = listOrNew(config, "inbounds") ?: return core
+            val outbounds = listOrNew(config, "outbounds") ?: return core
+            val routing = objectOrNew(config, "routing") ?: return core
+            val rules = listOrNew(routing, "rules") ?: return core
+            if (tagged(inbounds, AppConfig.TAG_SECONDARY_SOCKS) || tagged(outbounds, AppConfig.TAG_EXIT_NODE)) return core
+
+            val taken = inbounds.flatMap { inbound ->
+                inbound.takeIf { it.isJsonObject }?.let { inboundPorts(it.asJsonObject.get("port")) }.orEmpty()
+            }
+            val port = core.exitPort { candidate -> taken.any { candidate in it } }
+            inbounds.add(JsonObject().apply {
+                addProperty("tag", AppConfig.TAG_SECONDARY_SOCKS)
+                addProperty("port", port)
+                addProperty("listen", AppConfig.LOOPBACK)
+                addProperty("protocol", "mixed")
+                add("settings", JsonObject().apply { addProperty("udp", true) })
+            })
+            outbounds.add(JsonObject().apply {
+                addProperty("tag", AppConfig.TAG_EXIT_NODE)
+                addProperty("protocol", "freedom")
+            })
+            val exitRule = JsonObject().apply {
+                add("inboundTag", JsonArray().apply { add(AppConfig.TAG_SECONDARY_SOCKS) })
+                addProperty("outboundTag", AppConfig.TAG_EXIT_NODE)
+            }
+            routing.add("rules", JsonArray().apply {
+                add(exitRule)
+                addAll(rules)
+            })
+            config.add("inbounds", inbounds)
+            config.add("outbounds", outbounds)
+            config.add("routing", routing)
+
+            val routed = core.through(port)
+            config.addProperty(COMMAND_KEY, routed.command)
+            return routed
+        }
+
+        /** The list at [key] of [config], a new one when there is none; null when [key] holds something else. */
+        private fun listOrNew(config: JsonObject, key: String): JsonArray? {
+            val element = config.get(key)?.takeUnless { it.isJsonNull } ?: return JsonArray()
+            return element.takeIf { it.isJsonArray }?.asJsonArray
+        }
+
+        /** The object at [key] of [config], a new one when there is none; null when [key] holds something else. */
+        private fun objectOrNew(config: JsonObject, key: String): JsonObject? {
+            val element = config.get(key)?.takeUnless { it.isJsonNull } ?: return JsonObject()
+            return element.takeIf { it.isJsonObject }?.asJsonObject
+        }
+
+        private fun tagged(list: JsonArray, tag: String): Boolean =
+            list.any { it.isJsonObject && it.asJsonObject.get("tag")?.let(::textOf) == tag }
 
         /**
          * True when an inbound of the configuration [content], as it is handed to Xray, listens on

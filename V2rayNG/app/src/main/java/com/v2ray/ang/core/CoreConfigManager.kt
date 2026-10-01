@@ -41,11 +41,14 @@ object CoreConfigManager {
                     errorMessage = "Failed to build config context"
                 )
             if (configContext.isCustom) {
-                return buildV2rayCustomConfig(configContext)
+                return buildV2rayCustomConfig(configContext, routeAether = true)
             }
             val dependency = AetherDependency.of(configContext.resolvedOutbounds)
             aetherFailure(context, guid, dependency)?.let { return it }
-            return toConfigResult(context, configContext, buildUnifiedConfig(configContext), dependency)
+            val v2rayConfig = buildUnifiedConfig(configContext)
+            // PattNG: what the Aether core sends out leaves through Xray.
+            val core = (dependency as? AetherDependency.Single)?.core?.let { routeAetherThroughXray(v2rayConfig, it) }
+            return toConfigResult(context, configContext, v2rayConfig, core)
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "Failed to get V2ray config", e)
             return ConfigResult(
@@ -83,7 +86,10 @@ object CoreConfigManager {
                 rebindAetherOutbounds(v2rayConfig.outbounds, from = dependency.core.port, port = aetherPort)
             }
 
-            return toConfigResult(context, configContext, v2rayConfig, dependency, listeningOn = aetherPort)
+            // Not routed through Xray: a test's core of its own runs beside no Xray inbound it could dial
+            // out through, and the session's core, which a test may measure through, already has one.
+            val core = (dependency as? AetherDependency.Single)?.core
+            return toConfigResult(context, configContext, v2rayConfig, core, listeningOn = aetherPort)
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "Failed to get V2ray config for speedtest", e)
             return ConfigResult(
@@ -99,8 +105,14 @@ object CoreConfigManager {
      *
      * A custom configuration asks for an Aether core with its command line as aetherCommand; the
      * result names that core, and [aetherPort] moves its outbounds to the core a latency test opened.
+     * With [routeAether], for the session and for an export, what the core sends out leaves through
+     * Xray, see [AetherDependency.routeThroughXray].
      */
-    private fun buildV2rayCustomConfig(configContext: CoreConfigContext, aetherPort: Int? = null): ConfigResult {
+    private fun buildV2rayCustomConfig(
+        configContext: CoreConfigContext,
+        aetherPort: Int? = null,
+        routeAether: Boolean = false,
+    ): ConfigResult {
         val context = configContext.context
         val raw = MmkvManager.decodeServerRaw(configContext.guid)
             ?: return ConfigResult(
@@ -145,8 +157,16 @@ object CoreConfigManager {
             }
         }
 
-        if (!needTun()) {
+        // Last, so that the entries for the Aether core go after everything else the app adds.
+        fun serialized(): ConfigResult {
+            if (routeAether) {
+                result.aetherCore = result.aetherCore?.let { AetherDependency.routeThroughXray(json, it) }
+            }
             return JsonUtil.toJsonPretty(json)?.let { result.copy(content = it) } ?: result
+        }
+
+        if (!needTun()) {
+            return serialized()
         }
 
         // Check whether package names need to be replaced with UIDs
@@ -190,7 +210,7 @@ object CoreConfigManager {
             }
         }
 
-        return JsonUtil.toJsonPretty(json)?.let { result.copy(content = it) } ?: result
+        return serialized()
     }
 
     /**
@@ -502,10 +522,9 @@ object CoreConfigManager {
         context: Context,
         configContext: CoreConfigContext,
         v2rayConfig: V2rayConfig,
-        dependency: AetherDependency,
+        core: AetherCore?,
         listeningOn: Int? = null,
     ): ConfigResult {
-        val core = (dependency as? AetherDependency.Single)?.core
         v2rayConfig.aetherCommand = core?.let { if (listeningOn != null) it.on(listeningOn) else it }?.command
         // PattNG: the ECH outbounds of the profiles get their tags and go after every other outbound, as written
         val content = when (val serialized = EchOutbound.serialize(v2rayConfig)) {
@@ -528,6 +547,37 @@ object CoreConfigManager {
             content = content,
             aetherCore = core,
         )
+    }
+
+    /**
+     * PattNG: has what the Aether [core] sends out leave through Xray: an inbound the core dials out
+     * through, after the other inbounds, with no sniffing; a freedom outbound after the other
+     * outbounds; and a rule ahead of every other that sends what comes in on that inbound out by
+     * that outbound. Returns the core told to dial out through the inbound. A core that names an
+     * upstream of its own, as a profile's hand-written command may, is left as it is.
+     */
+    internal fun routeAetherThroughXray(v2rayConfig: V2rayConfig, core: AetherCore): AetherCore {
+        if (core.hasUpstream) return core
+        val taken = v2rayConfig.inbounds.mapNotNullTo(mutableSetOf()) { it.port }
+        val port = core.exitPort { it in taken }
+        v2rayConfig.inbounds.add(
+            V2rayConfig.InboundBean(
+                tag = AppConfig.TAG_SECONDARY_SOCKS,
+                port = port,
+                protocol = "mixed",
+                listen = AppConfig.LOOPBACK,
+                settings = V2rayConfig.InboundBean.InSettingsBean(udp = true),
+            )
+        )
+        v2rayConfig.outbounds.add(V2rayConfig.OutboundBean(tag = AppConfig.TAG_EXIT_NODE, protocol = "freedom", mux = null))
+        v2rayConfig.routing.rules.add(
+            0,
+            V2rayConfig.RoutingBean.RulesBean(
+                inboundTag = listOf(AppConfig.TAG_SECONDARY_SOCKS),
+                outboundTag = AppConfig.TAG_EXIT_NODE,
+            )
+        )
+        return core.through(port)
     }
 
     /** PattNG: a configuration whose ECH outbound cannot be used, as a failure whose message is meant for the screen. */

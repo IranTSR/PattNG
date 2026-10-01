@@ -263,4 +263,85 @@ class AetherDependencyTest {
         assertFalse(AetherDependency.inboundListensOn("not json {", 10819))
         assertFalse(AetherDependency.inboundListensOn("[]", 10819))
     }
+
+    /** A custom configuration on the core [command] names, with SOCKS inbounds on [inboundPorts]. */
+    private fun customOnCore(command: String, vararg inboundPorts: Int): JsonObject = JsonParser.parseString(
+        """
+        {
+          "aetherCommand": "$command",
+          "inbounds": [${inboundPorts.joinToString(",") { """{"tag": "in-$it", "port": $it, "protocol": "socks"}""" }}],
+          "outbounds": [
+            {"tag": "proxy", "protocol": "socks", "settings": {"address": "127.0.0.1", "port": 10819}},
+            {"tag": "direct", "protocol": "freedom"}
+          ],
+          "routing": {"rules": [{"domain": ["geosite:private"], "outboundTag": "direct"}]}
+        }
+        """
+    ).asJsonObject
+
+    private fun routed(config: JsonObject): AetherCore = AetherDependency.routeThroughXray(config, coreOf(AetherDependency.ofCustom(config)))
+
+    @Test
+    fun whatTheCoreOfACustomConfigurationSendsOutLeavesThroughXray() {
+        val config = customOnCore("aether --bind 127.0.0.1:10819 --protocol wg", 10808)
+        val core = routed(config)
+
+        val inbound = config.getAsJsonArray("inbounds").last().asJsonObject
+        assertEquals("secondary-socks", inbound.get("tag").asString)
+        assertEquals(10821, inbound.get("port").asInt)
+        assertEquals("127.0.0.1", inbound.get("listen").asString)
+        assertEquals("mixed", inbound.get("protocol").asString)
+        assertTrue(inbound.getAsJsonObject("settings").get("udp").asBoolean)
+        assertFalse(inbound.has("sniffing"))
+
+        val outbound = config.getAsJsonArray("outbounds").last().asJsonObject
+        assertEquals("exit-node", outbound.get("tag").asString)
+        assertEquals("freedom", outbound.get("protocol").asString)
+
+        // What comes in on that inbound goes out by that outbound, before any rule of the configuration is asked.
+        val rules = config.getAsJsonObject("routing").getAsJsonArray("rules")
+        assertEquals(2, rules.size())
+        assertEquals("secondary-socks", rules[0].asJsonObject.getAsJsonArray("inboundTag").single().asString)
+        assertEquals("exit-node", rules[0].asJsonObject.get("outboundTag").asString)
+        assertEquals("direct", rules[1].asJsonObject.get("outboundTag").asString)
+
+        assertEquals("aether --bind 127.0.0.1:10819 --protocol wg --upstream socks5://127.0.0.1:10821", core.command)
+        assertEquals(core.command, config.get("aetherCommand").asString)
+    }
+
+    @Test
+    fun theInboundOfACustomConfigurationAvoidsThePortsItsInboundsTake() {
+        val config = customOnCore("aether --bind 127.0.0.1:10819", 10808, 10821)
+        assertEquals("socks5://127.0.0.1:10822", routed(config).arguments.last())
+        assertEquals(10822, config.getAsJsonArray("inbounds").last().asJsonObject.get("port").asInt)
+    }
+
+    @Test
+    fun aCustomConfigurationWithoutRoutingGetsTheRuleAlone() {
+        val config = customOnCore("aether --bind 127.0.0.1:10819").apply { remove("routing") }
+        routed(config)
+        assertEquals(1, config.getAsJsonObject("routing").getAsJsonArray("rules").size())
+    }
+
+    @Test
+    fun aCustomConfigurationRoutedAlreadyIsLeftAsWritten() {
+        // An exported configuration carries the entries and its core the upstream already.
+        val exported = customOnCore("aether --bind 127.0.0.1:10819 --upstream socks5://127.0.0.1:10821")
+        val exportedAsWritten = exported.deepCopy()
+        val exportedCore = coreOf(AetherDependency.ofCustom(exported))
+        assertEquals(exportedCore, AetherDependency.routeThroughXray(exported, exportedCore))
+        assertEquals(exportedAsWritten, exported)
+
+        // So is one with an inbound or an outbound of its own under those tags, and one whose inbounds are no list.
+        val tagged = customOnCore("aether --bind 127.0.0.1:10819").apply {
+            getAsJsonArray("outbounds").add(JsonParser.parseString("""{"tag": "exit-node", "protocol": "blackhole"}"""))
+        }
+        val notAList = customOnCore("aether --bind 127.0.0.1:10819").apply { add("inbounds", JsonObject()) }
+        for (config in listOf(tagged, notAList)) {
+            val asWritten = config.deepCopy()
+            val core = coreOf(AetherDependency.ofCustom(config))
+            assertFalse(AetherDependency.routeThroughXray(config, core).hasUpstream)
+            assertEquals(asWritten, config)
+        }
+    }
 }

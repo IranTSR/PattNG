@@ -212,12 +212,10 @@ object CoreServiceManager {
                 AetherCoreManager.stop()
                 throw StartFailure(service.getString(R.string.aether_listen_port_taken))
             }
-            // The tests were told to stop above; the session's core waits for their cores to be gone.
-            aetherExitHandled = false
-            AetherCoreManager.start(service, aether, afterProbes = !isReload) { onAetherExit(guid) }
-        } else {
-            AetherCoreManager.stop()
         }
+        // A reload still has the previous session's core; it ends before Xray starts again. The new core,
+        // if any, starts once Xray listens, see launchNativeCore.
+        AetherCoreManager.stop()
 
         try {
             launchNativeCore(service, guid, config, aether, result.content, vpnInterface, isReload)
@@ -259,6 +257,14 @@ object CoreServiceManager {
 
         if (!isRunning()) {
             error("Core failed to start")
+        }
+
+        // The Aether core dials out through an inbound of Xray, which listens once the start returns, so
+        // the core starts after it rather than spending its first dials on a port nobody listens on yet.
+        if (aether != null) {
+            // The tests were told to stop as this start began; the session's core waits for their cores to be gone.
+            aetherExitHandled = false
+            AetherCoreManager.start(service, aether, afterProbes = !isReload) { onAetherExit(guid) }
         }
 
         if (browserDialer != null) {

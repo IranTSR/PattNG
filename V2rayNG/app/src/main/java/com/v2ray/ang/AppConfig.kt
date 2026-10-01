@@ -124,6 +124,10 @@ object AppConfig {
     const val TAG_BALANCER = "balancer-main"
     const val TAG_BALANCER_PRE = "balancer"
 
+    /** PattNG: the inbound the Aether core dials out through, and the outbound its traffic leaves Xray by. */
+    const val TAG_SECONDARY_SOCKS = "secondary-socks"
+    const val TAG_EXIT_NODE = "exit-node"
+
     /** Network-related constants. */
     const val UPLINK = "uplink"
     const val DOWNLINK = "downlink"

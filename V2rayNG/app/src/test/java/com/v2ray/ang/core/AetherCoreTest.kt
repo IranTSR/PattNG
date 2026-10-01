@@ -224,4 +224,39 @@ class AetherCoreTest {
         assertNotEquals(AetherCore.ofCommand("aether --wg --bind 127.0.0.1:20808"), AetherCore.ofCommand("aether --wg --bind 127.0.0.1:20809"))
         assertNotEquals(AetherCore.ofCommand("aether --wg --bind 127.0.0.1:20808"), AetherCore.ofCommand("aether --bind 127.0.0.1:20808 --wg"))
     }
+
+    @Test
+    fun aCoreDialsOutThroughXrayAndStaysTheSameTunnel() {
+        val core = AetherCore.ofCommand("aether --bind 127.0.0.1:10819 --protocol wg --scan balanced")!!
+        val routed = core.through(10821)
+        assertFalse(core.hasUpstream)
+        assertTrue(routed.hasUpstream)
+        assertEquals("socks5://127.0.0.1:10821", valueAfter(routed.arguments, "--upstream"))
+        // The session's core is the profile's tunnel still: a process running one runs the other.
+        assertTrue(core.runsAs(routed.arguments))
+        assertTrue(routed.runsAs(core.arguments))
+        assertEquals(core.ports, routed.ports)
+
+        // A command that names an upstream of its own keeps it.
+        val own = AetherCore.ofCommand("aether --bind 127.0.0.1:10819 --upstream socks5://127.0.0.1:1080")!!
+        assertTrue(own.hasUpstream)
+        assertEquals(own, own.through(10821))
+    }
+
+    @Test
+    fun theInboundTheCoreDialsOutThroughIsTwoAboveItsPortUnlessThatIsTaken() {
+        val plain = AetherCore.ofCommand("aether --bind 127.0.0.1:10819")!!
+        assertEquals(10821, plain.exitPort { false })
+        assertEquals(10823, plain.exitPort { it == 10821 || it == 10822 })
+
+        // Psiphon inside the tunnel and Tor around it listen on the port, the one above and the one above that.
+        val three = AetherCore.ofCommand(
+            "aether --bind 127.0.0.1:10820 --psiphon --psiphon-bind 127.0.0.1:10819 --tor-reverse --tor-bind 127.0.0.1:10821"
+        )!!
+        assertEquals(10819, three.port)
+        assertEquals(10822, three.exitPort { false })
+
+        // At the top of the port range it looks below the port instead.
+        assertEquals(1024, AetherCore.ofCommand("aether --bind 127.0.0.1:65535")!!.exitPort { false })
+    }
 }

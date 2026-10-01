@@ -1,5 +1,6 @@
 package com.v2ray.ang.core
 
+import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.AetherProtocol
 
@@ -57,6 +58,25 @@ data class AetherCore(val arguments: List<String>) {
     fun runsAs(processArguments: List<String>): Boolean =
         AetherCoreManager.tunnelArguments(processArguments) == AetherCoreManager.tunnelArguments(arguments)
 
+    /** True when the core is told which proxy to dial out through, as a command written by hand may be. */
+    val hasUpstream: Boolean get() = AetherCoreManager.UPSTREAM in arguments
+
+    /**
+     * This core dialling out through the SOCKS inbound on [port] of the loopback address, which Xray
+     * serves so that what the core sends leaves through Xray. A core told an upstream of its own keeps it.
+     */
+    fun through(port: Int): AetherCore =
+        if (hasUpstream) this else AetherCore(arguments + listOf(AetherCoreManager.UPSTREAM, "socks5://${AppConfig.LOOPBACK}:$port"))
+
+    /**
+     * The port for the inbound the core dials out through: two above [port], the one between being
+     * where the core itself, Tor or Psiphon may listen, or else the next port that is none of [ports]
+     * and not [isTaken] by an inbound of the configuration.
+     */
+    fun exitPort(isTaken: (Int) -> Boolean): Int =
+        (((port + 2)..LAST_PORT).asSequence() + (FIRST_UNPRIVILEGED_PORT until port).asSequence())
+            .first { it !in ports && !isTaken(it) }
+
     companion object {
 
         /** The name a command line starts with; the app runs its own copy of the core whatever the name says. */
@@ -64,6 +84,9 @@ data class AetherCore(val arguments: List<String>) {
 
         /** The listeners a core may be told to bind, in the order [on] hands ports out: the core's own, Tor's, Psiphon's. */
         private val LISTENERS = listOf("--bind", AetherCoreManager.TOR_BIND, AetherCoreManager.PSIPHON_BIND)
+
+        private const val LAST_PORT = 65535
+        private const val FIRST_UNPRIVILEGED_PORT = 1024
 
         /**
          * The core of [profile]: the command line it carries, or its settings as arguments on its

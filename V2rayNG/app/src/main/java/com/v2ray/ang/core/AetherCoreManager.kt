@@ -63,6 +63,9 @@ object AetherCoreManager {
     /** The option that names Tor's own listener. */
     internal const val TOR_BIND = "--tor-bind"
 
+    /** The option that names the proxy the core dials out through. */
+    internal const val UPSTREAM = "--upstream"
+
     /** The option that has the core register identities and end, with the word naming which: here all four. */
     private const val REGISTER = "--register"
     private const val REGISTER_EVERY_KEY = "all"
@@ -760,9 +763,12 @@ object AetherCoreManager {
      */
     fun runsProfile(arguments: List<String>, profile: ProfileItem): Boolean = AetherCore.of(profile).runsAs(arguments)
 
-    /** [arguments] without the listeners and the log level: what tells one tunnel from another. */
+    /**
+     * [arguments] without the listeners, the log level and the upstream proxy: what tells one tunnel
+     * from another. The session's core dials out through Xray and its profile does not say so.
+     */
     internal fun tunnelArguments(arguments: List<String>): List<String> =
-        listOf("--log-level", "--bind", TOR_BIND, PSIPHON_BIND).fold(arguments, ::withoutOption)
+        listOf("--log-level", "--bind", TOR_BIND, PSIPHON_BIND, UPSTREAM).fold(arguments, ::withoutOption)
 
     /** [arguments] without every [flag] and the value after it. */
     internal fun withoutOption(arguments: List<String>, flag: String): List<String> {
