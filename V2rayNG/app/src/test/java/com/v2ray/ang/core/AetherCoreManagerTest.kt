@@ -1,6 +1,7 @@
 package com.v2ray.ang.core
 
 import android.util.Log
+import com.google.gson.JsonParser
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.AetherIpVersion
 import com.v2ray.ang.enums.AetherObfuscation
@@ -10,19 +11,34 @@ import com.v2ray.ang.enums.AetherScanMode
 import com.v2ray.ang.enums.AetherTor
 import com.v2ray.ang.enums.AetherTransport
 import com.v2ray.ang.enums.EConfigType
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.nio.file.Files
+import java.util.Collections
+import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
 
 class AetherCoreManagerTest {
@@ -392,14 +408,6 @@ class AetherCoreManagerTest {
 
         assertTrue(AetherCoreManager.isSession(session, ownerAlive = null, sessionMarked = null, sessionAddress = "127.0.0.1:10819"))
         assertFalse(AetherCoreManager.isSession(scan, ownerAlive = null, sessionMarked = null, sessionAddress = "127.0.0.1:10819"))
-    }
-
-    @Test
-    fun aProfileListensOnThePortItNamesAndOnTheDefaultOtherwise() {
-        assertEquals(10819, AetherCoreManager.listenPort(profile()))
-        assertEquals(20808, AetherCoreManager.listenPort(profile().copy(aetherListenPort = "20808")))
-        assertEquals(10819, AetherCoreManager.listenPort(profile().copy(aetherListenPort = "70000")))
-        assertEquals(10819, AetherCoreManager.listenPort(profile().copy(aetherListenPort = "")))
     }
 
     @Test
@@ -1004,6 +1012,189 @@ class AetherCoreManagerTest {
         assertNull(AetherCoreManager.ownerPid(listOf("HOME=/x", "${AetherCoreManager.OWNER_ENV}=")))
         assertNull(AetherCoreManager.ownerPid(listOf("HOME=/x")))
         assertNull(AetherCoreManager.ownerPid(null))
+    }
+
+    @Test
+    fun theExitOfACoreOfItsOwnOpensWithItsExitNode() {
+        val plain = JsonParser.parseString(AetherCoreManager.exitConfiguration(AetherExit(dialMode = "code-1"), configuration = """{"outbounds": []}"""))
+            .asJsonObject.getAsJsonArray("outbounds").single().asJsonObject
+        assertEquals("exit-node", plain.get("tag").asString)
+        assertEquals("freedom", plain.get("protocol").asString)
+        assertEquals("code-1", plain.getAsJsonObject("streamSettings").getAsJsonObject("sockopt").get("dialMode").asString)
+        // A core that dials out through a hop of its chain takes the hop from the configuration under test.
+        val chained = """{"outbounds": [{"tag": "proxy", "protocol": "socks"}, {"tag": "exit-node", "protocol": "vless"}]}"""
+        assertEquals(chained, AetherCoreManager.exitConfiguration(AetherExit.through(listOf(profile())), chained))
+        assertEquals(
+            AetherCoreManager.exitConfiguration(AetherExit.PLAIN, null),
+            AetherCoreManager.exitConfiguration(AetherExit.PLAIN, chained),
+        )
+    }
+
+    @Test
+    fun theSessionCoreCarriesTheKeyOfItsExitNode() {
+        assertEquals("abc", AetherCoreManager.exitKeyOf(listOf("HOME=/x", "${AetherCoreManager.EXIT_ENV}=abc")))
+        assertNull(AetherCoreManager.exitKeyOf(listOf("HOME=/x", "${AetherCoreManager.SESSION_ENV}=1")))
+        assertNull(AetherCoreManager.exitKeyOf(listOf("${AetherCoreManager.EXIT_ENV}=")))
+    }
+
+    /** An exit that opens on [port], or not at all with null, and what was done with it, in order. */
+    private class CountedExit(private val port: Int? = 41234) {
+        val events: MutableList<String> = Collections.synchronizedList(mutableListOf())
+
+        fun open(): Int? = port.also { events += "open" }
+
+        fun close() {
+            events += "close"
+        }
+    }
+
+    @Test
+    fun theExitOfACoreOfItsOwnClosesOnceTheCoreIsOver() = runBlocking {
+        val exit = CountedExit()
+        val found = AetherCoreManager.throughExit(Mutex(), exit::open, exit::close) { port ->
+            exit.events += "core on $port"
+            "endpoint"
+        }
+        assertEquals("endpoint", found)
+        assertEquals(listOf("open", "core on 41234", "close"), exit.events)
+    }
+
+    @Test
+    fun theExitClosesWhenTheCoreDoesNotStart() = runBlocking {
+        // withProcess has nothing to give back then.
+        val exit = CountedExit()
+        assertNull(AetherCoreManager.throughExit<String>(Mutex(), exit::open, exit::close) { null })
+        assertEquals(listOf("open", "close"), exit.events)
+    }
+
+    @Test
+    fun anExitThatDoesNotOpenRunsNoCoreAndIsNotClosed() = runBlocking {
+        val exit = CountedExit(port = null)
+        val found = AetherCoreManager.throughExit(Mutex(), exit::open, exit::close) { _ ->
+            exit.events += "core"
+            "endpoint"
+        }
+        assertNull(found)
+        assertEquals(listOf("open"), exit.events)
+    }
+
+    @Test
+    fun theExitClosesWhenTheCoreFails() {
+        val exit = CountedExit()
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { AetherCoreManager.throughExit<String>(Mutex(), exit::open, exit::close) { error("the core failed") } }
+        }
+        assertEquals(listOf("open", "close"), exit.events)
+    }
+
+    @Test
+    fun theExitClosesWhenTheScanIsCancelled() = runBlocking {
+        val exit = CountedExit()
+        val running = CompletableDeferred<Unit>()
+        val scan = launch(Dispatchers.Default) {
+            AetherCoreManager.throughExit<String>(Mutex(), exit::open, exit::close) {
+                running.complete(Unit)
+                awaitCancellation()
+            }
+        }
+        running.await()
+        scan.cancelAndJoin()
+        assertEquals(listOf("open", "close"), exit.events)
+    }
+
+    @Test
+    fun theExitClosesWhenTheCancellationLandsWhileItOpens() = runBlocking {
+        // The exit opens on a thread a cancellation does not stop, so it opens after the scan was
+        // cancelled: nothing runs through it, and it is closed all the same.
+        val events: MutableList<String> = Collections.synchronizedList(mutableListOf())
+        val opening = CountDownLatch(1)
+        val mayOpen = CountDownLatch(1)
+        val open = {
+            opening.countDown()
+            mayOpen.await()
+            events += "open"
+            41234
+        }
+        val scan = launch(Dispatchers.Default) {
+            AetherCoreManager.throughExit(Mutex(), open, { events += "close" }) { _ ->
+                events += "core"
+                "endpoint"
+            }
+        }
+        withContext(Dispatchers.IO) { opening.await() }
+        scan.cancel()
+        mayOpen.countDown()
+        scan.join()
+        assertEquals(listOf("open", "close"), events)
+    }
+
+    @Test
+    fun theCoresOfAProcessTakeTurnsAtTheExit() = runBlocking {
+        val turns = Mutex()
+        val events: MutableList<String> = Collections.synchronizedList(mutableListOf())
+        val firstRuns = CompletableDeferred<Unit>()
+        val firstMayEnd = CompletableDeferred<Unit>()
+        val secondOpened = CompletableDeferred<Unit>()
+        val first = launch(Dispatchers.Default) {
+            AetherCoreManager.throughExit(turns, { events += "open 1"; 1 }, { events += "close 1" }) { _ ->
+                firstRuns.complete(Unit)
+                firstMayEnd.await()
+                "one"
+            }
+        }
+        firstRuns.await()
+        val second = launch(Dispatchers.Default) {
+            AetherCoreManager.throughExit(turns, { events += "open 2"; secondOpened.complete(Unit); 2 }, { events += "close 2" }) { _ -> "two" }
+        }
+        // While the first core runs, the second waits for its turn.
+        assertNull(withTimeoutOrNull(300) { secondOpened.await() })
+        firstMayEnd.complete(Unit)
+        first.join()
+        second.join()
+        assertEquals(listOf("open 1", "close 1", "open 2", "close 2"), events)
+    }
+
+    /** A core process that ends when asked, or, without [endsOnRequest], only when it is killed. */
+    private class FakeCoreProcess(private val endsOnRequest: Boolean) : Process() {
+        @Volatile
+        private var running = true
+
+        @Volatile
+        var killed = false
+            private set
+
+        override fun destroy() {
+            if (endsOnRequest) running = false
+        }
+
+        override fun destroyForcibly(): Process {
+            killed = true
+            running = false
+            return this
+        }
+
+        override fun exitValue(): Int = if (running) throw IllegalThreadStateException("running") else 0
+        override fun isAlive(): Boolean = running
+        override fun waitFor(): Int = 0
+        override fun getOutputStream(): OutputStream = ByteArrayOutputStream()
+        override fun getInputStream(): InputStream = ByteArrayInputStream(ByteArray(0))
+        override fun getErrorStream(): InputStream = ByteArrayInputStream(ByteArray(0))
+    }
+
+    @Test
+    fun aCoreThatEndsWhenAskedIsNotKilled() {
+        val core = FakeCoreProcess(endsOnRequest = true)
+        assertTrue(AetherCoreManager.endProcess(core, waitMs = 300))
+        assertFalse(core.killed)
+        assertFalse(core.isAlive)
+    }
+
+    @Test
+    fun aCoreThatDoesNotEndWhenAskedIsKilled() {
+        val core = FakeCoreProcess(endsOnRequest = false)
+        assertFalse(AetherCoreManager.endProcess(core, waitMs = 300))
+        assertTrue(core.killed)
+        assertFalse(core.isAlive)
     }
 
     @Test

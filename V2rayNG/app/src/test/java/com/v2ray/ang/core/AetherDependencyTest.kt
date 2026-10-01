@@ -9,6 +9,7 @@ import com.v2ray.ang.enums.CoreResolvedType
 import com.v2ray.ang.enums.EConfigType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -39,20 +40,71 @@ class AetherDependencyTest {
         assertEquals(single(masque), AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.NORMAL, masque))))
     }
 
+    /** The dependency on the core of [profile] dialling out through [hops], the hops on its entry side in a chain. */
+    private fun through(profile: ProfileItem, vararg hops: ProfileItem) =
+        AetherDependency.Single(AetherCore.of(profile).copy(exit = AetherExit.through(hops.toList())))
+
     @Test
-    fun aChainMayHaveAetherAsItsEntryHopOnly() {
-        // Chain profiles are stored exit first, entry last.
+    fun anAetherEntryHopDialsOutThroughItsOwnExitNode() {
+        // Chain profiles are stored exit first, entry last: this chain dials the Aether core first.
         assertEquals(
             single(masque),
             AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, vless, masque)))
         )
+    }
+
+    @Test
+    fun anyOtherAetherHopDialsOutThroughTheHopsOnItsEntrySide() {
+        val exitHop = AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless)))
+        assertEquals(through(masque, vless), exitHop)
+        assertEquals(through(masque, trojan), AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, vless, masque, trojan))))
         assertEquals(
-            AetherDependency.NotEntryHop("proxy"),
-            AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless)))
+            through(masque, vless, trojan),
+            AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless, trojan)))
+        )
+        // The exit-node settings of the profile do not count there: the hop is the exit-node.
+        val masked = ProfileItem.create(EConfigType.AETHER).apply {
+            remarks = "warp masked"; aetherProtocol = AetherProtocol.MASQUE.type; finalMask = """{"tcp": []}"""; dialMode = "code-1"
+        }
+        assertEquals(exitHop, AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masked, vless))))
+    }
+
+    @Test
+    fun theHopsAnAetherHopDialsOutThroughAreTheCoresOwn() {
+        // Two chains through the same hops share the core; one core cannot dial out two ways.
+        assertEquals(
+            through(masque, vless),
+            AetherDependency.of(
+                listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless), outbound("warp", CoreResolvedType.PROXYCHAIN, masqueCopy, vless))
+            )
         )
         assertEquals(
-            AetherDependency.NotEntryHop("proxy"),
-            AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, vless, masque, trojan)))
+            AetherDependency.Conflicting,
+            AetherDependency.of(
+                listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless), outbound("warp", CoreResolvedType.PROXYCHAIN, masque, trojan))
+            )
+        )
+        assertEquals(
+            AetherDependency.Conflicting,
+            AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless), outbound("warp", CoreResolvedType.NORMAL, masque)))
+        )
+        assertEquals(
+            AetherDependency.Conflicting,
+            AetherDependency.of(
+                listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless), outbound("warp", CoreResolvedType.PROXYCHAIN, trojan, masque))
+            )
+        )
+    }
+
+    @Test
+    fun aChainCanHaveOneAetherHop() {
+        assertEquals(
+            AetherDependency.TwoAetherHops("proxy"),
+            AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless, wireguard)))
+        )
+        assertEquals(
+            AetherDependency.TwoAetherHops("warp"),
+            AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.NORMAL, vless), outbound("warp", CoreResolvedType.PROXYCHAIN, masque, masqueCopy)))
         )
     }
 
@@ -79,13 +131,13 @@ class AetherDependencyTest {
     }
 
     @Test
-    fun theSameTunnelBehindTwoListenPortsNeedsTwoCores() {
+    fun aListenPortAProfileStoredOfItsOwnSplitsNoCore() {
+        // Profiles stored while each profile had a listen port of its own may carry one still; every core listens on the one port now.
         val elsewhere = ProfileItem.create(EConfigType.AETHER).apply {
             remarks = "warp on 20808"; aetherProtocol = AetherProtocol.MASQUE.type; aetherListenPort = "20808"
         }
-        assertEquals(single(elsewhere), AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.NORMAL, elsewhere))))
         assertEquals(
-            AetherDependency.Conflicting,
+            single(masque),
             AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.NORMAL, masque), outbound("warp", CoreResolvedType.NORMAL, elsewhere)))
         )
     }
@@ -100,6 +152,22 @@ class AetherDependencyTest {
             AetherDependency.Conflicting,
             AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.POLICYGROUP, masque, wireguard)))
         )
+    }
+
+    @Test
+    fun twoProfilesOnOneTunnelWithDifferentExitNodesCannotShareOneCore() {
+        // A process dials out through one exit-node.
+        val masked = ProfileItem.create(EConfigType.AETHER).apply {
+            remarks = "warp masked"; aetherProtocol = AetherProtocol.MASQUE.type; finalMask = """{"tcp": [{"type": "fragment"}]}"""
+        }
+        assertEquals(
+            AetherDependency.Conflicting,
+            AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.NORMAL, masque), outbound("warp", CoreResolvedType.NORMAL, masked)))
+        )
+        val alsoMasked = masked.copy(remarks = "warp masked again")
+        val dependency = AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.POLICYGROUP, masked, alsoMasked)))
+        assertEquals(single(masked), dependency)
+        assertEquals(AetherExit("""{"tcp": [{"type": "fragment"}]}"""), coreOf(dependency).exit)
     }
 
     // ---- custom configurations, with the command line of the core at the top
@@ -188,34 +256,13 @@ class AetherDependencyTest {
             aetherFragmentSize = "16-32"
             server = "162.159.198.1"
             serverPort = "443"
-            aetherListenPort = "20808"
         }
         val core = AetherCore.of(profile)
 
         val reimported = coreOf(AetherDependency.ofCustom(custom(socksTo("proxy", port = core.port), freedom, aetherCommand = quoted(core.command))))
 
         assertEquals(core, reimported)
-        assertEquals("127.0.0.1:20808", AetherCoreManager.bindAddressOf(reimported.arguments))
-    }
-
-    @Test
-    fun aTestTunnelTakesOverTheCommandAndEveryOutboundDialingIt() {
-        val config = custom(
-            socksTo("proxy", port = 20808),
-            socksTo("same-core", port = 20808),
-            socksTo("local", port = 1080),
-            socksTo("remote", port = 20808, address = "10.0.0.2"),
-            """{"tag": "vless", "protocol": "vless", "settings": {"address": "127.0.0.1", "port": 20808}}""",
-            aetherCommand = quoted("aether --bind 127.0.0.1:20808 --wg"),
-        )
-
-        AetherDependency.rebindCustom(config, from = 20808, port = 41234)
-
-        val ports = config.getAsJsonArray("outbounds").map { it.asJsonObject.getAsJsonObject("settings").get("port").asInt }
-        assertEquals(listOf(41234, 41234, 1080, 20808, 20808), ports)
-        // The configuration still says which core it dials.
-        assertEquals("aether --wg --bind 127.0.0.1:41234", config.get("aetherCommand").asString)
-        assertEquals(41234, coreOf(AetherDependency.ofCustom(config)).port)
+        assertEquals("127.0.0.1:10819", AetherCoreManager.bindAddressOf(reimported.arguments))
     }
 
     @Test
@@ -279,7 +326,7 @@ class AetherDependencyTest {
         """
     ).asJsonObject
 
-    private fun routed(config: JsonObject): AetherCore = AetherDependency.routeThroughXray(config, coreOf(AetherDependency.ofCustom(config)))
+    private fun routed(config: JsonObject): AetherCore = AetherDependency.routeThroughXray(config, coreOf(AetherDependency.ofCustom(config)), 10822)!!
 
     @Test
     fun whatTheCoreOfACustomConfigurationSendsOutLeavesThroughXray() {
@@ -288,7 +335,7 @@ class AetherDependencyTest {
 
         val inbound = config.getAsJsonArray("inbounds").last().asJsonObject
         assertEquals("secondary-socks", inbound.get("tag").asString)
-        assertEquals(10821, inbound.get("port").asInt)
+        assertEquals(10822, inbound.get("port").asInt)
         assertEquals("127.0.0.1", inbound.get("listen").asString)
         assertEquals("mixed", inbound.get("protocol").asString)
         assertTrue(inbound.getAsJsonObject("settings").get("udp").asBoolean)
@@ -305,15 +352,22 @@ class AetherDependencyTest {
         assertEquals("exit-node", rules[0].asJsonObject.get("outboundTag").asString)
         assertEquals("direct", rules[1].asJsonObject.get("outboundTag").asString)
 
-        assertEquals("aether --bind 127.0.0.1:10819 --protocol wg --upstream socks5://127.0.0.1:10821", core.command)
+        assertEquals("aether --bind 127.0.0.1:10819 --protocol wg --upstream socks5://127.0.0.1:10822", core.command)
         assertEquals(core.command, config.get("aetherCommand").asString)
     }
 
     @Test
-    fun theInboundOfACustomConfigurationAvoidsThePortsItsInboundsTake() {
-        val config = customOnCore("aether --bind 127.0.0.1:10819", 10808, 10821)
-        assertEquals("socks5://127.0.0.1:10822", routed(config).arguments.last())
-        assertEquals(10822, config.getAsJsonArray("inbounds").last().asJsonObject.get("port").asInt)
+    fun aCustomConfigurationThatListensOnTheSecondarySocksPortItselfIsLeftAsItIs() {
+        for (inbounds in listOf(intArrayOf(10808, 10822), intArrayOf(10808))) {
+            val config = customOnCore("aether --bind 127.0.0.1:10819", *inbounds)
+            if (10822 !in inbounds) {
+                // A range of ports counts as well.
+                config.getAsJsonArray("inbounds").add(JsonParser.parseString("""{"port": "10820-10830", "protocol": "dokodemo-door"}"""))
+            }
+            val asWritten = config.deepCopy()
+            assertNull(AetherDependency.routeThroughXray(config, coreOf(AetherDependency.ofCustom(config)), 10822))
+            assertEquals(asWritten, config)
+        }
     }
 
     @Test
@@ -329,7 +383,7 @@ class AetherDependencyTest {
         val exported = customOnCore("aether --bind 127.0.0.1:10819 --upstream socks5://127.0.0.1:10821")
         val exportedAsWritten = exported.deepCopy()
         val exportedCore = coreOf(AetherDependency.ofCustom(exported))
-        assertEquals(exportedCore, AetherDependency.routeThroughXray(exported, exportedCore))
+        assertEquals(exportedCore, AetherDependency.routeThroughXray(exported, exportedCore, 10822))
         assertEquals(exportedAsWritten, exported)
 
         // So is one with an inbound or an outbound of its own under those tags, and one whose inbounds are no list.
@@ -340,7 +394,7 @@ class AetherDependencyTest {
         for (config in listOf(tagged, notAList)) {
             val asWritten = config.deepCopy()
             val core = coreOf(AetherDependency.ofCustom(config))
-            assertFalse(AetherDependency.routeThroughXray(config, core).hasUpstream)
+            assertFalse(AetherDependency.routeThroughXray(config, core, 10822)!!.hasUpstream)
             assertEquals(asWritten, config)
         }
     }

@@ -4,6 +4,7 @@ import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.V2rayConfig.OutboundBean
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.EConfigType
+import com.v2ray.ang.util.JsonUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -127,5 +128,26 @@ class CoreOutboundBuilderTest {
 
         CoreOutboundBuilder.applyTargetStrategy(outbound, ProfileItem.create(EConfigType.VLESS))
         assertNull(outbound.targetStrategy)
+    }
+
+    @Test
+    fun test_toOutboundAetherExit_carriesTheFinalMaskAndDialModeOfTheAetherProfile() {
+        val plain = CoreOutboundBuilder.toOutboundAetherExit(AetherExit.PLAIN)
+        assertEquals(AppConfig.TAG_EXIT_NODE, plain.tag)
+        assertEquals("freedom", plain.protocol)
+        assertNull(plain.mux)
+        assertNull(plain.streamSettings)
+
+        val mask = """{"tcp": [{"type": "fragment", "settings": {"packets": "tlshello"}}]}"""
+        val exit = CoreOutboundBuilder.toOutboundAetherExit(AetherExit(finalMask = mask, dialMode = "code-1"))
+        assertEquals(JsonUtil.parseString(mask), exit.streamSettings?.finalmask)
+        assertEquals("code-1", exit.streamSettings?.sockopt?.dialMode)
+        // A freedom outbound has no transport to name.
+        assertNull(exit.streamSettings?.network)
+
+        val dialOnly = CoreOutboundBuilder.toOutboundAetherExit(AetherExit(dialMode = "code-1"))
+        assertEquals("code-1", dialOnly.streamSettings?.sockopt?.dialMode)
+        assertNull(dialOnly.streamSettings?.finalmask)
+        assertNull(dialOnly.streamSettings?.network)
     }
 }

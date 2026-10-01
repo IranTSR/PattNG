@@ -98,21 +98,22 @@ object CoreNativeManager {
     }
 
     /**
-     * PattNG: opens the exit of this process's Xray, or joins the one open, and returns its port: a mixed
-     * inbound on the loopback address whose traffic leaves by a freedom outbound. The Aether core of a
-     * scan, a key renewal or a latency test dials out through it. The exit is part of the instance that
-     * the process measures delays in, since a second instance would take the dialer of the process from
-     * the measurements. Each successful call must be followed by [closeExit].
+     * PattNG: opens the exit of this process's Xray with [outbound], the JSON of an outbound, as its
+     * exit-node, the exit-node of an Aether profile, and returns the port of its inbound: a mixed inbound
+     * on the loopback address, which stays, with its routing rule, while the instance runs. The Aether
+     * core of a scan, a key renewal or a latency test dials out through it, one at a time. The exit is
+     * part of the instance that the process measures delays in, since a second instance would take the
+     * dialer of the process from the measurements. Each successful call must be followed by [closeExit].
      *
-     * @throws Exception when the exit does not open
+     * @throws Exception when the exit does not open, or another core holds it
      */
-    fun openExit(context: Context): Int {
+    fun openExit(context: Context, outbound: String): Int {
         initCoreEnv(context)
-        return Libv2ray.openExit().toInt()
+        return Libv2ray.openExit(outbound).toInt()
     }
 
     /**
-     * Let go of the exit [openExit] returned; the last one closes it.
+     * Close the exit [openExit] opened: its exit-node goes.
      */
     fun closeExit() {
         try {

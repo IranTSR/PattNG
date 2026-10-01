@@ -132,19 +132,10 @@ class ServerProxyChainActivity : BaseComponentActivity() {
             return false
         }
 
-        // The first member dials the internet; an Aether member can only be that one, and one core runs.
-        when (aetherChainProblem(chainMembers.map { SettingsManager.getServerViaRemarks(it)?.configType })) {
-            AetherChainProblem.NOT_FIRST -> {
-                toast(R.string.aether_chain_entry_only)
-                return false
-            }
-
-            AetherChainProblem.MORE_THAN_ONE -> {
-                toast(R.string.aether_config_single_profile)
-                return false
-            }
-
-            null -> Unit
+        // An Aether member can stand anywhere in the chain, but one core runs, so there can be one.
+        if (hasSecondAetherMember(chainMembers.map { SettingsManager.getServerViaRemarks(it)?.configType })) {
+            toast(R.string.aether_chain_one_profile)
+            return false
         }
 
         val config =

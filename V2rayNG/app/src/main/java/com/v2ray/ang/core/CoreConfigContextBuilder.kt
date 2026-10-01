@@ -203,6 +203,12 @@ object CoreConfigContextBuilder {
     }
 
     /**
+     * PattNG: true when [profile], selected, runs as a chain with the hops its subscription puts
+     * around every one of its profiles; see [resolveProxyChainProfilesFromGroup].
+     */
+    internal fun isChained(profile: ProfileItem): Boolean = resolveProxyChainProfilesFromGroup(profile).size > 1
+
+    /**
      * Resolve chain nodes from subscription neighbors in order: next, current, prev.
      *
      * When no chain is available, return a single-node result.

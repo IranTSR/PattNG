@@ -2,8 +2,9 @@ package com.v2ray.ang.ui.server
 
 import com.v2ray.ang.enums.EConfigType
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ProxyChainMembersTest {
@@ -61,12 +62,13 @@ class ProxyChainMembersTest {
     }
 
     @Test
-    fun anAetherMemberIsAllowedAsTheFirstHopOnly() {
-        assertNull(aetherChainProblem(listOf(EConfigType.AETHER, EConfigType.VLESS)))
-        assertNull(aetherChainProblem(listOf(EConfigType.VLESS, EConfigType.TROJAN)))
-        assertNull(aetherChainProblem(listOf(null, EConfigType.VLESS)))
-        assertEquals(AetherChainProblem.NOT_FIRST, aetherChainProblem(listOf(EConfigType.VLESS, EConfigType.AETHER)))
-        assertEquals(AetherChainProblem.NOT_FIRST, aetherChainProblem(listOf(EConfigType.VLESS, EConfigType.AETHER, EConfigType.TROJAN)))
-        assertEquals(AetherChainProblem.MORE_THAN_ONE, aetherChainProblem(listOf(EConfigType.AETHER, EConfigType.AETHER)))
+    fun anAetherMemberCanStandAnywhereButOnlyOnce() {
+        assertFalse(hasSecondAetherMember(listOf(EConfigType.AETHER, EConfigType.VLESS)))
+        assertFalse(hasSecondAetherMember(listOf(EConfigType.VLESS, EConfigType.AETHER)))
+        assertFalse(hasSecondAetherMember(listOf(EConfigType.VLESS, EConfigType.AETHER, EConfigType.TROJAN)))
+        assertFalse(hasSecondAetherMember(listOf(EConfigType.VLESS, EConfigType.TROJAN)))
+        assertFalse(hasSecondAetherMember(listOf(null, EConfigType.VLESS)))
+        assertTrue(hasSecondAetherMember(listOf(EConfigType.AETHER, EConfigType.AETHER)))
+        assertTrue(hasSecondAetherMember(listOf(EConfigType.AETHER, EConfigType.VLESS, EConfigType.AETHER)))
     }
 }

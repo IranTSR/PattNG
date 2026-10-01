@@ -192,9 +192,9 @@ object CoreServiceManager {
                 SubscriptionUpdateMessage(AppConfig.MSG_SUB_UPDATE_CANCEL_TEST, forcedUpdate = false)
             )
         }
-        // One core serves every Aether outbound of the configuration: the selected profile itself, the
-        // entry hop of its chain, a routing target, a policy-group member, or the SOCKS outbounds of a
-        // custom configuration that asks for it with aetherCommand. It listens on the port its arguments name.
+        // One core serves every Aether outbound of the configuration: the selected profile itself, a hop
+        // of its chain, a routing target, a policy-group member, or the SOCKS outbounds of a custom
+        // configuration that asks for it with aetherCommand. It listens on the port its arguments name.
         val aether = result.aetherCore
         if (aether != null) {
             if (!AetherCoreManager.isSupported(service)) {

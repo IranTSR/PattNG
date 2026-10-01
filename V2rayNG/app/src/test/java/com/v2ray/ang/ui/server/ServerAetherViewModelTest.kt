@@ -284,6 +284,82 @@ class ServerAetherViewModelTest {
     }
 
     @Test
+    fun cancellingTheKeyRenewalStopsItAndShowsTheKeysInUse() {
+        var stopped = false
+        source.identities[AetherProtocol.MASQUE] = AetherIdentityStatus(AetherProtocol.MASQUE, oldKey)
+        source.renewer = { _, _ ->
+            try {
+                awaitCancellation()
+            } finally {
+                stopped = true
+            }
+        }
+        val viewModel = viewModel()
+
+        viewModel.renewIdentity(profile)
+        assertTrue(viewModel.isRenewingIdentity.value)
+        viewModel.cancelRenewal()
+
+        assertTrue(stopped)
+        assertFalse(viewModel.isRenewingIdentity.value)
+        val cancelled = viewModel.log.value.first { it.text == resource(R.string.aether_log_key_renew_cancelled) }
+        assertEquals(Log.WARN, cancelled.priority)
+        assertEquals(
+            listOf(
+                resource(R.string.aether_log_key_renewing),
+                resource(R.string.aether_log_key_renew_cancelled),
+                resource(R.string.aether_log_masque_key_ready, "a1b2c3d4…", "172.16.0.2", "2606:4700:110:8a36::1"),
+            ),
+            viewModel.texts()
+        )
+
+        // Nothing is busy any more: the next action starts.
+        var scans = 0
+        source.scanner = { _, _ -> scans++; null }
+        viewModel.scan(profile)
+        assertEquals(1, scans)
+    }
+
+    @Test
+    fun aRenewalCancelledOnceItsNewKeysWereInPlaceShowsThem() {
+        source.identities[AetherProtocol.MASQUE] = AetherIdentityStatus(AetherProtocol.MASQUE, oldKey)
+        val viewModel = viewModel()
+        viewModel.showIdentity(AetherProtocol.MASQUE)
+        source.renewer = { _, _ ->
+            source.identities[AetherProtocol.MASQUE] = AetherIdentityStatus(AetherProtocol.MASQUE, newKey)
+            awaitCancellation()
+        }
+
+        viewModel.renewIdentity(profile)
+        viewModel.cancelRenewal()
+
+        assertEquals(
+            listOf(
+                resource(R.string.aether_log_masque_key_ready, "a1b2c3d4…", "172.16.0.2", "2606:4700:110:8a36::1"),
+                resource(R.string.aether_log_key_renewing),
+                resource(R.string.aether_log_key_renew_cancelled),
+                resource(R.string.aether_log_masque_key_ready, "f6e5d4c3…", "172.16.0.2", "2606:4700:110:8a36::2"),
+            ),
+            viewModel.texts()
+        )
+    }
+
+    @Test
+    fun cancellingWhenNoRenewalRunsDoesNothing() {
+        val viewModel = viewModel()
+        viewModel.cancelRenewal()
+        assertTrue(viewModel.log.value.isEmpty())
+
+        source.renewer = { _, _ -> AetherIdentityStatus(AetherProtocol.MASQUE, newKey) }
+        viewModel.renewIdentity(profile)
+        val finished = viewModel.texts()
+        viewModel.cancelRenewal()
+
+        assertEquals(finished, viewModel.texts())
+        assertEquals(resource(R.string.aether_log_masque_key_ready, "f6e5d4c3…", "172.16.0.2", "2606:4700:110:8a36::2"), finished.last())
+    }
+
+    @Test
     fun aLiveSessionIsReportedWhenTheScreenOpens() {
         source.session = AetherSession(AetherProtocol.MASQUE)
 

@@ -301,6 +301,19 @@ object SettingsManager {
         return if (IsDynamicSocksPort()) emptySet() else setOf(getSocksPort(), getHttpPort())
     }
 
+    /**
+     * PattNG: the loopback port every Aether core listens on, whatever its profile, as every profile
+     * shares the local proxy port; the app runs one core at a time. The three ports after it go to
+     * Tor and Psiphon and to the inbound the core dials out through, see AetherCoreManager. A value
+     * that is no such port gives way to the default.
+     */
+    fun getAetherListenPort(): Int =
+        Utils.parseInt(MmkvManager.decodeSettingsString(AppConfig.PREF_AETHER_LISTEN_PORT), AppConfig.PORT_AETHER_SOCKS.toInt())
+            .takeIf { it in 1..AETHER_LAST_LISTEN_PORT } ?: AppConfig.PORT_AETHER_SOCKS.toInt()
+
+    /** The highest Aether listen port, the three ports after it being the core's as well. */
+    private const val AETHER_LAST_LISTEN_PORT = 65532
+
     private fun IsDynamicSocksPort(): Boolean {
         return MmkvManager.decodeSettingsBool(AppConfig.PREF_DYNAMIC_SOCKS_PORT, false)
     }
@@ -483,6 +496,7 @@ object SettingsManager {
         ensureDefaultValue(AppConfig.PREF_VPN_DNS, AppConfig.DNS_VPN)
         ensureDefaultValue(AppConfig.PREF_VPN_MTU, AppConfig.VPN_MTU.toString())
         ensureDefaultValue(AppConfig.PREF_SOCKS_PORT, AppConfig.PORT_SOCKS)
+        ensureDefaultValue(AppConfig.PREF_AETHER_LISTEN_PORT, AppConfig.PORT_AETHER_SOCKS)
         ensureDefaultValue(AppConfig.PREF_REMOTE_DNS, AppConfig.DNS_PROXY)
         ensureDefaultValue(AppConfig.PREF_DOMESTIC_DNS, AppConfig.DNS_DIRECT)
         ensureDefaultValue(AppConfig.PREF_DELAY_TEST_URL, AppConfig.DELAY_TEST_URL)

@@ -258,6 +258,7 @@
     <string name="toast_warning_pref_proxysharing_short">یک رسۊوی من شبکه محلی ره وست؛ موطمئن بۊین ک من ی شبکه  ٱمن هڌین.</string>
 
     <string name="title_pref_socks_port">پورت پروکسی محلی</string>
+    <string name="title_pref_aether_listen_port">پورت شنود Aether</string>
     <string name="title_pref_enable_local_proxy">ره وندن پروکسی محلی</string>
     <string name="summary_pref_enable_local_proxy">هرسا ره نوسته بۊ، هیچ پروکسی SOCKS من دسرس نؽ، سی دل هیمو کارایی جۊر ورۊ رسۊوی یل اشتراک نترن پروکسی ن و کار گرن.</string>
     <string name="title_pref_socks_enable_udp" translatable="false">SOCKS5 UDP</string>
@@ -575,7 +576,7 @@
     <string name="aether_lab_scan_mode">حالت اسکن</string>
     <string name="aether_lab_obfuscation">مبهم‌سازی</string>
     <string name="aether_lab_ip_version">نسخه IP</string>
-    <string name="aether_lab_listen_port">پورت شنود</string>
+    <string name="aether_lab_exit_final_mask">finalMask خام JSON سی exit-node، قالوو: { FinalMaskObject }</string>
     <string name="aether_lab_fragment">تکه‌تکه کردن ClientHello</string>
     <string name="aether_lab_fragment_size">اندازه تکه‌یل (بایت)</string>
     <string name="aether_lab_fragment_delay">تأخیر میون تکه‌یل (میلی‌ثانیه)</string>
@@ -590,8 +591,8 @@
     <string name="aether_invalid_hop">نشونی و پورت ره با هم بنویسید، مثل 162.159.192.1:2408</string>
     <string name="aether_same_hop">دو مسیر بایس نشونی جیا داشته بوهن</string>
     <string name="aether_invalid_fragment">یه عدد یا بازه مثل 16-32 بنویسین: اندازه 1 تا 4096 بایت، تأخیر 0 تا 1000 میلی‌ثانیه</string>
-    <string name="aether_invalid_listen_port">یه پورت شنود زه 1 تا 65535 بنویسین، یا سی پورت پیش‌فرض خالی بیلینس</string>
-    <string name="aether_listen_port_taken">پورت شنود نباید وا پورت پروکسی محلی برنامه یکی بۊ</string>
+    <string name="aether_listen_port_taken">هسته نیتره رو پورت پروکسی محلی برنامه، یا رو پورتی که سه تا بالاتر زه پورت شنود Aether ـه گوش بیه؛ پورت شنود Aether نه تو تنظیمات، یا پورت‌یای فرمان نه آلشت کنین</string>
+    <string name="aether_secondary_port_taken">یه inbound ای پیکربندی ایسا رو %1$d گوش ایده، که سه تا بالاتر زه پورت شنود Aether ـه وو هسته Aether زه ری وو بیرون وصل ابۊ؛ پورت شنود Aether نه تو تنظیمات آلشت کنین</string>
     <string name="aether_lab_psiphon">سایفون</string>
     <string name="aether_lab_psiphon_mode">نحوه اتصال سایفون</string>
     <string name="aether_lab_psiphon_cdn_ips">آی‌پی‌های CDN</string>
@@ -608,7 +609,7 @@
     <string name="aether_psiphon_clear_blocked">پیش زه پاک کردن داده‌های سایفون، اتصال Aether نه قطع کنین؛ اتصال ایسا زه اونا استفاده ایکنه</string>
     <string name="aether_psiphon_unavailable">ای نسخه کلاینت سایفون نداره؛ پروفایلی که سایفون داشته بۊ نیتره وصل بۊ</string>
     <string name="aether_psiphon_needs_masque">حالت «اول سایفون، بعد WARP» فقط وا پروتکل MASQUE کار اکنه</string>
-    <string name="aether_next_port_taken">وا تور یا سایفون من مسیر، هسته پورت‌یای بعد زه پورت گوش‌دادن هم استفاده اکنه؛ هیچ‌کوم نیتره پورت پروکسی محلی برنامه بۊ</string>
+    <string name="aether_next_port_taken">وا تور یا سایفون من مسیر، هسته پورت‌یای بعد زه پورت شنود Aether هم استفاده اکنه، وو هیچ‌کوم نیتره پورت پروکسی محلی برنامه بۊ؛ پورت شنود Aether نه تو تنظیمات آلشت کنین</string>
     <string name="aether_lab_tor">تور (Tor)</string>
     <string name="aether_lab_tor_bridges">پل‌یا</string>
     <string name="aether_lab_tor_bridge_lines">خط‌یای پل</string>
@@ -647,6 +648,7 @@
     <string name="aether_log_key_renewing">د حال ثبت کلیدا تازه WARP سی همه پروتکلا؛ کلیدا ایسه تا وختی همه آماده بۊن سر جاشۊ مۊنن…</string>
     <string name="aether_log_key_renewed">کلیدا تازه WARP سی همه پروتکلا آماده‌ن و ز اتصال بعدی و کار ابۊن</string>
     <string name="aether_log_key_renew_failed">ثبت کلیدا تازه WARP نبی؛ کلیدا ایسه مندن</string>
+    <string name="aether_log_key_renew_cancelled">گرفتن کلیدا تازه WARP لغو بی</string>
     <string name="aether_log_masque_key_ready">کلید MASQUE: دستگاه %1$s، IPv4 %2$s، IPv6 %3$s</string>
     <string name="aether_log_masque_key_missing">کلید MASQUE: هنی ثبت نبیڌه؛ د اولین اسکن یا اتصال ثبت ابۊ</string>
     <string name="aether_log_wireguard_key_ready">کلید WireGuard: دستگاه %1$s، IPv4 %2$s، IPv6 %3$s</string>
@@ -657,7 +659,7 @@
     <string name="aether_log_inner_key_missing">کلید مسیر درونی: هنی ثبت نبیڌه؛ د اولین اسکن یا اتصال ثبت ابۊ</string>
     <string name="aether_renew_blocked">پیش زه گرفتن کلید تازه WARP، اتصال Aether نه قطع کنین؛ اتصال ایسا زه کلید ایسا استفاده ایکنه</string>
     <string name="aether_scan_blocked">پیش زه اسکن، اتصال Aether نه قطع کنین؛ اسکن یه تونل دوم وا کلید اتصال ایسا وا ایکنه</string>
-    <string name="aether_chain_entry_only">پروفایل Aether فقط ایتره اولین گام زنجیره پروکسی بو؛ گامی که راست به اینترنت ارسه</string>
+    <string name="aether_chain_one_profile">یه زنجیره پروکسی فقط ایتره یه پروفایل Aether داشته بۊ</string>
     <string name="aether_config_single_profile">یه پیکربندی فقط ایتره زه یه پروفایل Aether استفاده کنه</string>
     <string name="aether_custom_no_outbound">هیچ خروجی SOCKS من پیکربندی به %1$s:%2$d وصل نیبۊ؛ فرمان Aether همۊچو گوش اکنه</string>
     <string name="aether_custom_invalid_command">aetherCommand باید خط فرمان هسته Aether به شکل متن بۊ وو نشونی گوش‌دادنش پس زه --bind بیا: %1$s</string>

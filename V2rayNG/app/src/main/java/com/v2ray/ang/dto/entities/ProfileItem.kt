@@ -102,7 +102,11 @@ data class ProfileItem(
     /** The exit rule the core holds the tunnel to: country codes to allow, or with a leading ! to refuse; null means any exit. */
     var aetherExitLoc: String? = null,
 
-    /** Loopback port the Aether core of this profile listens on; null means the default, AppConfig.PORT_AETHER_SOCKS. */
+    /**
+     * The loopback port the Aether core of this profile listened on, from before every core came to
+     * listen on the Aether listen port of the settings. Nothing reads it any more; profiles that carry
+     * it keep it as they were stored.
+     */
     var aetherListenPort: String? = null,
 
     /** Where Psiphon stands in the tunnel, an AetherPsiphon type; null means it is not used. */

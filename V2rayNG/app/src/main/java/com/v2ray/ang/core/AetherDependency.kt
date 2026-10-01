@@ -13,13 +13,14 @@ import com.v2ray.ang.enums.EConfigType
 /**
  * The Aether core a configuration runs on. Every Aether outbound is a SOCKS connection to the one
  * core process the daemon starts, so a configuration can use one core, whether it is the selected
- * profile itself, the entry hop of a chain, a routing target or a policy-group member. Two profiles
- * count as the same core when it would be started with the same arguments, the port it listens on
- * included.
+ * profile itself, a hop of a chain, a routing target or a policy-group member. Two profiles count as
+ * the same core when it would be started with the same arguments, the port it listens on included,
+ * and would dial out through the same exit-node.
  *
- * In a chain the Aether hop can only be the entry hop, the one that dials the internet itself:
- * another hop can dial through it, but it cannot dial through anything, since its outbound only
- * reaches the core on the loopback address.
+ * In a chain the Aether hop can stand anywhere. The hops on its exit side dial through its outbound,
+ * as they dial through any hop. Its outbound only reaches the core on the loopback address, so it
+ * dials through nothing itself; the core dials out through the hop on its entry side, if there is
+ * one, see [AetherExit.through]. A chain of two Aether hops would need two cores, and one runs.
  *
  * A custom configuration asks for its core itself, with the command line of the core as
  * aetherCommand at its top level, and the SOCKS outbounds that dial the port that command listens
@@ -36,8 +37,8 @@ sealed interface AetherDependency {
     /** Aether profiles with different settings, which one core cannot serve. */
     data object Conflicting : AetherDependency
 
-    /** An Aether profile in a chain position other than the entry hop. */
-    data class NotEntryHop(val chainTag: String) : AetherDependency
+    /** A proxy chain with more than one Aether hop. */
+    data class TwoAetherHops(val chainTag: String) : AetherDependency
 
     /**
      * A custom configuration whose aetherCommand is no command line the app can run; [written] quotes
@@ -66,12 +67,14 @@ sealed interface AetherDependency {
             var found: AetherCore? = null
             for (outbound in outbounds) {
                 val profiles = outbound.resolvedProfiles
+                val chained = outbound.resolvedType == CoreResolvedType.PROXYCHAIN
+                if (chained && profiles.count { it.configType == EConfigType.AETHER } > 1) return TwoAetherHops(outbound.tag)
                 for ((index, profile) in profiles.withIndex()) {
                     if (profile.configType != EConfigType.AETHER) continue
-                    if (outbound.resolvedType == CoreResolvedType.PROXYCHAIN && index != profiles.lastIndex) {
-                        return NotEntryHop(outbound.tag)
+                    val core = AetherCore.of(profile).let { core ->
+                        // The hops after it in the list are those on its entry side, which the core dials out through.
+                        if (chained && index < profiles.lastIndex) core.copy(exit = AetherExit.through(profiles.subList(index + 1, profiles.size))) else core
                     }
-                    val core = AetherCore.of(profile)
                     if (found == null) {
                         found = core
                     } else if (core != found) {
@@ -97,30 +100,17 @@ sealed interface AetherDependency {
         }
 
         /**
-         * Points the Aether outbounds of the custom configuration [config], the SOCKS outbounds
-         * dialing the core on [from], at [port] instead, and the command that names the listener
-         * with them. A latency test does this when it opens a core of its own, which listens on a
-         * port of its own.
-         */
-        fun rebindCustom(config: JsonObject, from: Int, port: Int) {
-            for (settings in socksOutboundSettings(config)) {
-                if (dials(settings, from)) settings.addProperty("port", port)
-            }
-            val core = config.get(COMMAND_KEY)?.let(::textOf)?.let(AetherCore::ofCommand) ?: return
-            if (core.port == from) config.addProperty(COMMAND_KEY, core.on(port).command)
-        }
-
-        /**
          * Has what the Aether [core] of the custom configuration [config] sends out leave through
-         * Xray, as the configuration of a profile does: an inbound the core dials out through, after
-         * the other inbounds, a freedom outbound after the other outbounds, and a rule ahead of every
-         * other that joins the two. Returns the core told to dial out through that inbound, which is
-         * also written back as aetherCommand. A core that names an upstream of its own, as one
-         * exported from the app does, is left as it is with the configuration; so is a configuration
-         * that already has an inbound or an outbound under those tags, or something else than a list
-         * where they would go.
+         * Xray, as the configuration of a profile does: the secondary-socks inbound on [port], three
+         * above the Aether listen port for every Aether core, after the other inbounds, a freedom outbound
+         * after the other outbounds, and a rule ahead of every other that joins the two. Returns the
+         * core told to dial out through that inbound, which is also written back as aetherCommand, or
+         * null, with nothing added, when an inbound of the configuration listens on [port] already.
+         * A core that names an upstream of its own, as one exported from the app does, is left as it
+         * is with the configuration; so is a configuration that already has an inbound or an outbound
+         * under those tags, or something else than a list where they would go.
          */
-        fun routeThroughXray(config: JsonObject, core: AetherCore): AetherCore {
+        fun routeThroughXray(config: JsonObject, core: AetherCore, port: Int): AetherCore? {
             if (core.hasUpstream) return core
             val inbounds = listOrNew(config, "inbounds") ?: return core
             val outbounds = listOrNew(config, "outbounds") ?: return core
@@ -131,7 +121,7 @@ sealed interface AetherDependency {
             val taken = inbounds.flatMap { inbound ->
                 inbound.takeIf { it.isJsonObject }?.let { inboundPorts(it.asJsonObject.get("port")) }.orEmpty()
             }
-            val port = core.exitPort { candidate -> taken.any { candidate in it } }
+            if (taken.any { port in it }) return null
             inbounds.add(JsonObject().apply {
                 addProperty("tag", AppConfig.TAG_SECONDARY_SOCKS)
                 addProperty("port", port)

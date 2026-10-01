@@ -258,6 +258,7 @@
     <string name="toast_warning_pref_proxysharing_short">已允許來自區域網路的連線。請確認目前使用的是受信任的網路。</string>
 
     <string name="title_pref_socks_port">本機代理埠</string>
+    <string name="title_pref_aether_listen_port">Aether 監聽連接埠</string>
     <string name="title_pref_enable_local_proxy">啟用本機代理</string>
     <string name="summary_pref_enable_local_proxy">停用時不會提供 SOCKS 代理，因此訂閱更新等操作無法使用代理。</string>
     <string name="title_pref_socks_enable_udp" translatable="false">SOCKS5 UDP</string>
@@ -573,7 +574,7 @@
     <string name="aether_lab_scan_mode">掃描模式</string>
     <string name="aether_lab_obfuscation">混淆</string>
     <string name="aether_lab_ip_version">IP 版本</string>
-    <string name="aether_lab_listen_port">監聽連接埠</string>
+    <string name="aether_lab_exit_final_mask">exit-node 的 finalMask 原始 JSON，格式：{ FinalMaskObject }</string>
     <string name="aether_lab_fragment">分片 ClientHello</string>
     <string name="aether_lab_fragment_size">分片大小（位元組）</string>
     <string name="aether_lab_fragment_delay">分片間隔（毫秒）</string>
@@ -588,8 +589,8 @@
     <string name="aether_invalid_hop">請填寫位址和連接埠，例如 162.159.192.1:2408</string>
     <string name="aether_same_hop">兩個節點的位址必須不同</string>
     <string name="aether_invalid_fragment">請填寫數字或範圍，例如 16-32：大小 1–4096 位元組，間隔 0–1000 毫秒</string>
-    <string name="aether_invalid_listen_port">請填寫 1 到 65535 之間的監聽連接埠，或留空使用預設連接埠</string>
-    <string name="aether_listen_port_taken">監聽連接埠不能與應用程式的本機代理埠相同</string>
+    <string name="aether_listen_port_taken">核心不能監聽應用程式的本機代理埠，也不能監聽比 Aether 監聽連接埠大 3 的連接埠；請在設定中變更 Aether 監聽連接埠，或變更命令中的連接埠</string>
+    <string name="aether_secondary_port_taken">此設定的某個入站已在 %1$d 上監聽，而這是比 Aether 監聽連接埠大 3 的連接埠，Aether 核心經由它向外連線；請在設定中變更 Aether 監聽連接埠</string>
     <string name="aether_lab_psiphon">Psiphon</string>
     <string name="aether_lab_psiphon_mode">Psiphon 連線方式</string>
     <string name="aether_lab_psiphon_cdn_ips">CDN 前置 IP</string>
@@ -606,7 +607,7 @@
     <string name="aether_psiphon_clear_blocked">清除 Psiphon 資料前請先中斷 Aether 設定檔；目前的連線正在使用它</string>
     <string name="aether_psiphon_unavailable">此版本未包含 Psiphon 用戶端，使用 Psiphon 的設定檔無法連線</string>
     <string name="aether_psiphon_needs_masque">Psiphon → WARP 僅支援 MASQUE 協定</string>
-    <string name="aether_next_port_taken">使用 Tor 或 Psiphon 時，核心還會使用監聽連接埠之後的連接埠；它們都不能是應用程式的本機代理連接埠</string>
+    <string name="aether_next_port_taken">使用 Tor 或 Psiphon 時，核心還會使用 Aether 監聽連接埠之後的連接埠，它們都不能是應用程式的本機代理連接埠；請在設定中變更 Aether 監聽連接埠</string>
     <string name="aether_lab_tor">Tor</string>
     <string name="aether_lab_tor_bridges">橋接</string>
     <string name="aether_lab_tor_bridge_lines">橋接行</string>
@@ -645,6 +646,7 @@
     <string name="aether_log_key_renewing">正在為所有協定註冊新的 WARP 金鑰；在全部就緒之前，目前的金鑰保持不變…</string>
     <string name="aether_log_key_renewed">所有協定的新 WARP 金鑰已就緒，將在下次連線時使用</string>
     <string name="aether_log_key_renew_failed">註冊新的 WARP 金鑰失敗，已保留目前的金鑰</string>
+    <string name="aether_log_key_renew_cancelled">已取消取得新的 WARP 金鑰</string>
     <string name="aether_log_masque_key_ready">MASQUE 金鑰：裝置 %1$s，IPv4 %2$s，IPv6 %3$s</string>
     <string name="aether_log_masque_key_missing">MASQUE 金鑰：尚未註冊，將在首次掃描或連線時註冊</string>
     <string name="aether_log_wireguard_key_ready">WireGuard 金鑰：裝置 %1$s，IPv4 %2$s，IPv6 %3$s</string>
@@ -655,7 +657,7 @@
     <string name="aether_log_inner_key_missing">內層節點金鑰：尚未註冊，將在首次掃描或連線時註冊</string>
     <string name="aether_renew_blocked">請先中斷 Aether 連線，再取得新的 WARP 金鑰；目前的連線正在使用現有金鑰</string>
     <string name="aether_scan_blocked">請先中斷 Aether 連線，再進行掃描；掃描會使用目前連線的金鑰開啟第二條隧道</string>
-    <string name="aether_chain_entry_only">Aether 設定檔只能作為代理鏈的第一跳，即直接連線網際網路的那一跳</string>
+    <string name="aether_chain_one_profile">一個代理鏈只能包含一個 Aether 設定檔</string>
     <string name="aether_config_single_profile">一個設定只能使用一個 Aether 設定檔</string>
     <string name="aether_custom_no_outbound">設定中沒有 SOCKS 出站連線到 %1$s:%2$d，而 Aether 命令在該處監聽</string>
     <string name="aether_custom_invalid_command">aetherCommand 必須是 Aether 核心的命令列文字，並在 --bind 後給出其監聽位址：%1$s</string>

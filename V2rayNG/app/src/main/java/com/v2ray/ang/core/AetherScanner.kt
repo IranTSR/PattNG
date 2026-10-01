@@ -33,6 +33,7 @@ object AetherScanner {
         return AetherCoreManager.runUntil(
             context = context,
             arguments = AetherCoreManager.buildArguments(profile, port, scan = true),
+            exit = AetherExit.of(profile),
             timeoutMs = SCAN_TIMEOUT_MS,
             source = "aether-scan",
             onOutput = onOutput,

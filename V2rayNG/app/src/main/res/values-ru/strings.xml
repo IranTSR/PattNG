@@ -258,6 +258,7 @@
     <string name="toast_warning_pref_proxysharing_short">Доступ из LAN разрешён, убедитесь, что вы находитесь в доверенной сети</string>
 
     <string name="title_pref_socks_port">Порт локального прокси</string>
+    <string name="title_pref_aether_listen_port">Порт прослушивания Aether</string>
     <string name="title_pref_enable_local_proxy">Использовать локальный прокси</string>
     <string name="summary_pref_enable_local_proxy">Если отключено, SOCKS-прокси недоступен, поэтому обновления подписки и подобные действия не смогут использовать прокси</string>
     <string name="title_pref_socks_enable_udp" translatable="false">SOCKS5 UDP</string>
@@ -579,7 +580,7 @@
     <string name="aether_lab_scan_mode">Режим сканирования</string>
     <string name="aether_lab_obfuscation">Обфускация</string>
     <string name="aether_lab_ip_version">Версия IP</string>
-    <string name="aether_lab_listen_port">Порт прослушивания</string>
+    <string name="aether_lab_exit_final_mask">Необработанный JSON finalMask для exit-node, формат: { FinalMaskObject }</string>
     <string name="aether_lab_fragment">Фрагментировать ClientHello</string>
     <string name="aether_lab_fragment_size">Размер фрагментов (байт)</string>
     <string name="aether_lab_fragment_delay">Задержка между фрагментами (мс)</string>
@@ -594,8 +595,8 @@
     <string name="aether_invalid_hop">Укажите адрес и порт, например 162.159.192.1:2408</string>
     <string name="aether_same_hop">Узлы должны иметь разные адреса</string>
     <string name="aether_invalid_fragment">Укажите число или диапазон, например 16-32: размер 1–4096 байт, задержка 0–1000 мс</string>
-    <string name="aether_invalid_listen_port">Укажите порт прослушивания от 1 до 65535 или оставьте поле пустым для порта по умолчанию</string>
-    <string name="aether_listen_port_taken">Порт прослушивания не должен совпадать с портом локального прокси приложения</string>
+    <string name="aether_listen_port_taken">Ядро не может слушать порт локального прокси приложения или порт на три выше порта прослушивания Aether; измените порт прослушивания Aether в настройках или порты команды</string>
+    <string name="aether_secondary_port_taken">Один из входящих (inbound) этой конфигурации уже слушает порт %1$d — порт на три выше порта прослушивания Aether, через который ядро Aether выходит наружу; измените порт прослушивания Aether в настройках</string>
     <string name="aether_lab_psiphon">Psiphon</string>
     <string name="aether_lab_psiphon_mode">Подключение Psiphon</string>
     <string name="aether_lab_psiphon_cdn_ips">IP-адреса CDN</string>
@@ -612,7 +613,7 @@
     <string name="aether_psiphon_clear_blocked">Отключите профиль Aether перед очисткой данных Psiphon; текущее подключение их использует</string>
     <string name="aether_psiphon_unavailable">В этой сборке нет клиента Psiphon, поэтому профиль с Psiphon не сможет подключиться</string>
     <string name="aether_psiphon_needs_masque">Psiphon → WARP работает только с протоколом MASQUE</string>
-    <string name="aether_next_port_taken">С Tor или Psiphon на пути ядро использует и порты, следующие за портом прослушивания; ни один из них не может совпадать с портом локального прокси приложения</string>
+    <string name="aether_next_port_taken">С Tor или Psiphon на пути ядро использует и порты, следующие за портом прослушивания Aether, и ни один из них не может совпадать с портом локального прокси приложения; измените порт прослушивания Aether в настройках</string>
     <string name="aether_lab_tor">Tor</string>
     <string name="aether_lab_tor_bridges">Мосты</string>
     <string name="aether_lab_tor_bridge_lines">Строки мостов</string>
@@ -651,6 +652,7 @@
     <string name="aether_log_key_renewing">Регистрация новых ключей WARP для всех протоколов; текущие ключи остаются на месте, пока не будут готовы все новые…</string>
     <string name="aether_log_key_renewed">Новые ключи WARP для всех протоколов готовы и будут использованы при следующем подключении</string>
     <string name="aether_log_key_renew_failed">Не удалось зарегистрировать новые ключи WARP; текущие ключи сохранены</string>
+    <string name="aether_log_key_renew_cancelled">Получение новых ключей WARP отменено</string>
     <string name="aether_log_masque_key_ready">Ключ MASQUE: устройство %1$s, IPv4 %2$s, IPv6 %3$s</string>
     <string name="aether_log_masque_key_missing">Ключ MASQUE: ещё не зарегистрирован; будет создан при первом сканировании или подключении</string>
     <string name="aether_log_wireguard_key_ready">Ключ WireGuard: устройство %1$s, IPv4 %2$s, IPv6 %3$s</string>
@@ -661,7 +663,7 @@
     <string name="aether_log_inner_key_missing">Ключ внутреннего узла: ещё не зарегистрирован; будет создан при первом сканировании или подключении</string>
     <string name="aether_renew_blocked">Отключите профиль Aether, прежде чем получать новый ключ WARP: текущее подключение использует этот ключ</string>
     <string name="aether_scan_blocked">Отключите профиль Aether, прежде чем сканировать: сканирование откроет второй туннель с ключом текущего подключения</string>
-    <string name="aether_chain_entry_only">Профиль Aether может быть только первым звеном цепочки прокси, тем, которое выходит в интернет напрямую</string>
+    <string name="aether_chain_one_profile">В цепочке прокси может быть только один профиль Aether</string>
     <string name="aether_config_single_profile">Конфигурация может использовать только один профиль Aether</string>
     <string name="aether_custom_no_outbound">Ни один исходящий SOCKS конфигурации не подключается к %1$s:%2$d, где слушает команда Aether</string>
     <string name="aether_custom_invalid_command">aetherCommand должен быть командной строкой ядра Aether в виде текста, с адресом прослушивания после --bind: %1$s</string>

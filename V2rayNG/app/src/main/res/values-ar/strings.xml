@@ -258,6 +258,7 @@
     <string name="toast_warning_pref_proxysharing_short">السماح بالاتصالات من الشبكة المحلية، تأكد من أنك في شبكة موثوقة</string>
 
     <string name="title_pref_socks_port">منفذ البروكسي المحلي</string>
+    <string name="title_pref_aether_listen_port">منفذ الاستماع لـ Aether</string>
     <string name="title_pref_enable_local_proxy">تفعيل الوكيل المحلي</string>
     <string name="summary_pref_enable_local_proxy">عند التعطيل، لن يتوفر وكيل SOCKS، ولذلك لن تتمكن تحديثات الاشتراك والإجراءات المشابهة من استخدام الوكيل</string>
     <string name="title_pref_socks_enable_udp" translatable="false">SOCKS5 UDP</string>
@@ -583,7 +584,7 @@
     <string name="aether_lab_scan_mode">وضع الفحص</string>
     <string name="aether_lab_obfuscation">التمويه</string>
     <string name="aether_lab_ip_version">إصدار IP</string>
-    <string name="aether_lab_listen_port">منفذ الاستماع</string>
+    <string name="aether_lab_exit_final_mask">JSON خام لحقل finalMask في exit-node، بالتنسيق: { FinalMaskObject }</string>
     <string name="aether_lab_fragment">تجزئة ClientHello</string>
     <string name="aether_lab_fragment_size">حجم الأجزاء (بايت)</string>
     <string name="aether_lab_fragment_delay">التأخير بين الأجزاء (مللي ثانية)</string>
@@ -598,8 +599,8 @@
     <string name="aether_invalid_hop">اكتب العنوان والمنفذ معًا، مثل 162.159.192.1:2408</string>
     <string name="aether_same_hop">يجب أن تكون القفزتان بعنوانين مختلفين</string>
     <string name="aether_invalid_fragment">اكتب رقمًا أو نطاقًا مثل 16-32: الحجم من 1 إلى 4096 بايت، والتأخير من 0 إلى 1000 مللي ثانية</string>
-    <string name="aether_invalid_listen_port">استخدم منفذ استماع من 1 إلى 65535، أو اتركه فارغًا لاستخدام المنفذ الافتراضي</string>
-    <string name="aether_listen_port_taken">لا يمكن أن يكون منفذ الاستماع هو نفسه منفذ البروكسي المحلي للتطبيق</string>
+    <string name="aether_listen_port_taken">لا يمكن للنواة أن تستمع على منفذ البروكسي المحلي للتطبيق، ولا على المنفذ الذي يزيد بثلاثة عن منفذ الاستماع لـ Aether؛ غيّر منفذ الاستماع لـ Aether في الإعدادات، أو منافذ الأمر</string>
+    <string name="aether_secondary_port_taken">أحد مداخل هذا الإعداد يستمع بالفعل على %1$d، وهو المنفذ الذي يزيد بثلاثة عن منفذ الاستماع لـ Aether، والذي تتصل عبره نواة Aether بالخارج؛ غيّر منفذ الاستماع لـ Aether في الإعدادات</string>
     <string name="aether_lab_psiphon">سايفون</string>
     <string name="aether_lab_psiphon_mode">طريقة اتصال سايفون</string>
     <string name="aether_lab_psiphon_cdn_ips">عناوين IP لشبكة CDN</string>
@@ -616,7 +617,7 @@
     <string name="aether_psiphon_clear_blocked">افصل ملف Aether قبل مسح بيانات Psiphon؛ الاتصال الجاري يستخدمها</string>
     <string name="aether_psiphon_unavailable">هذا الإصدار لا يتضمن عميل سايفون، لذا لا يمكن لملف تعريف يستخدم سايفون الاتصال</string>
     <string name="aether_psiphon_needs_masque">وضع «عبر سايفون إلى WARP» يعمل مع بروتوكول MASQUE فقط</string>
-    <string name="aether_next_port_taken">مع وجود تور أو سايفون في المسار تستخدم النواة أيضًا المنافذ التالية لمنفذ الاستماع؛ ولا يمكن أن يكون أي منها منفذ الوكيل المحلي للتطبيق</string>
+    <string name="aether_next_port_taken">مع وجود تور أو سايفون في المسار تستخدم النواة أيضًا المنافذ التالية لمنفذ الاستماع لـ Aether، ولا يمكن أن يكون أي منها منفذ الوكيل المحلي للتطبيق؛ غيّر منفذ الاستماع لـ Aether في الإعدادات</string>
     <string name="aether_lab_tor">تور (Tor)</string>
     <string name="aether_lab_tor_bridges">الجسور</string>
     <string name="aether_lab_tor_bridge_lines">أسطر الجسور</string>
@@ -655,6 +656,7 @@
     <string name="aether_log_key_renewing">جارٍ تسجيل مفاتيح WARP جديدة لكل البروتوكولات؛ تبقى المفاتيح الحالية في مكانها حتى تجهز جميعها…</string>
     <string name="aether_log_key_renewed">مفاتيح WARP الجديدة لكل البروتوكولات جاهزة وستُستخدم من الاتصال التالي</string>
     <string name="aether_log_key_renew_failed">فشل تسجيل مفاتيح WARP الجديدة؛ تم الاحتفاظ بالمفاتيح الحالية</string>
+    <string name="aether_log_key_renew_cancelled">تم إلغاء الحصول على مفاتيح WARP جديدة</string>
     <string name="aether_log_masque_key_ready">مفتاح MASQUE: الجهاز %1$s، IPv4 %2$s، IPv6 %3$s</string>
     <string name="aether_log_masque_key_missing">مفتاح MASQUE: غير مسجل بعد؛ سيُسجل عند أول فحص أو اتصال</string>
     <string name="aether_log_wireguard_key_ready">مفتاح WireGuard: الجهاز %1$s، IPv4 %2$s، IPv6 %3$s</string>
@@ -665,7 +667,7 @@
     <string name="aether_log_inner_key_missing">مفتاح القفزة الداخلية: غير مسجل بعد؛ سيُسجل عند أول فحص أو اتصال</string>
     <string name="aether_renew_blocked">افصل ملف Aether قبل الحصول على مفتاح WARP جديد؛ الاتصال الحالي يستخدم المفتاح الحالي</string>
     <string name="aether_scan_blocked">افصل ملف Aether قبل الفحص؛ الفحص سيفتح نفقًا ثانيًا بمفتاح الاتصال الحالي</string>
-    <string name="aether_chain_entry_only">لا يمكن لملف Aether أن يكون إلا القفزة الأولى في سلسلة الوكيل، وهي القفزة التي تصل إلى الإنترنت مباشرة</string>
+    <string name="aether_chain_one_profile">لا يمكن أن تحتوي سلسلة الوكيل إلا على ملف Aether واحد</string>
     <string name="aether_config_single_profile">لا يمكن للتكوين استخدام أكثر من ملف Aether واحد</string>
     <string name="aether_custom_no_outbound">لا يتصل أي مخرج SOCKS في الإعدادات بالعنوان %1$s:%2$d، حيث يستمع أمر Aether</string>
     <string name="aether_custom_invalid_command">يجب أن يكون aetherCommand سطر أوامر نواة Aether كنص، مع عنوان الاستماع بعد --bind: %1$s</string>

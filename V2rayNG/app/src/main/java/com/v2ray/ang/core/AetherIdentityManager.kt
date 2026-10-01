@@ -129,6 +129,7 @@ object AetherIdentityManager {
         return AetherCoreManager.runUntil(
             context = context,
             arguments = AetherCoreManager.keyRenewalArguments(profile, port),
+            exit = AetherExit.of(profile),
             timeoutMs = if (AetherCoreManager.reachesWarpThroughCarrier(profile)) RENEW_THROUGH_CARRIER_TIMEOUT_MS else RENEW_TIMEOUT_MS,
             source = SOURCE,
             onOutput = onOutput,

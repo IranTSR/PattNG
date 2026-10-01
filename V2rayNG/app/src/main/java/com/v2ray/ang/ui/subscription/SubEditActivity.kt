@@ -153,9 +153,10 @@ fun SubEditScreen(
             context.toast(R.string.toast_invalid_override_port)
             return null
         }
-        // The exit proxy dials through the profile before it; an Aether profile cannot dial through anything.
-        if (SettingsManager.getServerViaRemarks(nextProfile.trim())?.configType == EConfigType.AETHER) {
-            context.toast(R.string.aether_chain_entry_only)
+        // The previous and the next profile chain every profile of the subscription. Either can be Aether,
+        // but not both: one core runs, so a chain can have one Aether profile.
+        if (listOf(prevProfile, nextProfile).count { SettingsManager.getServerViaRemarks(it.trim())?.configType == EConfigType.AETHER } > 1) {
+            context.toast(R.string.aether_chain_one_profile)
             return null
         }
         val subItem = MmkvManager.decodeSubscription(editSubId) ?: SubscriptionItem()

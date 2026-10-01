@@ -153,6 +153,7 @@ fun SettingsScreen(
     var socksPassword by rememberMmkvString(AppConfig.PREF_SOCKS_PASSWORD, "")
     var socksEnableUdp by rememberMmkvBool(AppConfig.PREF_SOCKS_ENABLE_UDP, AppConfig.DEFAULT_SOCKS_ENABLE_UDP)
     var proxySharing by rememberMmkvBool(AppConfig.PREF_PROXY_SHARING, false)
+    var aetherListenPort by rememberMmkvString(AppConfig.PREF_AETHER_LISTEN_PORT, "")
 
     var speedEnabled by rememberMmkvBool(AppConfig.PREF_SPEED_ENABLED, false)
     var confirmRemove by rememberMmkvBool(AppConfig.PREF_CONFIRM_REMOVE, false)
@@ -472,6 +473,13 @@ fun SettingsScreen(
                     checked = socksEnableUdp,
                     enabled = effectiveLocalProxy,
                     onCheckedChange = { socksEnableUdp = it }
+                )
+                // PattNG: the port every Aether core listens on, the three after it taken as well; it is there with or without the local proxy.
+                SettingsEditItem(
+                    title = stringResource(R.string.title_pref_aether_listen_port),
+                    value = aetherListenPort,
+                    keyboardNumber = true,
+                    onValueChanged = { aetherListenPort = it }
                 )
                 SettingsEditItem(
                     title = stringResource(R.string.title_pref_remote_dns),

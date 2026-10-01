@@ -259,6 +259,7 @@
     <string name="toast_warning_pref_proxysharing_short">Allow connections from the LAN. Make sure you are in a trusted network</string>
 
     <string name="title_pref_socks_port">Local proxy port</string>
+    <string name="title_pref_aether_listen_port">Aether listen port</string>
     <string name="title_pref_enable_local_proxy">Enable local proxy</string>
     <string name="summary_pref_enable_local_proxy">When disabled, no SOCKS proxy is available, so subscription updates and similar actions cannot use the proxy</string>
     <string name="title_pref_socks_enable_udp" translatable="false">SOCKS5 UDP</string>
@@ -576,7 +577,8 @@
     <string name="aether_lab_scan_mode">Scan mode</string>
     <string name="aether_lab_obfuscation">Obfuscation</string>
     <string name="aether_lab_ip_version">IP version</string>
-    <string name="aether_lab_listen_port">Listen port</string>
+    <string name="aether_lab_exit_final_mask">exit-node finalMask raw JSON, format: { FinalMaskObject }</string>
+    <string name="aether_lab_exit_dial_mode" translatable="false">exit-node dialMode</string>
     <string name="aether_lab_fragment">Fragment ClientHello</string>
     <string name="aether_lab_fragment_size">Fragment size (bytes)</string>
     <string name="aether_lab_fragment_delay">Fragment delay (ms)</string>
@@ -593,8 +595,8 @@
     <string name="aether_invalid_hop">Write an address and a port, such as 162.159.192.1:2408</string>
     <string name="aether_same_hop">The two hops must be different addresses</string>
     <string name="aether_invalid_fragment">Use a number or a range such as 16-32: size 1–4096 bytes, delay 0–1000 ms</string>
-    <string name="aether_invalid_listen_port">Use a listen port from 1 to 65535, or leave it empty for the default</string>
-    <string name="aether_listen_port_taken">The listen port cannot be the same as the local proxy port of the app</string>
+    <string name="aether_listen_port_taken">The core cannot listen on the local proxy port of the app, nor on the port three above the Aether listen port; change the Aether listen port in the settings, or the ports of the command</string>
+    <string name="aether_secondary_port_taken">An inbound of this configuration already listens on %1$d, the port three above the Aether listen port, which the Aether core dials out through; change the Aether listen port in the settings</string>
     <string name="aether_lab_psiphon">Psiphon</string>
     <string name="aether_lab_psiphon_mode">Psiphon connection</string>
     <string name="aether_lab_psiphon_cdn_ips">CDN fronting IPs</string>
@@ -611,7 +613,7 @@
     <string name="aether_psiphon_clear_blocked">Disconnect the Aether profile before clearing Psiphon data; the running connection uses it</string>
     <string name="aether_psiphon_unavailable">This build does not include the Psiphon client, so a profile with Psiphon cannot connect</string>
     <string name="aether_psiphon_needs_masque">Psiphon → WARP works with the MASQUE protocol only</string>
-    <string name="aether_next_port_taken">With Tor or Psiphon in the path the core also uses the ports after the listen port; none of them can be the local proxy port of the app</string>
+    <string name="aether_next_port_taken">With Tor or Psiphon in the path the core also uses the ports after the Aether listen port, and none of them can be the local proxy port of the app; change the Aether listen port in the settings</string>
     <string name="aether_lab_tor">Tor</string>
     <string name="aether_lab_tor_bridges">Bridges</string>
     <string name="aether_lab_tor_bridge_lines">Bridge lines</string>
@@ -650,6 +652,7 @@
     <string name="aether_log_key_renewing">Registering new WARP keys for every protocol; the current keys stay in place until all of them are ready…</string>
     <string name="aether_log_key_renewed">New WARP keys for every protocol are ready and are used from the next connection</string>
     <string name="aether_log_key_renew_failed">Registering the new WARP keys failed; the current keys were kept</string>
+    <string name="aether_log_key_renew_cancelled">Getting new WARP keys cancelled</string>
     <string name="aether_log_masque_key_ready">MASQUE key: device %1$s, IPv4 %2$s, IPv6 %3$s</string>
     <string name="aether_log_masque_key_missing">MASQUE key: none yet; one is registered on the first scan or connection</string>
     <string name="aether_log_wireguard_key_ready">WireGuard key: device %1$s, IPv4 %2$s, IPv6 %3$s</string>
@@ -660,7 +663,7 @@
     <string name="aether_log_inner_key_missing">Inner hop key: none yet; one is registered on the first scan or connection</string>
     <string name="aether_renew_blocked">Disconnect the Aether profile before getting a new WARP key; the running connection uses the current key</string>
     <string name="aether_scan_blocked">Disconnect the Aether profile before scanning; a scan would open a second tunnel on the running connection\'s key</string>
-    <string name="aether_chain_entry_only">An Aether profile can only be the first hop of a proxy chain, the one that reaches the internet directly</string>
+    <string name="aether_chain_one_profile">A proxy chain can have only one Aether profile</string>
     <string name="aether_config_single_profile">A configuration can use only one Aether profile</string>
     <string name="aether_custom_no_outbound">No SOCKS outbound of the configuration dials %1$s:%2$d, where the Aether command listens</string>
     <string name="aether_custom_invalid_command">aetherCommand has to be the command line of the Aether core, as text, with the address it listens on after --bind: %1$s</string>

@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.setValue
 import com.v2ray.ang.AppConfig.DEFAULT_PORT
-import com.v2ray.ang.AppConfig.PORT_AETHER_SOCKS
 import com.v2ray.ang.AppConfig.REALITY
 import com.v2ray.ang.AppConfig.TARGET_STRATEGY_AS_IS
 import com.v2ray.ang.AppConfig.WIREGUARD_LOCAL_ADDRESS_V4
@@ -95,7 +94,6 @@ class ServerUiState(
     aetherEch: Boolean = false,
     aetherDns: String = "",
     aetherExitLoc: String = "",
-    aetherListenPort: String = PORT_AETHER_SOCKS,
     aetherPsiphon: String = AetherPsiphon.OFF.type,
     aetherPsiphonMode: String = AetherPsiphonMode.AUTO.type,
     aetherPsiphonCdnIps: String = "",
@@ -174,7 +172,6 @@ class ServerUiState(
     var aetherEch by mutableStateOf(aetherEch)
     var aetherDns by mutableStateOf(aetherDns)
     var aetherExitLoc by mutableStateOf(aetherExitLoc)
-    var aetherListenPort by mutableStateOf(aetherListenPort)
     var aetherPsiphon by mutableStateOf(aetherPsiphon)
     var aetherPsiphonMode by mutableStateOf(aetherPsiphonMode)
     var aetherPsiphonCdnIps by mutableStateOf(aetherPsiphonCdnIps)
@@ -205,8 +202,9 @@ class ServerUiState(
     val hasAdvancedAetherSettings: Boolean
         get() = aetherDns.isNotBlank() ||
             aetherExitLoc.isNotBlank() ||
-            aetherListenPort.trim().let { it.isNotEmpty() && it != PORT_AETHER_SOCKS } ||
-            (targetStrategy.isNotBlank() && targetStrategy != TARGET_STRATEGY_AS_IS)
+            (targetStrategy.isNotBlank() && targetStrategy != TARGET_STRATEGY_AS_IS) ||
+            finalMask.isNotBlank() ||
+            dialMode.isNotBlank()
 
     var isRemarksError by mutableStateOf(false)
     var isAddressError by mutableStateOf(false)
@@ -299,9 +297,6 @@ class ServerUiState(
             aetherEch = if (isAether) aetherEch else null,
             aetherDns = if (isAether) aetherDns.nullIfBlank() else null,
             aetherExitLoc = if (isAether) aetherExitLoc.nullIfBlank() else null,
-            // Stored only when it is not the default, the way AetherFmt.normalize stores it; text that is
-            // no port goes through as written, for normalize to refuse.
-            aetherListenPort = if (isAether) aetherListenPort.trim().takeUnless { it.isEmpty() || it == PORT_AETHER_SOCKS } else null,
             aetherPsiphon = if (isPsiphon) aetherPsiphon else null,
             aetherPsiphonMode = if (isPsiphon) aetherPsiphonMode else null,
             aetherPsiphonCdnIps = if (isPsiphon) aetherPsiphonCdnIps.nullIfBlank() else null,
@@ -392,7 +387,6 @@ class ServerUiState(
                 aetherEch = initialConfig.aetherEch == true,
                 aetherDns = initialConfig.aetherDns ?: "",
                 aetherExitLoc = initialConfig.aetherExitLoc ?: "",
-                aetherListenPort = initialConfig.aetherListenPort ?: PORT_AETHER_SOCKS,
                 aetherPsiphon = AetherPsiphon.fromString(initialConfig.aetherPsiphon).type,
                 aetherPsiphonMode = AetherPsiphonMode.fromString(initialConfig.aetherPsiphonMode).type,
                 aetherPsiphonCdnIps = initialConfig.aetherPsiphonCdnIps ?: "",

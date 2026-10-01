@@ -12,12 +12,15 @@ import com.v2ray.ang.core.AetherScanResult
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.AetherProtocol
 import com.v2ray.ang.ui.base.BaseViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicLong
 
 sealed interface AetherScanState {
@@ -73,6 +76,7 @@ class ServerAetherViewModel(
 
     private val nextLogId = AtomicLong()
     private var scanJob: Job? = null
+    private var renewJob: Job? = null
     private var reportedIdentity: AetherIdentityStatus? = null
 
     private val isBusy: Boolean
@@ -130,7 +134,7 @@ class ServerAetherViewModel(
     fun renewIdentity(profile: ProfileItem) {
         if (isBusy) return
         _isRenewingIdentity.value = true
-        viewModelScope.launch {
+        renewJob = viewModelScope.launch {
             try {
                 // Checked again at the tap, the session may have come up after the screen opened.
                 val session = source.activeSession()
@@ -147,10 +151,29 @@ class ServerAetherViewModel(
                     append(Log.INFO, AetherLogText.Resource(R.string.aether_log_key_renewed))
                     reportIdentity(status, onlyChanges = false)
                 }
+            } catch (e: CancellationException) {
+                // By now the core and what it started have ended. A renewal cancelled once every new key
+                // was ready has put them in place all the same, so the keys in use are shown if they changed.
+                withContext(NonCancellable) {
+                    reportIdentity(source.identityStatus(AetherProtocol.fromString(profile.aetherProtocol)), onlyChanges = true)
+                }
+                throw e
             } finally {
                 _isRenewingIdentity.value = false
             }
         }
+    }
+
+    /**
+     * Stops getting new keys: the core that registers them ends, with whatever it started. The keys
+     * in use stay, unless every new key was ready already; see [com.v2ray.ang.core.AetherIdentityManager.renew].
+     */
+    fun cancelRenewal() {
+        val job = renewJob ?: return
+        if (!_isRenewingIdentity.value) return
+        _isRenewingIdentity.value = false
+        append(Log.WARN, AetherLogText.Resource(R.string.aether_log_key_renew_cancelled))
+        job.cancel()
     }
 
     /** Forgets what Psiphon has learned, unless a session runs on it; the outcome goes to the log. */

@@ -73,24 +73,13 @@ class ServerUiStateTest {
     }
 
     @Test
-    fun theAetherListenPortShowsItsDefaultAndIsStoredOnlyWhenChanged() {
-        val profile = ProfileItem.create(EConfigType.AETHER)
+    fun aListenPortAProfileStillCarriesIsKeptAsItWasStored() {
+        // Profiles stored while each profile had a listen port of its own may carry one still; the editor neither shows nor drops it.
+        val stored = ProfileItem.create(EConfigType.AETHER).apply { aetherListenPort = "20808" }
+        assertEquals("20808", ServerUiState.from(stored).toProfileItem(stored).aetherListenPort)
 
-        val untouched = ServerUiState.from(profile)
-        assertEquals(AppConfig.PORT_AETHER_SOCKS, untouched.aetherListenPort)
-        assertNull(untouched.toProfileItem(profile).aetherListenPort)
-
-        untouched.aetherListenPort = " 20808 "
-        assertEquals("20808", untouched.toProfileItem(profile).aetherListenPort)
-
-        // An emptied field is the default; a port that is none reaches the validation as it was written.
-        untouched.aetherListenPort = ""
-        assertNull(untouched.toProfileItem(profile).aetherListenPort)
-        untouched.aetherListenPort = "70000"
-        assertEquals("70000", untouched.toProfileItem(profile).aetherListenPort)
-
-        val stored = ServerUiState.from(ProfileItem.create(EConfigType.AETHER).apply { aetherListenPort = "20808" })
-        assertEquals("20808", stored.aetherListenPort)
+        val fresh = ProfileItem.create(EConfigType.AETHER)
+        assertNull(ServerUiState.from(fresh).toProfileItem(fresh).aetherListenPort)
     }
 
     @Test
@@ -224,12 +213,7 @@ class ServerUiStateTest {
         // The IP version stands outside the fold, so it does not count.
         state.aetherIpVersion = AetherIpVersion.DUAL.type
         assertEquals(false, state.hasAdvancedAetherSettings)
-        state.aetherListenPort = " ${AppConfig.PORT_AETHER_SOCKS} "
-        assertEquals(false, state.hasAdvancedAetherSettings)
 
-        state.aetherListenPort = "20808"
-        assertEquals(true, state.hasAdvancedAetherSettings)
-        state.aetherListenPort = ""
         state.aetherDns = "1.1.1.1"
         assertEquals(true, state.hasAdvancedAetherSettings)
         state.aetherDns = ""
@@ -238,6 +222,15 @@ class ServerUiStateTest {
         state.aetherExitLoc = ""
         state.targetStrategy = "UseIPv4v6"
         assertEquals(true, state.hasAdvancedAetherSettings)
+        state.targetStrategy = ""
+        // The exit-node's finalMask and dialMode sit in the fold as well.
+        state.finalMask = """{"tcp": []}"""
+        assertEquals(true, state.hasAdvancedAetherSettings)
+        state.finalMask = " "
+        state.dialMode = "custom"
+        assertEquals(true, state.hasAdvancedAetherSettings)
+        state.dialMode = ""
+        assertEquals(false, state.hasAdvancedAetherSettings)
     }
 
     @Test
@@ -257,12 +250,5 @@ class ServerUiStateTest {
 
         val reloaded = ServerUiState.from(state.toProfileItem(profile))
         assertEquals("$built --dns 1.1.1.1", reloaded.aetherCommand)
-    }
-
-    @Test
-    fun theListenPortBelongsToAetherProfilesOnly() {
-        val vless = ProfileItem.create(EConfigType.VLESS)
-        val state = ServerUiState.from(vless).apply { aetherListenPort = "20808" }
-        assertNull(state.toProfileItem(vless).aetherListenPort)
     }
 }

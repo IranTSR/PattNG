@@ -258,6 +258,7 @@
     <string name="toast_warning_pref_proxysharing_short">LAN থেকে সংযোগ অনুমোদন করুন, নিশ্চিত করুন যে আপনি একটি বিশ্বস্ত নেটওয়ার্কে আছেন</string>
 
     <string name="title_pref_socks_port">স্থানীয় প্রক্সি পোর্ট</string>
+    <string name="title_pref_aether_listen_port">Aether-এর লিসেন পোর্ট</string>
     <string name="title_pref_enable_local_proxy">লোকাল প্রক্সি সক্ষম করুন</string>
     <string name="summary_pref_enable_local_proxy">বন্ধ থাকলে কোনো SOCKS প্রক্সি পাওয়া যাবে না, তাই সাবস্ক্রিপশন আপডেট ও অনুরূপ কাজ প্রক্সি ব্যবহার করতে পারবে না</string>
     <string name="title_pref_socks_enable_udp" translatable="false">SOCKS5 UDP</string>
@@ -575,7 +576,7 @@
     <string name="aether_lab_scan_mode">স্ক্যান মোড</string>
     <string name="aether_lab_obfuscation">অবফাসকেশন</string>
     <string name="aether_lab_ip_version">IP সংস্করণ</string>
-    <string name="aether_lab_listen_port">লিসেন পোর্ট</string>
+    <string name="aether_lab_exit_final_mask">exit-node-এর finalMask-এর কাঁচা JSON, ফরম্যাট: { FinalMaskObject }</string>
     <string name="aether_lab_fragment">ClientHello ভাগ করুন</string>
     <string name="aether_lab_fragment_size">খণ্ডের আকার (বাইট)</string>
     <string name="aether_lab_fragment_delay">খণ্ডের মাঝে বিলম্ব (মিলিসেকেন্ড)</string>
@@ -590,8 +591,8 @@
     <string name="aether_invalid_hop">ঠিকানা ও পোর্ট একসাথে লিখুন, যেমন 162.159.192.1:2408</string>
     <string name="aether_same_hop">দুটি হপের ঠিকানা আলাদা হতে হবে</string>
     <string name="aether_invalid_fragment">একটি সংখ্যা বা 16-32 এর মতো পরিসর লিখুন: আকার 1–4096 বাইট, বিলম্ব 0–1000 মিলিসেকেন্ড</string>
-    <string name="aether_invalid_listen_port">1 থেকে 65535 এর মধ্যে একটি লিসেন পোর্ট দিন, অথবা ডিফল্ট পোর্টের জন্য খালি রাখুন</string>
-    <string name="aether_listen_port_taken">লিসেন পোর্ট অ্যাপের স্থানীয় প্রক্সি পোর্টের সমান হতে পারবে না</string>
+    <string name="aether_listen_port_taken">কোর অ্যাপের স্থানীয় প্রক্সি পোর্টে, বা Aether-এর লিসেন পোর্টের চেয়ে তিন বেশি পোর্টে শুনতে পারবে না; সেটিংসে Aether-এর লিসেন পোর্ট, অথবা কমান্ডের পোর্টগুলো বদলান</string>
+    <string name="aether_secondary_port_taken">এই কনফিগারেশনের একটি ইনবাউন্ড ইতিমধ্যে %1$d-এ শুনছে, যা Aether-এর লিসেন পোর্টের চেয়ে তিন বেশি এবং যার মধ্য দিয়ে Aether কোর বাইরে সংযোগ করে; সেটিংসে Aether-এর লিসেন পোর্ট বদলান</string>
     <string name="aether_lab_psiphon">Psiphon</string>
     <string name="aether_lab_psiphon_mode">Psiphon সংযোগ</string>
     <string name="aether_lab_psiphon_cdn_ips">CDN ফ্রন্টিং IP</string>
@@ -608,7 +609,7 @@
     <string name="aether_psiphon_clear_blocked">Psiphon ডেটা মোছার আগে Aether প্রোফাইল সংযোগ বিচ্ছিন্ন করুন; চলমান সংযোগ এটি ব্যবহার করছে</string>
     <string name="aether_psiphon_unavailable">এই বিল্ডে Psiphon ক্লায়েন্ট নেই, তাই Psiphon সহ প্রোফাইল সংযোগ করতে পারবে না</string>
     <string name="aether_psiphon_needs_masque">Psiphon → WARP শুধু MASQUE প্রোটোকলের সাথে কাজ করে</string>
-    <string name="aether_next_port_taken">পথে Tor বা Psiphon থাকলে কোর শোনার পোর্টের পরের পোর্টগুলোও ব্যবহার করে; সেগুলোর কোনোটিই অ্যাপের লোকাল প্রক্সি পোর্ট হতে পারবে না</string>
+    <string name="aether_next_port_taken">পথে Tor বা Psiphon থাকলে কোর Aether-এর লিসেন পোর্টের পরের পোর্টগুলোও ব্যবহার করে, আর সেগুলোর কোনোটিই অ্যাপের লোকাল প্রক্সি পোর্ট হতে পারবে না; সেটিংসে Aether-এর লিসেন পোর্ট বদলান</string>
     <string name="aether_lab_tor">Tor</string>
     <string name="aether_lab_tor_bridges">ব্রিজ</string>
     <string name="aether_lab_tor_bridge_lines">ব্রিজ লাইন</string>
@@ -647,6 +648,7 @@
     <string name="aether_log_key_renewing">সব প্রোটোকলের জন্য নতুন WARP কী নিবন্ধন করা হচ্ছে; সবগুলো প্রস্তুত না হওয়া পর্যন্ত বর্তমান কীগুলো নিজের জায়গায় থাকবে…</string>
     <string name="aether_log_key_renewed">সব প্রোটোকলের নতুন WARP কী প্রস্তুত, পরবর্তী সংযোগ থেকে এগুলো ব্যবহার হবে</string>
     <string name="aether_log_key_renew_failed">নতুন WARP কী নিবন্ধন ব্যর্থ হয়েছে; বর্তমান কীগুলো রাখা হয়েছে</string>
+    <string name="aether_log_key_renew_cancelled">নতুন WARP কী নেওয়া বাতিল হয়েছে</string>
     <string name="aether_log_masque_key_ready">MASQUE কী: ডিভাইস %1$s, IPv4 %2$s, IPv6 %3$s</string>
     <string name="aether_log_masque_key_missing">MASQUE কী: এখনও নিবন্ধিত নয়; প্রথম স্ক্যান বা সংযোগে নিবন্ধিত হবে</string>
     <string name="aether_log_wireguard_key_ready">WireGuard কী: ডিভাইস %1$s, IPv4 %2$s, IPv6 %3$s</string>
@@ -657,7 +659,7 @@
     <string name="aether_log_inner_key_missing">ভিতরের হপের কী: এখনও নিবন্ধিত নয়; প্রথম স্ক্যান বা সংযোগে নিবন্ধিত হবে</string>
     <string name="aether_renew_blocked">নতুন WARP কী নেওয়ার আগে Aether সংযোগ বিচ্ছিন্ন করুন; চলমান সংযোগ বর্তমান কী ব্যবহার করছে</string>
     <string name="aether_scan_blocked">স্ক্যান করার আগে Aether সংযোগ বিচ্ছিন্ন করুন; স্ক্যান চলমান সংযোগের কী দিয়ে দ্বিতীয় একটি টানেল খুলবে</string>
-    <string name="aether_chain_entry_only">একটি Aether প্রোফাইল শুধুমাত্র প্রক্সি চেইনের প্রথম হপ হতে পারে, যেটি সরাসরি ইন্টারনেটে পৌঁছায়</string>
+    <string name="aether_chain_one_profile">একটি প্রক্সি চেইনে শুধুমাত্র একটি Aether প্রোফাইল থাকতে পারে</string>
     <string name="aether_config_single_profile">একটি কনফিগারেশন শুধুমাত্র একটি Aether প্রোফাইল ব্যবহার করতে পারে</string>
     <string name="aether_custom_no_outbound">কনফিগারেশনের কোনো SOCKS আউটবাউন্ড %1$s:%2$d-এ সংযোগ করে না, যেখানে Aether কমান্ড শোনে</string>
     <string name="aether_custom_invalid_command">aetherCommand অবশ্যই Aether কোরের কমান্ড লাইন টেক্সট হিসেবে হতে হবে, --bind এর পরে যে ঠিকানায় এটি শোনে সেটিসহ: %1$s</string>

@@ -258,6 +258,7 @@
     <string name="toast_warning_pref_proxysharing_short">Đã cho phép kết nối từ mạng LAN. Hãy đảm bảo bạn đang dùng mạng đáng tin cậy.</string>
 
     <string name="title_pref_socks_port">Cổng proxy cục bộ</string>
+    <string name="title_pref_aether_listen_port">Cổng lắng nghe của Aether</string>
     <string name="title_pref_enable_local_proxy">Bật proxy cục bộ</string>
     <string name="summary_pref_enable_local_proxy">Khi tắt, proxy SOCKS sẽ không khả dụng nên việc cập nhật đăng ký và các thao tác tương tự không thể dùng proxy</string>
     <string name="title_pref_socks_enable_udp" translatable="false">SOCKS5 UDP</string>
@@ -573,7 +574,7 @@
     <string name="aether_lab_scan_mode">Chế độ quét</string>
     <string name="aether_lab_obfuscation">Làm rối</string>
     <string name="aether_lab_ip_version">Phiên bản IP</string>
-    <string name="aether_lab_listen_port">Cổng lắng nghe</string>
+    <string name="aether_lab_exit_final_mask">JSON thô của finalMask cho exit-node, định dạng: { FinalMaskObject }</string>
     <string name="aether_lab_fragment">Phân mảnh ClientHello</string>
     <string name="aether_lab_fragment_size">Kích thước mảnh (byte)</string>
     <string name="aether_lab_fragment_delay">Độ trễ giữa các mảnh (ms)</string>
@@ -588,8 +589,8 @@
     <string name="aether_invalid_hop">Nhập địa chỉ và cổng, ví dụ 162.159.192.1:2408</string>
     <string name="aether_same_hop">Hai chặng phải có địa chỉ khác nhau</string>
     <string name="aether_invalid_fragment">Nhập một số hoặc khoảng như 16-32: kích thước 1–4096 byte, độ trễ 0–1000 ms</string>
-    <string name="aether_invalid_listen_port">Nhập cổng lắng nghe từ 1 đến 65535, hoặc để trống để dùng cổng mặc định</string>
-    <string name="aether_listen_port_taken">Cổng lắng nghe không được trùng với cổng proxy cục bộ của ứng dụng</string>
+    <string name="aether_listen_port_taken">Lõi không thể lắng nghe trên cổng proxy cục bộ của ứng dụng, hay trên cổng lớn hơn cổng lắng nghe của Aether ba đơn vị; hãy đổi cổng lắng nghe của Aether trong phần cài đặt, hoặc các cổng của lệnh</string>
+    <string name="aether_secondary_port_taken">Một inbound của cấu hình này đã lắng nghe trên %1$d, là cổng lớn hơn cổng lắng nghe của Aether ba đơn vị, qua đó lõi Aether kết nối ra ngoài; hãy đổi cổng lắng nghe của Aether trong phần cài đặt</string>
     <string name="aether_lab_psiphon">Psiphon</string>
     <string name="aether_lab_psiphon_mode">Kết nối Psiphon</string>
     <string name="aether_lab_psiphon_cdn_ips">IP CDN fronting</string>
@@ -606,7 +607,7 @@
     <string name="aether_psiphon_clear_blocked">Ngắt kết nối hồ sơ Aether trước khi xóa dữ liệu Psiphon; kết nối đang chạy đang dùng nó</string>
     <string name="aether_psiphon_unavailable">Bản dựng này không có ứng dụng Psiphon, nên cấu hình dùng Psiphon không thể kết nối</string>
     <string name="aether_psiphon_needs_masque">Psiphon → WARP chỉ hoạt động với giao thức MASQUE</string>
-    <string name="aether_next_port_taken">Khi có Tor hoặc Psiphon trên đường đi, lõi còn dùng các cổng ngay sau cổng lắng nghe; không cổng nào trong số đó được là cổng proxy cục bộ của ứng dụng</string>
+    <string name="aether_next_port_taken">Khi có Tor hoặc Psiphon trên đường đi, lõi còn dùng các cổng ngay sau cổng lắng nghe của Aether, và không cổng nào trong số đó được là cổng proxy cục bộ của ứng dụng; hãy đổi cổng lắng nghe của Aether trong phần cài đặt</string>
     <string name="aether_lab_tor">Tor</string>
     <string name="aether_lab_tor_bridges">Cầu nối (bridge)</string>
     <string name="aether_lab_tor_bridge_lines">Các dòng bridge</string>
@@ -645,6 +646,7 @@
     <string name="aether_log_key_renewing">Đang đăng ký khóa WARP mới cho mọi giao thức; các khóa hiện tại được giữ nguyên cho đến khi tất cả sẵn sàng…</string>
     <string name="aether_log_key_renewed">Khóa WARP mới cho mọi giao thức đã sẵn sàng và sẽ được dùng từ lần kết nối tiếp theo</string>
     <string name="aether_log_key_renew_failed">Đăng ký khóa WARP mới thất bại; các khóa hiện tại được giữ lại</string>
+    <string name="aether_log_key_renew_cancelled">Đã hủy lấy khóa WARP mới</string>
     <string name="aether_log_masque_key_ready">Khóa MASQUE: thiết bị %1$s, IPv4 %2$s, IPv6 %3$s</string>
     <string name="aether_log_masque_key_missing">Khóa MASQUE: chưa đăng ký; sẽ được đăng ký ở lần quét hoặc kết nối đầu tiên</string>
     <string name="aether_log_wireguard_key_ready">Khóa WireGuard: thiết bị %1$s, IPv4 %2$s, IPv6 %3$s</string>
@@ -655,7 +657,7 @@
     <string name="aether_log_inner_key_missing">Khóa chặng trong: chưa đăng ký; sẽ được đăng ký ở lần quét hoặc kết nối đầu tiên</string>
     <string name="aether_renew_blocked">Hãy ngắt kết nối Aether trước khi lấy khóa WARP mới; kết nối hiện tại đang dùng khóa này</string>
     <string name="aether_scan_blocked">Hãy ngắt kết nối Aether trước khi quét; việc quét sẽ mở một đường hầm thứ hai bằng khóa của kết nối hiện tại</string>
-    <string name="aether_chain_entry_only">Hồ sơ Aether chỉ có thể là chặng đầu tiên của chuỗi proxy, chặng kết nối trực tiếp ra Internet</string>
+    <string name="aether_chain_one_profile">Một chuỗi proxy chỉ có thể có một hồ sơ Aether</string>
     <string name="aether_config_single_profile">Một cấu hình chỉ có thể dùng một hồ sơ Aether</string>
     <string name="aether_custom_no_outbound">Không có outbound SOCKS nào của cấu hình kết nối tới %1$s:%2$d, nơi lệnh Aether lắng nghe</string>
     <string name="aether_custom_invalid_command">aetherCommand phải là dòng lệnh của lõi Aether ở dạng văn bản, với địa chỉ lắng nghe đặt sau --bind: %1$s</string>

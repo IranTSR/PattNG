@@ -52,9 +52,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.core.AetherCore
+import com.v2ray.ang.core.AetherCoreManager
 import com.v2ray.ang.core.AetherScanResult
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.AetherProtocol
@@ -77,6 +77,7 @@ import com.v2ray.ang.ui.compose.FormDropdownField
 import com.v2ray.ang.ui.compose.FormTextField
 import com.v2ray.ang.ui.compose.SettingsSwitchItem
 import com.v2ray.ang.ui.compose.verticalScrollbar
+import com.v2ray.ang.util.JsonUtil
 import com.v2ray.ang.util.Utils
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -449,19 +450,29 @@ class ServerAetherActivity : BaseServerActivity() {
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
-                OutlinedButton(
-                    onClick = { showRenewConfirm = true },
-                    enabled = isCoreAvailable && !isBusy && !renewBlocked,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (isRenewingIdentity) {
-                        ProgressMark()
-                    }
-                    Text(
-                        stringResource(
-                            if (isRenewingIdentity) R.string.aether_action_renewing_key else R.string.aether_action_renew_key
+                    OutlinedButton(
+                        onClick = { showRenewConfirm = true },
+                        enabled = isCoreAvailable && !isBusy && !renewBlocked
+                    ) {
+                        if (isRenewingIdentity) {
+                            ProgressMark()
+                        }
+                        Text(
+                            stringResource(
+                                if (isRenewingIdentity) R.string.aether_action_renewing_key else R.string.aether_action_renew_key
+                            )
                         )
-                    )
+                    }
+                    if (isRenewingIdentity) {
+                        TextButton(onClick = viewModel::cancelRenewal) {
+                            Text(stringResource(R.string.action_cancel))
+                        }
+                    }
                 }
                 if (renewBlocked) {
                     Text(
@@ -493,12 +504,16 @@ class ServerAetherActivity : BaseServerActivity() {
                     )
                 }
                 CommonTargetStrategyField(uiState)
+                // Set on the exit-node, where what the core sends leaves Xray, as an ordinary profile sets them on its outbound.
                 FormTextField(
-                    stringResource(R.string.aether_lab_listen_port),
-                    uiState.aetherListenPort,
-                    { uiState.aetherListenPort = it },
-                    keyboardType = KeyboardType.Number,
-                    placeholder = AppConfig.PORT_AETHER_SOCKS
+                    stringResource(R.string.aether_lab_exit_final_mask),
+                    uiState.finalMask,
+                    { uiState.finalMask = it }
+                )
+                FormTextField(
+                    stringResource(R.string.aether_lab_exit_dial_mode),
+                    uiState.dialMode,
+                    { uiState.dialMode = it }
                 )
             }
             if (!isCoreAvailable) {
@@ -551,8 +566,14 @@ class ServerAetherActivity : BaseServerActivity() {
     }
 
     override fun validateProtocolConfig(config: ProfileItem): Boolean {
-        // The core cannot listen where the local proxy of the app does; Xray would get the port first.
-        val problem = AetherFmt.normalize(config, SettingsManager.getLocalProxyPorts()) ?: return true
+        if (!config.finalMask.isNullOrBlank() && JsonUtil.parseString(config.finalMask) == null) {
+            toast(R.string.aether_lab_exit_final_mask)
+            return false
+        }
+        // The core cannot listen where the local proxy of the app does, nor where the inbound it dials out
+        // through does; Xray would get the port first.
+        val takenPorts = SettingsManager.getLocalProxyPorts() + AetherCoreManager.secondarySocksPort
+        val problem = AetherFmt.normalize(config, takenPorts) ?: return true
         toast(
             when (problem) {
                 AetherFmt.Problem.INVALID_PEER -> R.string.aether_invalid_endpoint
@@ -561,7 +582,6 @@ class ServerAetherActivity : BaseServerActivity() {
                 AetherFmt.Problem.INVALID_FRAGMENT -> R.string.aether_invalid_fragment
                 AetherFmt.Problem.INVALID_DNS -> R.string.aether_invalid_dns
                 AetherFmt.Problem.INVALID_EXIT_LOC -> R.string.aether_invalid_exit_loc
-                AetherFmt.Problem.INVALID_LISTEN_PORT -> R.string.aether_invalid_listen_port
                 AetherFmt.Problem.LISTEN_PORT_TAKEN -> R.string.aether_listen_port_taken
                 AetherFmt.Problem.PSIPHON_NEEDS_MASQUE -> R.string.aether_psiphon_needs_masque
                 AetherFmt.Problem.NEXT_PORT_TAKEN -> R.string.aether_next_port_taken

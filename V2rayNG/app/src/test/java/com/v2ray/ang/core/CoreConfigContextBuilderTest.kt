@@ -26,14 +26,15 @@ class CoreConfigContextBuilderTest {
     }
 
     @Test
-    fun aGroupLeavesOutTheSameTunnelOnAnotherListenPort() {
+    fun aGroupKeepsTheSameTunnelStoredWithAListenPortOfItsOwn() {
+        // Profiles stored while each profile had a listen port of its own may carry one still; every core listens on the one port now.
         val first = aether("warp", AetherProtocol.MASQUE)
         val elsewhere = aether("warp on 20808", AetherProtocol.MASQUE).apply { aetherListenPort = "20808" }
 
         val (kept, leftOut) = CoreConfigContextBuilder.withOneAetherProfile(listOf(first, elsewhere))
 
-        assertEquals(listOf(first), kept)
-        assertEquals(listOf(elsewhere), leftOut)
+        assertEquals(listOf(first, elsewhere), kept)
+        assertEquals(emptyList<ProfileItem>(), leftOut)
     }
 
     @Test
