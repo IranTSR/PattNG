@@ -117,6 +117,7 @@ class ServerAetherActivity : BaseServerActivity() {
         val isRenewingIdentity by viewModel.isRenewingIdentity.collectAsStateWithLifecycle()
         val session by viewModel.session.collectAsStateWithLifecycle()
         val log by viewModel.log.collectAsStateWithLifecycle()
+        val listenPort by viewModel.listenPort.collectAsStateWithLifecycle()
         var showRenewConfirm by rememberSaveable { mutableStateOf(false) }
         // Folded away unless one of its settings holds a value, so a profile that set one shows it at once.
         var showAdvanced by rememberSaveable { mutableStateOf(uiState.hasAdvancedAetherSettings) }
@@ -428,7 +429,7 @@ class ServerAetherActivity : BaseServerActivity() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
-                        onClick = { viewModel.scan(uiState.toProfileItem(initialConfig)) },
+                        onClick = { viewModel.scan(uiState.toProfileItem(initialConfig, listenPort)) },
                         enabled = isCoreAvailable && !isBusy && !scanBlocked
                     ) {
                         if (isScanning) {
@@ -524,7 +525,7 @@ class ServerAetherActivity : BaseServerActivity() {
             }
             // The command the core is started with, built from the settings above and open to a hand
             // that needs an option the settings have no field for.
-            val builtCommand = AetherCore.of(uiState.toProfileItem(initialConfig).copy(aetherCommand = null)).command
+            val builtCommand = AetherCore.of(uiState.toProfileItem(initialConfig, listenPort).copy(aetherCommand = null), listenPort).command
             val customCommand = uiState.aetherCommand.isNotBlank() && uiState.aetherCommand.trim() != builtCommand
             FormTextField(
                 stringResource(R.string.aether_lab_command),
@@ -550,7 +551,7 @@ class ServerAetherActivity : BaseServerActivity() {
                 confirmText = stringResource(R.string.aether_action_renew_key),
                 onConfirm = {
                     showRenewConfirm = false
-                    viewModel.renewIdentity(uiState.toProfileItem(initialConfig))
+                    viewModel.renewIdentity(uiState.toProfileItem(initialConfig, listenPort))
                 },
                 onDismiss = { showRenewConfirm = false }
             )

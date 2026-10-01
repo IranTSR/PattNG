@@ -251,4 +251,16 @@ class ServerUiStateTest {
         val reloaded = ServerUiState.from(state.toProfileItem(profile))
         assertEquals("$built --dns 1.1.1.1", reloaded.aetherCommand)
     }
+
+    @Test
+    fun aCommandIsWeighedAgainstTheSettingsOnTheListenPortTheScreenHolds() {
+        val profile = ProfileItem.create(EConfigType.AETHER)
+        val state = ServerUiState.from(profile)
+        val built = com.v2ray.ang.core.AetherCore.of(state.toProfileItem(profile, 20808), 20808).command
+        assertTrue(built, "127.0.0.1:20808" in built)
+        state.aetherCommand = built
+        assertNull(state.toProfileItem(profile, 20808).aetherCommand)
+        // On another port the same words say something else than the settings do.
+        assertEquals(built, state.toProfileItem(profile, 10819).aetherCommand)
+    }
 }

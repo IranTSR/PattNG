@@ -44,6 +44,9 @@ interface AetherEditorSource {
 
     /** The exit countries on offer, ISO codes sorted: those of the app's Psiphon server list and those Psiphon last reported. */
     suspend fun psiphonRegions(): List<String>
+
+    /** The Aether listen port of the settings, which every core of a profile listens on. */
+    suspend fun listenPort(): Int
 }
 
 class AetherEditorRepository(private val context: Context) : AetherEditorSource {
@@ -89,6 +92,8 @@ class AetherEditorRepository(private val context: Context) : AetherEditorSource 
         internal fun sessionOf(protocol: AetherProtocol?, processesListed: Boolean, listenerAnswers: () -> Boolean): AetherSession? =
             protocol?.let(::AetherSession) ?: AetherSession(protocol = null).takeIf { !processesListed && listenerAnswers() }
     }
+
+    override suspend fun listenPort(): Int = withContext(Dispatchers.IO) { AetherCoreManager.socksPort }
 
     override suspend fun psiphonRegions(): List<String> = withContext(Dispatchers.IO) {
         val entries = PsiphonServerList.entriesFile(File(Utils.userAssetPath(context)), AetherIdentityManager.workDir(context)) { problem ->

@@ -11,6 +11,7 @@ import com.v2ray.ang.AppConfig.WIREGUARD_LOCAL_ADDRESS_V4
 import com.v2ray.ang.AppConfig.WIREGUARD_LOCAL_MTU
 import com.v2ray.ang.AppConfig.WIREGUARD_LOCAL_REMOTE_DNS
 import com.v2ray.ang.core.AetherCore
+import com.v2ray.ang.core.AetherCoreManager
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.AetherIpVersion
 import com.v2ray.ang.enums.AetherObfuscation
@@ -211,7 +212,12 @@ class ServerUiState(
     var isPortError by mutableStateOf(false)
     var isPasswordError by mutableStateOf(false)
 
-    fun toProfileItem(initialConfig: ProfileItem): ProfileItem {
+    /**
+     * The profile the editor holds, built on [initialConfig]. An Aether profile's command line counts
+     * as one of its own only when it says something else than its settings would on [aetherListenPort],
+     * the Aether listen port of the settings when null.
+     */
+    fun toProfileItem(initialConfig: ProfileItem, aetherListenPort: Int? = null): ProfileItem {
         val isVmess = configType == EConfigType.VMESS
         val isVless = configType == EConfigType.VLESS
         val isShadowsocks = configType == EConfigType.SHADOWSOCKS
@@ -313,7 +319,7 @@ class ServerUiState(
         if (!isAether) return profile
         // A command that says what the settings say is no command of its own: the profile follows the settings.
         val command = aetherCommand.trim()
-        return if (command.isEmpty() || command == AetherCore.of(profile).command) profile else profile.copy(aetherCommand = command)
+        return if (command.isEmpty() || command == AetherCore.of(profile, aetherListenPort ?: AetherCoreManager.socksPort).command) profile else profile.copy(aetherCommand = command)
     }
 
     companion object {

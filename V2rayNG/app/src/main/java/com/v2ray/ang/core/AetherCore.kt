@@ -63,16 +63,17 @@ data class AetherCore(val arguments: List<String>, val exit: AetherExit = Aether
         private val LISTENERS = listOf("--bind", AetherCoreManager.TOR_BIND, AetherCoreManager.PSIPHON_BIND)
 
         /**
-         * The core of [profile]: the command line it carries, or its settings as arguments on the
-         * Aether listen port of the app, dialling out through the exit-node of its settings. The log
-         * level is the session's to add. A command the app cannot read is left aside for the settings;
-         * the profile editor refuses to store one.
+         * The core of [profile]: the command line it carries, or its settings as arguments on
+         * [listenPort], the Aether listen port of the app, dialling out through the exit-node of its
+         * settings. The log level is the session's to add. A command the app cannot read is left aside
+         * for the settings; the profile editor refuses to store one. A screen passes the port it holds,
+         * since the setting is read from storage.
          */
-        fun of(profile: ProfileItem): AetherCore {
+        fun of(profile: ProfileItem, listenPort: Int = AetherCoreManager.socksPort): AetherCore {
             val core = profile.aetherCommand?.takeIf { it.isNotBlank() }?.let(::ofCommand)
                 ?: AetherCore(
                     AetherCoreManager.withoutOption(
-                        AetherCoreManager.buildArguments(profile, AetherCoreManager.socksPort),
+                        AetherCoreManager.buildArguments(profile, listenPort),
                         "--log-level",
                     )
                 )

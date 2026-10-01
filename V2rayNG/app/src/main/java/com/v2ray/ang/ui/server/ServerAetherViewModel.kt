@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
+import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.core.AetherCoreManager
 import com.v2ray.ang.core.AetherIdentity
@@ -61,6 +62,10 @@ class ServerAetherViewModel(
     private val _psiphonRegions = MutableStateFlow<List<String>>(emptyList())
     val psiphonRegions: StateFlow<List<String>> = _psiphonRegions.asStateFlow()
 
+    /** The Aether listen port the command of a profile is built on; the default until it is read from the settings. */
+    private val _listenPort = MutableStateFlow(AppConfig.PORT_AETHER_SOCKS.toInt())
+    val listenPort: StateFlow<Int> = _listenPort.asStateFlow()
+
     private val _scanState = MutableStateFlow<AetherScanState>(AetherScanState.Idle)
     val scanState: StateFlow<AetherScanState> = _scanState.asStateFlow()
 
@@ -87,6 +92,7 @@ class ServerAetherViewModel(
         viewModelScope.launch { _isPsiphonAvailable.value = source.isPsiphonAvailable() }
         viewModelScope.launch { _isTorTransportsAvailable.value = source.isTorTransportsAvailable() }
         viewModelScope.launch { _psiphonRegions.value = source.psiphonRegions() }
+        viewModelScope.launch { _listenPort.value = source.listenPort() }
         refreshSession()
     }
 

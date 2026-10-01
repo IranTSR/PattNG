@@ -43,6 +43,7 @@ class ServerAetherViewModelTest {
         var renewer: suspend (ProfileItem, (String) -> Unit) -> AetherIdentityStatus? = { _, _ -> null }
         var clearer: suspend () -> Boolean = { true }
         var regions: List<String> = emptyList()
+        var port = 10819
         val identities = mutableMapOf<AetherProtocol, AetherIdentityStatus>()
 
         override suspend fun isCoreAvailable() = available
@@ -56,6 +57,7 @@ class ServerAetherViewModelTest {
         override suspend fun renewIdentity(profile: ProfileItem, onOutput: (String) -> Unit) = renewer(profile, onOutput)
         override suspend fun clearPsiphonData() = clearer()
         override suspend fun psiphonRegions() = regions
+        override suspend fun listenPort() = port
     }
 
     private val source = FakeSource()
@@ -88,6 +90,12 @@ class ServerAetherViewModelTest {
         assertFalse(viewModel.isRenewingIdentity.value)
         assertNull(viewModel.session.value)
         assertTrue(viewModel.log.value.isEmpty())
+    }
+
+    @Test
+    fun theCommandIsBuiltOnTheListenPortOfTheSettings() {
+        source.port = 20808
+        assertEquals(20808, viewModel().listenPort.value)
     }
 
     @Test
