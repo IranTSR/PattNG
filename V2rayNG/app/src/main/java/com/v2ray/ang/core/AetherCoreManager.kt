@@ -63,6 +63,10 @@ object AetherCoreManager {
     /** The option that names Tor's own listener. */
     internal const val TOR_BIND = "--tor-bind"
 
+    /** The option that has the core register identities and end, with the word naming which: here all four. */
+    private const val REGISTER = "--register"
+    private const val REGISTER_EVERY_KEY = "all"
+
     /**
      * The pluggable transport Tor's bridges run through, shipped beside the core as a library. It is
      * lyrebird, which speaks every transport the core asks bridges for; the core is told so by name,
@@ -315,6 +319,17 @@ object AetherCoreManager {
     }
 
     /**
+     * The run that registers a new key of every kind, both WireGuard keys and both MASQUE keys, and
+     * ends without scanning or opening a tunnel: the core's `--register all`, on the scan
+     * arguments of [profile] for [port], see [scanPort]. It registers the way [profile] reaches
+     * WARP: directly, or through the Tor or Psiphon around its tunnel, the WireGuard keys as well,
+     * since a registration is an HTTPS request, which either carrier carries. The protocol and scan
+     * options go along unused.
+     */
+    internal fun keyRenewalArguments(profile: ProfileItem, port: Int): List<String> =
+        listOf(REGISTER, REGISTER_EVERY_KEY) + buildArguments(profile, port, scan = true)
+
+    /**
      * Maps the app's core log level setting onto the levels the core accepts. Only the session
      * follows the setting: scans and key renewals keep the default because they read info lines.
      */
@@ -412,8 +427,23 @@ object AetherCoreManager {
         }
     }
 
-    internal fun startProcess(context: Context, arguments: List<String>, markSession: Boolean = false): Process {
+    /**
+     * Starts a core on [arguments]. It uses, or registers where there are none, the keys in the
+     * identity folder, or in [keysDir] instead, where a renewal gathers new keys apart from the keys
+     * in use.
+     */
+    internal fun startProcess(
+        context: Context,
+        arguments: List<String>,
+        markSession: Boolean = false,
+        keysDir: File? = null,
+    ): Process {
         val workDir = AetherIdentityManager.workDir(context).apply { mkdirs() }
+        // A renewal stopped while it moved its new keys into place is finished before a core reads them.
+        if (!AetherIdentityManager.settle(context)) {
+            LogUtil.w(AppConfig.TAG, "AetherCore: the renewed keys could not all be moved into place; the keys not moved yet stay in use")
+        }
+        val keys = keysDir ?: workDir
         val shippedList = if (PSIPHON_SERVER_ENTRIES in arguments) {
             PsiphonServerList.entriesFile(File(Utils.userAssetPath(context)), workDir) { problem ->
                 LogUtil.w(AppConfig.TAG, "AetherCore: ${AppConfig.PSIPHON_SERVERS_DAT} is not a usable Psiphon list; the entries kept from before stay", problem)
@@ -437,8 +467,8 @@ object AetherCoreManager {
             put("HOME", workDir.absolutePath)
             put("TMPDIR", context.cacheDir.absolutePath)
             put("AETHER_CONFIG", File(workDir, AetherIdentityManager.BASE_FILE).absolutePath)
-            put("AETHER_MASQUE_CONFIG", File(workDir, AetherIdentityManager.MASQUE_FILE).absolutePath)
-            put("AETHER_WG_CONFIG", File(workDir, AetherIdentityManager.WIREGUARD_FILE).absolutePath)
+            put("AETHER_MASQUE_CONFIG", File(keys, AetherIdentityManager.MASQUE_FILE).absolutePath)
+            put("AETHER_WG_CONFIG", File(keys, AetherIdentityManager.WIREGUARD_FILE).absolutePath)
         }
         return builder.start()
     }
@@ -448,6 +478,7 @@ object AetherCoreManager {
         arguments: List<String>,
         source: String,
         onOutput: (String) -> Unit,
+        keysDir: File? = null,
         block: suspend (output: ReceiveChannel<String>) -> T?,
     ): T? = coroutineScope {
         // A cancellation can land while the spawn runs or while its result is on the way back to this
@@ -458,7 +489,7 @@ object AetherCoreManager {
             withContext(Dispatchers.IO) {
                 try {
                     reapStale(context, null)
-                    startProcess(context, arguments).also(spawned::set)
+                    startProcess(context, arguments, keysDir = keysDir).also(spawned::set)
                 } catch (e: IOException) {
                     LogUtil.e(AppConfig.TAG, "AetherCore: failed to launch $source", e)
                     null
@@ -486,8 +517,9 @@ object AetherCoreManager {
         timeoutMs: Long,
         source: String,
         onOutput: (String) -> Unit,
+        keysDir: File? = null,
         match: (String) -> T?,
-    ): T? = withProcess(context, arguments, source, onOutput) { output ->
+    ): T? = withProcess(context, arguments, source, onOutput, keysDir) { output ->
         withTimeoutOrNull(timeoutMs) { output.receiveAsFlow().mapNotNull(match).firstOrNull() }
     }
 

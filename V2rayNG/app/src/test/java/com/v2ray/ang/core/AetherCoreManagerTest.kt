@@ -944,6 +944,37 @@ class AetherCoreManagerTest {
     }
 
     @Test
+    fun aKeyRenewalRegistersEveryKeyInOneRunThatEnds() {
+        // Whatever the profile's own protocol, every key is renewed.
+        for (protocol in AetherProtocol.entries) {
+            val run = AetherCoreManager.keyRenewalArguments(profile(protocol), 0)
+            assertEquals("all", valueAfter(run, "--register"))
+            assertFalse("--peer" in run)
+            assertFalse("--upstream" in run)
+            // The run is stopped at a line written at the info level.
+            assertEquals("info", valueAfter(run, "--log-level"))
+        }
+    }
+
+    @Test
+    fun aKeyRenewalGoesThroughTheCarrierAroundTheTunnelOnly() {
+        // The core registers through Tor or Psiphon around the tunnel, the WireGuard keys as well.
+        val tor = AetherCoreManager.keyRenewalArguments(profile().copy(aetherTor = "reverse", aetherTorBridges = "first"), 41234)
+        assertEquals("all", valueAfter(tor, "--register"))
+        assertTrue("--tor-reverse" in tor)
+        assertTrue("--tor-bridges" in tor)
+        assertEquals("127.0.0.1:41235", valueAfter(tor, "--tor-bind"))
+
+        val psiphon = AetherCoreManager.keyRenewalArguments(profile().copy(aetherPsiphon = "reverse", aetherPsiphonMode = "cdn"), 0)
+        assertTrue("--psiphon-reverse" in psiphon)
+        assertEquals("cdn", valueAfter(psiphon, "--psiphon-mode"))
+
+        // A carrier inside the tunnel carries nothing of a registration.
+        val inside = AetherCoreManager.keyRenewalArguments(profile().copy(aetherTor = "chain", aetherPsiphon = "chain"), 0)
+        assertFalse(inside.any { it.startsWith("--tor") || it.startsWith("--psiphon") })
+    }
+
+    @Test
     fun theListenersAreLeftOutWhenTunnelsAreCompared() {
         val session = AetherCoreManager.buildArguments(profile().copy(aetherPsiphon = "chain"), 10819)
         val elsewhere = AetherCoreManager.buildArguments(profile().copy(aetherPsiphon = "chain"), 20808)
