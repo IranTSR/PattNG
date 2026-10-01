@@ -41,6 +41,7 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.util.Locale
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 
@@ -476,6 +477,12 @@ object AetherCoreManager {
         return builder.start()
     }
 
+    /**
+     * Runs a core of its own, one that serves no session: a scan, a key renewal, a latency test. It
+     * dials out through the exit of this process's Xray, as the session's core dials out through the
+     * session's, see [CoreNativeManager.openExit]. The exit opens before the core starts, and the core
+     * lets go of it once it has ended.
+     */
     internal suspend fun <T> withProcess(
         context: Context,
         arguments: List<String>,
@@ -486,32 +493,55 @@ object AetherCoreManager {
     ): T? = coroutineScope {
         // A cancellation can land while the spawn runs or while its result is on the way back to this
         // coroutine; either way the core would keep running with nobody holding its handle, so the
-        // handle is kept aside and the core is destroyed on that path.
+        // handle is kept aside and the core is destroyed on that path. The hold on the exit is kept
+        // aside likewise, and let go of.
         val spawned = AtomicReference<Process?>()
-        val process = try {
-            withContext(Dispatchers.IO) {
-                try {
-                    reapStale(context, null)
-                    startProcess(context, arguments, keysDir = keysDir).also(spawned::set)
-                } catch (e: IOException) {
-                    LogUtil.e(AppConfig.TAG, "AetherCore: failed to launch $source", e)
-                    null
-                }
-            }
-        } catch (e: CancellationException) {
-            spawned.get()?.destroy()
-            throw e
-        } ?: return@coroutineScope null
-
-        val output = Channel<String>(Channel.UNLIMITED)
-        launch(Dispatchers.IO) { forward(process, source, onOutput, output) }
+        val exitHeld = AtomicBoolean(false)
         try {
-            ensureActive()
-            block(output)
+            val process = try {
+                withContext(Dispatchers.IO) {
+                    val exitPort = openExit(context, source)?.also { exitHeld.set(true) } ?: return@withContext null
+                    try {
+                        reapStale(context, null)
+                        startProcess(context, standaloneArguments(arguments, exitPort), keysDir = keysDir).also(spawned::set)
+                    } catch (e: IOException) {
+                        LogUtil.e(AppConfig.TAG, "AetherCore: failed to launch $source", e)
+                        null
+                    }
+                }
+            } catch (e: CancellationException) {
+                spawned.get()?.destroy()
+                throw e
+            } ?: return@coroutineScope null
+
+            val output = Channel<String>(Channel.UNLIMITED)
+            launch(Dispatchers.IO) { forward(process, source, onOutput, output) }
+            try {
+                ensureActive()
+                block(output)
+            } finally {
+                // The ending waits for the core and its helpers to be gone; a scan or a renewal calls from the main thread.
+                withContext(NonCancellable + Dispatchers.IO) { end(process, context) }
+            }
         } finally {
-            // The ending waits for the core and its helpers to be gone; a scan or a renewal calls from the main thread.
-            withContext(NonCancellable + Dispatchers.IO) { end(process, context) }
+            if (exitHeld.getAndSet(false)) withContext(NonCancellable + Dispatchers.IO) { CoreNativeManager.closeExit() }
         }
+    }
+
+    /**
+     * The arguments of a core of its own, see [withProcess]: [arguments] dialling out through the exit
+     * on [exitPort]. An upstream they name, as a configuration exported from a session names the
+     * session's Xray, gives way to it.
+     */
+    internal fun standaloneArguments(arguments: List<String>, exitPort: Int): List<String> =
+        AetherCore(withoutOption(arguments, UPSTREAM)).through(exitPort).arguments
+
+    /** The port of the exit of this process's Xray for [source], see [CoreNativeManager.openExit]; null, with the reason in the log, when it does not open. */
+    private fun openExit(context: Context, source: String): Int? = try {
+        CoreNativeManager.openExit(context)
+    } catch (e: Exception) {
+        LogUtil.e(AppConfig.TAG, "AetherCore: the Xray $source dials out through did not open", e)
+        null
     }
 
     internal suspend fun <T : Any> runUntil(

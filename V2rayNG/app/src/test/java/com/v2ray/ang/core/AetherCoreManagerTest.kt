@@ -1005,4 +1005,19 @@ class AetherCoreManagerTest {
         assertNull(AetherCoreManager.ownerPid(listOf("HOME=/x")))
         assertNull(AetherCoreManager.ownerPid(null))
     }
+
+    @Test
+    fun aCoreOfItsOwnDialsOutThroughTheExit() {
+        val scan = AetherCoreManager.buildArguments(profile(), 0, scan = true)
+        assertEquals(
+            scan + listOf(AetherCoreManager.UPSTREAM, "socks5://127.0.0.1:41234"),
+            AetherCoreManager.standaloneArguments(scan, 41234)
+        )
+        // A command exported from a session names the session's Xray, which a core of its own does not dial.
+        val exported = listOf("--wg", AetherCoreManager.UPSTREAM, "socks5://127.0.0.1:10822", "--bind", "127.0.0.1:10820")
+        assertEquals(
+            listOf("--wg", "--bind", "127.0.0.1:10820", AetherCoreManager.UPSTREAM, "socks5://127.0.0.1:41234"),
+            AetherCoreManager.standaloneArguments(exported, 41234)
+        )
+    }
 }
