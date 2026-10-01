@@ -437,6 +437,8 @@
     <string name="title_pref_observatory_least_load_timeout">leastLoad Timeout</string>
     <string name="toast_invalid_observatory_duration">Invalid duration. Use a value like 3m or 30s.</string>
     <string name="toast_invalid_observatory_sampling">Invalid sampling. Use a positive number.</string>
+    <string name="toast_invalid_aether_listen_port">Use a port from 1024 to 65532 for the Aether listen port</string>
+    <string name="toast_aether_listen_port_local_proxy">The Aether listen port and the three ports after it cannot include the local proxy port</string>
 
     <string name="update_check_for_update">Check for update</string>
     <string name="update_already_latest_version">Already on the latest version</string>

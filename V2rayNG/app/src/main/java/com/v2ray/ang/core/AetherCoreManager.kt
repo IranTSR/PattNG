@@ -203,6 +203,33 @@ object AetherCoreManager {
     val secondarySocksPort: Int get() = socksPort + SECONDARY_SOCKS_OFFSET
     private const val SECONDARY_SOCKS_OFFSET = 3
 
+    /** Ports below this one are the system's; an app cannot listen there. */
+    private const val FIRST_LISTEN_PORT = 1024
+
+    /** The highest Aether listen port: the three ports after it are the core's as well. */
+    private const val LAST_LISTEN_PORT = 65535 - SECONDARY_SOCKS_OFFSET
+
+    /**
+     * The Aether listen port the setting [text] names: a port an app can listen on, with the three
+     * ports after it ports as well; the default port for anything else.
+     */
+    internal fun listenPortOf(text: String?): Int =
+        text?.trim()?.toIntOrNull()?.takeIf { it in FIRST_LISTEN_PORT..LAST_LISTEN_PORT } ?: AppConfig.PORT_AETHER_SOCKS.toInt()
+
+    /** Why [text] cannot be the Aether listen port beside a local proxy on [localPorts]; null when it can. */
+    internal fun listenPortProblem(text: String, localPorts: Set<Int>): ListenPortProblem? {
+        val port = text.trim().toIntOrNull()?.takeIf { it in FIRST_LISTEN_PORT..LAST_LISTEN_PORT } ?: return ListenPortProblem.NOT_A_PORT
+        return ListenPortProblem.LOCAL_PROXY.takeIf { (port..port + SECONDARY_SOCKS_OFFSET).any { it in localPorts } }
+    }
+
+    internal enum class ListenPortProblem {
+        /** No port an app can listen on, with the three ports after it ports as well. */
+        NOT_A_PORT,
+
+        /** The port, or one of the three after it, which the core takes as well, is the local proxy's. */
+        LOCAL_PROXY,
+    }
+
     /**
      * The port a scan or a key renewal of [profile] binds: none, since nothing dials it, unless Tor
      * around the tunnel comes along, whose own listener follows the tunnel's and needs a real port,

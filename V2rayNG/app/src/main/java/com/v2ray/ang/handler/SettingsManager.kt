@@ -11,6 +11,7 @@ import com.v2ray.ang.AppConfig.GEOIP_PRIVATE
 import com.v2ray.ang.AppConfig.GEOSITE_PRIVATE
 import com.v2ray.ang.AppConfig.TAG_DIRECT
 import com.v2ray.ang.AppConfig.VPN
+import com.v2ray.ang.core.AetherCoreManager
 import com.v2ray.ang.core.PsiphonServerList
 import com.v2ray.ang.dto.V2rayConfig
 import com.v2ray.ang.dto.entities.ProfileItem
@@ -304,15 +305,11 @@ object SettingsManager {
     /**
      * PattNG: the loopback port every Aether core listens on, whatever its profile, as every profile
      * shares the local proxy port; the app runs one core at a time. The three ports after it go to
-     * Tor and Psiphon and to the inbound the core dials out through, see AetherCoreManager. A value
-     * that is no such port gives way to the default.
+     * Tor and Psiphon and to the inbound the core dials out through. A value that is no such port
+     * gives way to the default, see AetherCoreManager.listenPortOf.
      */
     fun getAetherListenPort(): Int =
-        Utils.parseInt(MmkvManager.decodeSettingsString(AppConfig.PREF_AETHER_LISTEN_PORT), AppConfig.PORT_AETHER_SOCKS.toInt())
-            .takeIf { it in 1..AETHER_LAST_LISTEN_PORT } ?: AppConfig.PORT_AETHER_SOCKS.toInt()
-
-    /** The highest Aether listen port, the three ports after it being the core's as well. */
-    private const val AETHER_LAST_LISTEN_PORT = 65532
+        AetherCoreManager.listenPortOf(MmkvManager.decodeSettingsString(AppConfig.PREF_AETHER_LISTEN_PORT))
 
     private fun IsDynamicSocksPort(): Boolean {
         return MmkvManager.decodeSettingsBool(AppConfig.PREF_DYNAMIC_SOCKS_PORT, false)

@@ -434,6 +434,8 @@
     <string name="title_pref_observatory_least_load_timeout">Thời gian chờ leastLoad</string>
     <string name="toast_invalid_observatory_duration">Khoảng thời gian không hợp lệ. Dùng giá trị như 3m hoặc 30s.</string>
     <string name="toast_invalid_observatory_sampling">Lấy mẫu không hợp lệ. Dùng một số dương.</string>
+    <string name="toast_invalid_aether_listen_port">Hãy dùng một cổng từ 1024 đến 65532 cho cổng lắng nghe của Aether</string>
+    <string name="toast_aether_listen_port_local_proxy">Cổng lắng nghe của Aether và ba cổng ngay sau nó không được trùng với cổng proxy cục bộ</string>
 
     <string name="update_check_for_update">Kiểm tra bản cập nhật</string>
     <string name="update_already_latest_version">Đã dùng phiên bản mới nhất</string>

@@ -5,6 +5,8 @@ import android.content.Intent
 import android.provider.Settings
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
+import com.v2ray.ang.core.AetherCoreManager
+import com.v2ray.ang.handler.SettingsManager
 import com.v2ray.ang.root.RootManager
 import com.v2ray.ang.ui.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +55,28 @@ class SettingsViewModel(application: Application) : BaseViewModel(application) {
         } else {
             toastError(R.string.toast_invalid_observatory_duration)
             null
+        }
+    }
+
+    /**
+     * PattNG: validates [value] as the Aether listen port: a port an app can listen on, which neither
+     * it nor the three ports after it, the core's as well, shares with the local proxy.
+     * Shows error toast if invalid.
+     * @return The trimmed value if valid, null otherwise.
+     */
+    fun validateAetherListenPort(value: String): String? {
+        val port = value.trim()
+        return when (AetherCoreManager.listenPortProblem(port, SettingsManager.getLocalProxyPorts())) {
+            null -> port
+            AetherCoreManager.ListenPortProblem.NOT_A_PORT -> {
+                toastError(R.string.toast_invalid_aether_listen_port)
+                null
+            }
+
+            AetherCoreManager.ListenPortProblem.LOCAL_PROXY -> {
+                toastError(R.string.toast_aether_listen_port_local_proxy)
+                null
+            }
         }
     }
 

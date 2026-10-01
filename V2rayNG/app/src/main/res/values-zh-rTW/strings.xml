@@ -434,6 +434,8 @@
     <string name="title_pref_observatory_least_load_timeout">leastLoad 探測逾時</string>
     <string name="toast_invalid_observatory_duration">期間無效。請使用 3m 或 30s 之類的值。</string>
     <string name="toast_invalid_observatory_sampling">取樣數量無效。請使用正數。</string>
+    <string name="toast_invalid_aether_listen_port">Aether 監聽連接埠請使用 1024 到 65532 之間的連接埠</string>
+    <string name="toast_aether_listen_port_local_proxy">Aether 監聽連接埠及其後的三個連接埠不能包含本機代理連接埠</string>
 
     <string name="update_check_for_update">檢查更新</string>
     <string name="update_already_latest_version">目前已是最新版本</string>

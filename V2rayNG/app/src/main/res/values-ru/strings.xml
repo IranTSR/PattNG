@@ -440,6 +440,8 @@
     <string name="title_pref_observatory_least_load_timeout">Время ожидания leastLoad</string>
     <string name="toast_invalid_observatory_duration">Недопустимая длительность. Используйте значение вроде 3m или 30s.</string>
     <string name="toast_invalid_observatory_sampling">Недопустимый размер выборки. Используйте положительное число.</string>
+    <string name="toast_invalid_aether_listen_port">Укажите для порта прослушивания Aether порт от 1024 до 65532</string>
+    <string name="toast_aether_listen_port_local_proxy">Порт прослушивания Aether и три следующих за ним порта не могут включать порт локального прокси</string>
 
     <string name="update_check_for_update">Проверить обновление</string>
     <string name="update_already_latest_version">Установлена последняя версия</string>

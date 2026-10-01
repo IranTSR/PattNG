@@ -444,6 +444,8 @@
     <string name="title_pref_observatory_least_load_timeout">مهلة leastLoad</string>
     <string name="toast_invalid_observatory_duration">مدة غير صالحة. استخدم قيمة مثل 3m أو 30s.</string>
     <string name="toast_invalid_observatory_sampling">عدد العينات غير صالح. استخدم رقمًا موجبًا.</string>
+    <string name="toast_invalid_aether_listen_port">استخدم منفذًا من 1024 إلى 65532 لمنفذ الاستماع لـ Aether</string>
+    <string name="toast_aether_listen_port_local_proxy">لا يمكن أن يشمل منفذ الاستماع لـ Aether والمنافذ الثلاثة التالية له منفذ البروكسي المحلي</string>
 
     <string name="update_check_for_update">التحقق من وجود تحديث</string>
     <string name="update_already_latest_version">أنت تستخدم أحدث إصدار بالفعل</string>

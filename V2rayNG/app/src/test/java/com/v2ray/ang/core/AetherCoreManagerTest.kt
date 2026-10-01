@@ -1015,6 +1015,32 @@ class AetherCoreManagerTest {
     }
 
     @Test
+    fun theAetherListenPortIsAPortAnAppCanListenOnWithThreeMoreAfterIt() {
+        assertEquals(20808, AetherCoreManager.listenPortOf(" 20808 "))
+        assertEquals(1024, AetherCoreManager.listenPortOf("1024"))
+        assertEquals(65532, AetherCoreManager.listenPortOf("65532"))
+        for (text in listOf(null, "", "socks", "0", "80", "1023", "65533", "70000", "-1", "10819.5")) {
+            assertEquals(text.toString(), 10819, AetherCoreManager.listenPortOf(text))
+        }
+    }
+
+    @Test
+    fun theAetherListenPortAndTheThreeAfterItStayClearOfTheLocalProxy() {
+        val local = setOf(10808, 10809)
+        assertNull(AetherCoreManager.listenPortProblem("10819", local))
+        assertNull(AetherCoreManager.listenPortProblem(" 10810 ", local))
+        assertNull(AetherCoreManager.listenPortProblem("10804", local))
+        for (text in listOf("10805", "10806", "10808", "10809")) {
+            assertEquals(text, AetherCoreManager.ListenPortProblem.LOCAL_PROXY, AetherCoreManager.listenPortProblem(text, local))
+        }
+        for (text in listOf("", "socks", "1023", "65533")) {
+            assertEquals(text, AetherCoreManager.ListenPortProblem.NOT_A_PORT, AetherCoreManager.listenPortProblem(text, local))
+        }
+        // A local proxy on a port picked anew at every start is no matter here.
+        assertNull(AetherCoreManager.listenPortProblem("10808", emptySet()))
+    }
+
+    @Test
     fun theExitOfACoreOfItsOwnOpensWithItsExitNode() {
         val plain = JsonParser.parseString(
             AetherCoreManager.exitConfiguration(AetherExit(dialMode = "code-1"), configuration = """{"outbounds": []}""", logLevel = "none")

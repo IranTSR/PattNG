@@ -479,7 +479,11 @@ fun SettingsScreen(
                     title = stringResource(R.string.title_pref_aether_listen_port),
                     value = aetherListenPort,
                     keyboardNumber = true,
-                    onValueChanged = { aetherListenPort = it }
+                    onValueChanged = {
+                        viewModel.validateAetherListenPort(it)?.let { value ->
+                            aetherListenPort = value
+                        }
+                    }
                 )
                 SettingsEditItem(
                     title = stringResource(R.string.title_pref_remote_dns),

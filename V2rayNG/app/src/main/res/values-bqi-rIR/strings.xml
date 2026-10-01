@@ -436,6 +436,8 @@
     <string name="title_pref_observatory_least_load_timeout">مهلت leastLoad</string>
     <string name="toast_invalid_observatory_duration">زمووݩ نا موئتبر هڌ. ارزشی وری 3m یا 30s ن و کار بگیرین.</string>
     <string name="toast_invalid_observatory_sampling">نمونه گیری نا موئتبر هڌ. شوماره ی مثبت ن و کار بگیرین.</string>
+    <string name="toast_invalid_aether_listen_port">سی پورت شنود Aether یه پورت زه 1024 تا 65532 بنویسین</string>
+    <string name="toast_aether_listen_port_local_proxy">پورت شنود Aether وو سه پورت بعد زه او نیتره پورت پروکسی محلی نه داشته بۊن</string>
 
     <string name="update_check_for_update">واجۊری سی ورۊ رسۊوی</string>
     <string name="update_already_latest_version">سکو نوسخه دیندایی پۊرنیڌه هڌ</string>

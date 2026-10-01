@@ -436,6 +436,8 @@
     <string name="title_pref_observatory_least_load_timeout">leastLoad টাইমআউট</string>
     <string name="toast_invalid_observatory_duration">অবৈধ সময়কাল। 3m বা 30s-এর মতো মান ব্যবহার করুন।</string>
     <string name="toast_invalid_observatory_sampling">অবৈধ স্যাম্পলিং। একটি ধনাত্মক সংখ্যা ব্যবহার করুন।</string>
+    <string name="toast_invalid_aether_listen_port">Aether-এর লিসেন পোর্টের জন্য 1024 থেকে 65532 এর মধ্যে একটি পোর্ট দিন</string>
+    <string name="toast_aether_listen_port_local_proxy">Aether-এর লিসেন পোর্ট ও তার পরের তিনটি পোর্টের মধ্যে স্থানীয় প্রক্সি পোর্ট থাকতে পারবে না</string>
 
     <string name="update_check_for_update">আপডেট পরীক্ষা করুন</string>
     <string name="update_already_latest_version">ইতিমধ্যে সর্বশেষ সংস্করণ ব্যবহার করছেন</string>
