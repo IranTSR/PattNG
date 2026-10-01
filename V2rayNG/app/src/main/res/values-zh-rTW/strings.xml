@@ -662,6 +662,7 @@
     <string name="aether_chain_hop_missing">無法建立此代理鏈中 Aether 設定檔向外連線所經的那一跳，Aether 核心將會不經它直接連線網際網路</string>
     <string name="aether_config_single_profile">一個設定只能使用一個 Aether 設定檔</string>
     <string name="aether_custom_no_outbound">設定中沒有 SOCKS 出站連線到 %1$s:%2$d，而 Aether 命令在該處監聽</string>
+    <string name="aether_custom_exit_node_selected">此設定中的某個負載平衡器或觀測器會選取標籤以 %1$s 開頭的出站，其中也包括 exit-node，即 Aether 核心向外連線所經的出站；請修改該選擇器</string>
     <string name="aether_custom_invalid_command">aetherCommand 必須是 Aether 核心的命令列文字，並在 --bind 後給出其監聽位址：%1$s</string>
     <string name="title_aether_core">Aether 核心</string>
     <string name="summary_aether_core">由 CluvexStudio 開發的 WARP 用戶端，以 AGPL-3.0 授權隨應用程式散佈。點按以檢視原始碼。</string>

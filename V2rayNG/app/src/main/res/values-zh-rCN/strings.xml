@@ -662,6 +662,7 @@
     <string name="aether_chain_hop_missing">无法构建此代理链中 Aether 配置向外连接所经的那一跳，Aether 内核将会不经它直接连接互联网</string>
     <string name="aether_config_single_profile">一个配置只能使用一个 Aether 配置</string>
     <string name="aether_custom_no_outbound">配置中没有 SOCKS 出站连接 %1$s:%2$d，而 Aether 命令在该处监听</string>
+    <string name="aether_custom_exit_node_selected">此配置中的某个负载均衡器或观测器会选取标签以 %1$s 开头的出站，其中也包括 exit-node，即 Aether 内核向外连接所经的出站；请修改该选择器</string>
     <string name="aether_custom_invalid_command">aetherCommand 必须是 Aether 内核的命令行文本，并在 --bind 后给出其监听地址：%1$s</string>
     <string name="title_aether_core">Aether 内核</string>
     <string name="summary_aether_core">由 CluvexStudio 开发的 WARP 客户端，以 AGPL-3.0 许可证随应用分发。点按查看源代码。</string>

@@ -668,6 +668,7 @@
     <string name="aether_chain_hop_missing">The hop the Aether profile of this proxy chain dials out through could not be built, and the Aether core would reach the internet without it</string>
     <string name="aether_config_single_profile">A configuration can use only one Aether profile</string>
     <string name="aether_custom_no_outbound">No SOCKS outbound of the configuration dials %1$s:%2$d, where the Aether command listens</string>
+    <string name="aether_custom_exit_node_selected">A balancer or an observatory of this configuration picks the outbounds whose tags start with %1$s, which would include exit-node, the outbound the Aether core dials out by; change that selector</string>
     <string name="aether_custom_invalid_command">aetherCommand has to be the command line of the Aether core, as text, with the address it listens on after --bind: %1$s</string>
     <string name="title_aether_core">Aether core</string>
     <string name="summary_aether_core">WARP client by CluvexStudio, bundled under the AGPL-3.0 license. Tap to open its source code.</string>

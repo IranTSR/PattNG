@@ -662,6 +662,7 @@
     <string name="aether_chain_hop_missing">Không thể dựng chặng mà hồ sơ Aether trong chuỗi proxy này dùng để kết nối ra ngoài, và lõi Aether sẽ ra Internet mà không qua nó</string>
     <string name="aether_config_single_profile">Một cấu hình chỉ có thể dùng một hồ sơ Aether</string>
     <string name="aether_custom_no_outbound">Không có outbound SOCKS nào của cấu hình kết nối tới %1$s:%2$d, nơi lệnh Aether lắng nghe</string>
+    <string name="aether_custom_exit_node_selected">Một balancer hoặc observatory của cấu hình này chọn các outbound có thẻ bắt đầu bằng %1$s, trong đó có cả exit-node, outbound mà lõi Aether dùng để kết nối ra ngoài; hãy đổi selector đó</string>
     <string name="aether_custom_invalid_command">aetherCommand phải là dòng lệnh của lõi Aether ở dạng văn bản, với địa chỉ lắng nghe đặt sau --bind: %1$s</string>
     <string name="title_aether_core">Lõi Aether</string>
     <string name="summary_aether_core">Trình khách WARP của CluvexStudio, đi kèm theo giấy phép AGPL-3.0. Nhấn để mở mã nguồn.</string>

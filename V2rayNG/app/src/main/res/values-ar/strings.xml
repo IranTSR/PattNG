@@ -672,6 +672,7 @@
     <string name="aether_chain_hop_missing">تعذّر إنشاء القفزة التي يتصل عبرها ملف Aether في سلسلة الوكيل هذه بالخارج، وكانت نواة Aether ستصل إلى الإنترنت بدونها</string>
     <string name="aether_config_single_profile">لا يمكن للتكوين استخدام أكثر من ملف Aether واحد</string>
     <string name="aether_custom_no_outbound">لا يتصل أي مخرج SOCKS في الإعدادات بالعنوان %1$s:%2$d، حيث يستمع أمر Aether</string>
+    <string name="aether_custom_exit_node_selected">يختار موازن أو مرصد في هذا الإعداد المنافذ الصادرة التي تبدأ وسومها بـ %1$s، وهذا يشمل exit-node، المنفذ الصادر الذي تتصل عبره نواة Aether بالخارج؛ غيّر ذلك المحدِّد</string>
     <string name="aether_custom_invalid_command">يجب أن يكون aetherCommand سطر أوامر نواة Aether كنص، مع عنوان الاستماع بعد --bind: %1$s</string>
     <string name="title_aether_core">نواة Aether</string>
     <string name="summary_aether_core">عميل WARP من CluvexStudio مضمّن بموجب رخصة AGPL-3.0. انقر لفتح الشيفرة المصدرية.</string>

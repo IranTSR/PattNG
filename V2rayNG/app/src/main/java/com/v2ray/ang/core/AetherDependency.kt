@@ -51,6 +51,18 @@ sealed interface AetherDependency {
     /** A custom configuration whose aetherCommand listens on [port] of [AppConfig.LOOPBACK], which none of its SOCKS outbounds dials. */
     data class NoOutbound(val port: Int) : AetherDependency
 
+    /** How [AetherDependency.routeThroughXray] left a custom configuration. */
+    sealed interface Routing {
+        /** [core] as it is to be started: dialling out through Xray, or by an upstream of its own. */
+        data class Routed(val core: AetherCore) : Routing
+
+        /** An inbound of the configuration listens on the port of the secondary-socks inbound already. */
+        data object PortTaken : Routing
+
+        /** A balancer or an observatory of the configuration picks outbounds by [selector], which would pick the exit-node too. */
+        data class ExitNodeSelected(val selector: String) : Routing
+    }
+
     companion object {
 
         /** The key of a custom configuration that carries the command line of its core. */
@@ -104,24 +116,27 @@ sealed interface AetherDependency {
          * Xray, as the configuration of a profile does: the secondary-socks inbound on [port], three
          * above the Aether listen port for every Aether core, after the other inbounds, a freedom outbound
          * after the other outbounds, and a rule ahead of every other that joins the two. Returns the
-         * core told to dial out through that inbound, which is also written back as aetherCommand, or
-         * null, with nothing added, when an inbound of the configuration listens on [port] already.
-         * A core that names an upstream of its own, as one exported from the app does, is left as it
-         * is with the configuration; so is a configuration that already has an inbound or an outbound
-         * under those tags, or something else than a list where they would go.
+         * core told to dial out through that inbound, which is also written back as aetherCommand.
+         * Nothing is added when an inbound of the configuration listens on [port] already, nor when a
+         * balancer or an observatory would pick the freedom outbound among its own, since those pick
+         * outbounds by the start of their tags: what it balances could leave directly. A core that
+         * names an upstream of its own, as one exported from the app does, is left as it is with the
+         * configuration; so is a configuration that already has an inbound or an outbound under those
+         * tags, or something else than a list where they would go.
          */
-        fun routeThroughXray(config: JsonObject, core: AetherCore, port: Int): AetherCore? {
-            if (core.hasUpstream) return core
-            val inbounds = listOrNew(config, "inbounds") ?: return core
-            val outbounds = listOrNew(config, "outbounds") ?: return core
-            val routing = objectOrNew(config, "routing") ?: return core
-            val rules = listOrNew(routing, "rules") ?: return core
-            if (tagged(inbounds, AppConfig.TAG_SECONDARY_SOCKS) || tagged(outbounds, AppConfig.TAG_EXIT_NODE)) return core
+        fun routeThroughXray(config: JsonObject, core: AetherCore, port: Int): Routing {
+            if (core.hasUpstream) return Routing.Routed(core)
+            val inbounds = listOrNew(config, "inbounds") ?: return Routing.Routed(core)
+            val outbounds = listOrNew(config, "outbounds") ?: return Routing.Routed(core)
+            val routing = objectOrNew(config, "routing") ?: return Routing.Routed(core)
+            val rules = listOrNew(routing, "rules") ?: return Routing.Routed(core)
+            if (tagged(inbounds, AppConfig.TAG_SECONDARY_SOCKS) || tagged(outbounds, AppConfig.TAG_EXIT_NODE)) return Routing.Routed(core)
 
             val taken = inbounds.flatMap { inbound ->
                 inbound.takeIf { it.isJsonObject }?.let { inboundPorts(it.asJsonObject.get("port")) }.orEmpty()
             }
-            if (taken.any { port in it }) return null
+            if (taken.any { port in it }) return Routing.PortTaken
+            exitNodeSelector(config, routing)?.let { return Routing.ExitNodeSelected(it) }
             inbounds.add(JsonObject().apply {
                 addProperty("tag", AppConfig.TAG_SECONDARY_SOCKS)
                 addProperty("port", port)
@@ -147,8 +162,25 @@ sealed interface AetherDependency {
 
             val routed = core.through(port)
             config.addProperty(COMMAND_KEY, routed.command)
-            return routed
+            return Routing.Routed(routed)
         }
+
+        /**
+         * The first selector of the balancers in [routing] or of the observatories of [config] that the
+         * tag of the exit-node starts with; those pick the outbounds whose tags start with a selector.
+         */
+        private fun exitNodeSelector(config: JsonObject, routing: JsonObject): String? {
+            val balancers: Iterable<JsonElement> = routing.get("balancers")?.takeIf { it.isJsonArray }?.asJsonArray ?: JsonArray()
+            val selectors = balancers.flatMap { textsAt(it, "selector") } +
+                listOf("observatory", "burstObservatory").flatMap { key -> config.get(key)?.let { textsAt(it, "subjectSelector") }.orEmpty() }
+            return selectors.firstOrNull { AppConfig.TAG_EXIT_NODE.startsWith(it) }
+        }
+
+        /** The texts in the list at [key] of [element], an object; none when there is no such list. */
+        private fun textsAt(element: JsonElement, key: String): List<String> =
+            element.takeIf { it.isJsonObject }?.asJsonObject?.get(key)?.takeIf { it.isJsonArray }?.asJsonArray
+                ?.mapNotNull { it.takeIf { text -> text.isJsonPrimitive && text.asJsonPrimitive.isString }?.asString }
+                .orEmpty()
 
         /** The list at [key] of [config], a new one when there is none; null when [key] holds something else. */
         private fun listOrNew(config: JsonObject, key: String): JsonArray? {

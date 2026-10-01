@@ -664,6 +664,7 @@
     <string name="aether_chain_hop_missing">گامی که پروفایل Aether این زنجیرهٔ پروکسی از راه آن به بیرون وصل می‌شود ساخته نشد، و هستهٔ Aether بدون آن به اینترنت می‌رسید</string>
     <string name="aether_config_single_profile">یک پیکربندی فقط می‌تواند از یک پروفایل Aether استفاده کند</string>
     <string name="aether_custom_no_outbound">هیچ خروجی SOCKS در پیکربندی به %1$s:%2$d وصل نمی‌شود؛ فرمان Aether همان‌جا گوش می‌دهد</string>
+    <string name="aether_custom_exit_node_selected">یک balancer یا observatory در این پیکربندی outbound هایی را برمی‌گزیند که تگشان با %1$s شروع می‌شود، و exit-node هم جزو آن‌هاست، همان outbound ـی که هستهٔ Aether از راه آن به بیرون وصل می‌شود؛ آن selector را تغییر دهید</string>
     <string name="aether_custom_invalid_command">aetherCommand باید خط فرمان هسته Aether به صورت متن باشد و نشانی گوش‌دادن آن پس از --bind بیاید: %1$s</string>
     <string name="title_aether_core">هسته Aether</string>
     <string name="summary_aether_core">کلاینت WARP ساخته CluvexStudio که با مجوز AGPL-3.0 همراه برنامه است. برای دیدن کد منبع ضربه بزنید.</string>

@@ -160,8 +160,12 @@ object CoreConfigManager {
             val core = result.aetherCore
             if (routeAether && core != null) {
                 val secondaryPort = AetherCoreManager.secondarySocksPort
-                result.aetherCore = AetherDependency.routeThroughXray(json, core, secondaryPort)
-                    ?: return secondaryPortFailure(context, configContext.guid, secondaryPort)
+                when (val routing = AetherDependency.routeThroughXray(json, core, secondaryPort)) {
+                    is AetherDependency.Routing.Routed -> result.aetherCore = routing.core
+                    AetherDependency.Routing.PortTaken -> return secondaryPortFailure(context, configContext.guid, secondaryPort)
+                    is AetherDependency.Routing.ExitNodeSelected ->
+                        return exitNodeSelectorFailure(context, configContext.guid, routing.selector)
+                }
             }
             return JsonUtil.toJsonPretty(json)?.let { result.copy(content = it) } ?: result
         }
@@ -638,6 +642,20 @@ object CoreConfigManager {
             status = false,
             guid = guid,
             errorMessage = context.getString(R.string.aether_chain_hop_missing),
+            localizedError = true,
+        )
+    }
+
+    /**
+     * PattNG: a custom configuration with a balancer or an observatory that would pick the exit-node by
+     * [selector], see [AetherDependency.routeThroughXray], as a failure whose message is meant for the screen.
+     */
+    private fun exitNodeSelectorFailure(context: Context, guid: String, selector: String): ConfigResult {
+        LogUtil.w(AppConfig.TAG, "A balancer or an observatory of the custom configuration would pick the Aether exit-node, guid=$guid")
+        return ConfigResult(
+            status = false,
+            guid = guid,
+            errorMessage = context.getString(R.string.aether_custom_exit_node_selected, selector),
             localizedError = true,
         )
     }

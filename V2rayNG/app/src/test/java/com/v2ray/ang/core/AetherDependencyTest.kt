@@ -9,7 +9,6 @@ import com.v2ray.ang.enums.CoreResolvedType
 import com.v2ray.ang.enums.EConfigType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -326,7 +325,10 @@ class AetherDependencyTest {
         """
     ).asJsonObject
 
-    private fun routed(config: JsonObject): AetherCore = AetherDependency.routeThroughXray(config, coreOf(AetherDependency.ofCustom(config)), 10822)!!
+    private fun routing(config: JsonObject, core: AetherCore = coreOf(AetherDependency.ofCustom(config))) =
+        AetherDependency.routeThroughXray(config, core, 10822)
+
+    private fun routed(config: JsonObject): AetherCore = (routing(config) as AetherDependency.Routing.Routed).core
 
     @Test
     fun whatTheCoreOfACustomConfigurationSendsOutLeavesThroughXray() {
@@ -365,9 +367,35 @@ class AetherDependencyTest {
                 config.getAsJsonArray("inbounds").add(JsonParser.parseString("""{"port": "10820-10830", "protocol": "dokodemo-door"}"""))
             }
             val asWritten = config.deepCopy()
-            assertNull(AetherDependency.routeThroughXray(config, coreOf(AetherDependency.ofCustom(config)), 10822))
+            assertEquals(AetherDependency.Routing.PortTaken, routing(config))
             assertEquals(asWritten, config)
         }
+    }
+
+    @Test
+    fun aCustomConfigurationWhoseBalancersWouldPickTheExitNodeIsLeftAsItIs() {
+        // Balancers and observatories pick the outbounds whose tags start with a selector.
+        val balanced = customOnCore("aether --bind 127.0.0.1:10819").apply {
+            getAsJsonObject("routing").add("balancers", JsonParser.parseString("""[{"tag": "b", "selector": ["proxy", "exit"]}]"""))
+        }
+        val observed = customOnCore("aether --bind 127.0.0.1:10819").apply {
+            add("observatory", JsonParser.parseString("""{"subjectSelector": ["e"]}"""))
+        }
+        val burst = customOnCore("aether --bind 127.0.0.1:10819").apply {
+            add("burstObservatory", JsonParser.parseString("""{"subjectSelector": [""]}"""))
+        }
+        for ((config, selector) in listOf(balanced to "exit", observed to "e", burst to "")) {
+            val asWritten = config.deepCopy()
+            assertEquals(AetherDependency.Routing.ExitNodeSelected(selector), routing(config))
+            assertEquals(asWritten, config)
+        }
+
+        // A selector the exit-node's tag does not start with is no matter.
+        val elsewhere = customOnCore("aether --bind 127.0.0.1:10819").apply {
+            getAsJsonObject("routing").add("balancers", JsonParser.parseString("""[{"tag": "b", "selector": ["exit-node-", "proxy"]}]"""))
+            add("observatory", JsonParser.parseString("""{"subjectSelector": ["proxy"]}"""))
+        }
+        assertTrue(routed(elsewhere).hasUpstream)
     }
 
     @Test
@@ -383,7 +411,7 @@ class AetherDependencyTest {
         val exported = customOnCore("aether --bind 127.0.0.1:10819 --upstream socks5://127.0.0.1:10821")
         val exportedAsWritten = exported.deepCopy()
         val exportedCore = coreOf(AetherDependency.ofCustom(exported))
-        assertEquals(exportedCore, AetherDependency.routeThroughXray(exported, exportedCore, 10822))
+        assertEquals(AetherDependency.Routing.Routed(exportedCore), routing(exported, exportedCore))
         assertEquals(exportedAsWritten, exported)
 
         // So is one with an inbound or an outbound of its own under those tags, and one whose inbounds are no list.
@@ -394,7 +422,7 @@ class AetherDependencyTest {
         for (config in listOf(tagged, notAList)) {
             val asWritten = config.deepCopy()
             val core = coreOf(AetherDependency.ofCustom(config))
-            assertFalse(AetherDependency.routeThroughXray(config, core, 10822)!!.hasUpstream)
+            assertFalse((routing(config, core) as AetherDependency.Routing.Routed).core.hasUpstream)
             assertEquals(asWritten, config)
         }
     }
