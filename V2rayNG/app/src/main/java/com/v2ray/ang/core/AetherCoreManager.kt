@@ -255,6 +255,14 @@ object AetherCoreManager {
     /** Whether this build ships the pluggable transport; without it Tor has no bridges where it is blocked. */
     fun isTorTransportsSupported(context: Context): Boolean = transportBinary(context).canExecute()
 
+    /**
+     * The text of a setting as the value of an option of the core: trimmed, and null when it is blank or
+     * starts with '-'. No value of these settings starts so, and one that did would read as an option of its
+     * own wherever the app looks options up word by word: a link carrying dns=--upstream would leave the core
+     * without the upstream the app gives it, so that it dialled out around Xray.
+     */
+    private fun settingValue(value: String?): String? = value?.trim()?.takeUnless { it.isEmpty() || it.startsWith('-') }
+
     fun buildArguments(
         profile: ProfileItem,
         port: Int,
@@ -296,9 +304,9 @@ object AetherCoreManager {
                 AetherObfuscation.fromString(profile.aetherObfuscation).takeUnless { it == AetherObfuscation.AUTO }
                     ?.let { addAll(listOf("--noize", it.type)) }
                 addAll(listOf("--ip", AetherIpVersion.fromString(profile.aetherIpVersion).type))
-                profile.aetherDns?.takeIf { it.isNotBlank() }?.let { addAll(listOf("--dns", it)) }
+                settingValue(profile.aetherDns)?.let { addAll(listOf("--dns", it)) }
                 // A scan keeps the exit rule as well, so that it ends on an endpoint the session will accept.
-                profile.aetherExitLoc?.takeIf { it.isNotBlank() }?.let { addAll(listOf("--exit-loc", it)) }
+                settingValue(profile.aetherExitLoc)?.let { addAll(listOf("--exit-loc", it)) }
 
                 if (protocol.overMasque &&
                     AetherTransport.fromString(profile.aetherTransport) == AetherTransport.HTTP2
@@ -316,8 +324,8 @@ object AetherCoreManager {
                 // with the key of the HTTPS record of the ECH domain, asked of the ECH resolver.
                 if (protocol.overMasque && profile.aetherEch == true) {
                     addAll(listOf("--ech", "auto"))
-                    addAll(listOf("--ech-dns", profile.aetherEchDns?.trim()?.ifEmpty { null } ?: AppConfig.AETHER_ECH_DNS))
-                    addAll(listOf("--ech-domain", profile.aetherEchDomain?.trim()?.ifEmpty { null } ?: AppConfig.AETHER_ECH_DOMAIN))
+                    addAll(listOf("--ech-dns", settingValue(profile.aetherEchDns) ?: AppConfig.AETHER_ECH_DNS))
+                    addAll(listOf("--ech-domain", settingValue(profile.aetherEchDomain) ?: AppConfig.AETHER_ECH_DOMAIN))
                 }
 
                 if (protocol.twoHops) {
@@ -348,7 +356,9 @@ object AetherCoreManager {
                     AetherTorBridges.AUTO -> Unit
                     AetherTorBridges.FIRST -> add("--tor-bridges")
                     AetherTorBridges.NEVER -> add("--no-tor-bridges")
-                    AetherTorBridges.OWN -> AetherFmt.bridgeLines(profile.aetherTorBridgeLines).forEach { addAll(listOf("--tor-bridge", it)) }
+                    AetherTorBridges.OWN -> AetherFmt.bridgeLines(profile.aetherTorBridgeLines)
+                        .mapNotNull { settingValue(it) }
+                        .forEach { addAll(listOf("--tor-bridge", it)) }
                 }
                 // Where fetched bridges come from; with the profile's own lines, or none at all, nothing is fetched.
                 if (bridges == AetherTorBridges.AUTO || bridges == AetherTorBridges.FIRST) {
@@ -369,14 +379,14 @@ object AetherCoreManager {
                 addAll(listOf("--psiphon-mode", shape.type))
                 // The CDN lists feed the fronted transports alone, which the direct shape never uses; the
                 // server names count only beside an IP list of one's own, since the built-in list comes whole.
-                val cdnIps = profile.aetherPsiphonCdnIps?.takeIf { it.isNotBlank() && shape != AetherPsiphonMode.DIRECT }
+                val cdnIps = settingValue(profile.aetherPsiphonCdnIps)?.takeIf { shape != AetherPsiphonMode.DIRECT }
                 cdnIps?.let { addAll(listOf("--psiphon-cdn-ips", it)) }
-                if (cdnIps != null) profile.aetherPsiphonCdnSni?.takeIf { it.isNotBlank() }?.let { addAll(listOf("--psiphon-cdn-sni", it)) }
+                if (cdnIps != null) settingValue(profile.aetherPsiphonCdnSni)?.let { addAll(listOf("--psiphon-cdn-sni", it)) }
                 // Which of the edge lists built into Psiphon the fronting scan tries; beside addresses of one's own, after them.
                 if (shape != AetherPsiphonMode.DIRECT) {
                     AetherPsiphonCdnSet.join(AetherPsiphonCdnSet.parse(profile.aetherPsiphonCdnSets))?.let { addAll(listOf("--psiphon-cdn-sets", it)) }
                 }
-                profile.aetherPsiphonRegion?.takeIf { it.isNotBlank() }?.let { addAll(listOf("--psiphon-region", it)) }
+                settingValue(profile.aetherPsiphonRegion)?.let { addAll(listOf("--psiphon-region", it)) }
                 // The bundled list, unless the profile wants Psiphon to fetch a fresh one before it dials anything.
                 if (profile.aetherPsiphonBundledList != false) addAll(listOf(PSIPHON_SERVER_ENTRIES, SHIPPED_LIST))
             }
