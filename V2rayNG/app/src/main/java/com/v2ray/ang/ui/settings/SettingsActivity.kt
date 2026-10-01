@@ -105,6 +105,7 @@ fun SettingsScreen(
     val scrollState = rememberScrollState()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val systemVpnSettingsAvailable by viewModel.systemVpnSettingsAvailable.collectAsStateWithLifecycle()
+    val aetherListenPort by viewModel.aetherListenPort.collectAsStateWithLifecycle()
     var uiSettingsExpanded by rememberSaveable { mutableStateOf(true) }
     var vpnSettingsExpanded by rememberSaveable { mutableStateOf(true) }
     var coreSettingsExpanded by rememberSaveable { mutableStateOf(true) }
@@ -153,7 +154,6 @@ fun SettingsScreen(
     var socksPassword by rememberMmkvString(AppConfig.PREF_SOCKS_PASSWORD, "")
     var socksEnableUdp by rememberMmkvBool(AppConfig.PREF_SOCKS_ENABLE_UDP, AppConfig.DEFAULT_SOCKS_ENABLE_UDP)
     var proxySharing by rememberMmkvBool(AppConfig.PREF_PROXY_SHARING, false)
-    var aetherListenPort by rememberMmkvString(AppConfig.PREF_AETHER_LISTEN_PORT, "")
 
     var speedEnabled by rememberMmkvBool(AppConfig.PREF_SPEED_ENABLED, false)
     var confirmRemove by rememberMmkvBool(AppConfig.PREF_CONFIRM_REMOVE, false)
@@ -479,11 +479,7 @@ fun SettingsScreen(
                     title = stringResource(R.string.title_pref_aether_listen_port),
                     value = aetherListenPort,
                     keyboardNumber = true,
-                    onValueChanged = {
-                        viewModel.validateAetherListenPort(it)?.let { value ->
-                            aetherListenPort = value
-                        }
-                    }
+                    onValueChanged = viewModel::setAetherListenPort
                 )
                 SettingsEditItem(
                     title = stringResource(R.string.title_pref_remote_dns),
