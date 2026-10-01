@@ -78,20 +78,25 @@ class AetherDependencyTest {
             )
         )
         assertEquals(
-            AetherDependency.Conflicting,
+            AetherDependency.TwoExits,
             AetherDependency.of(
                 listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless), outbound("warp", CoreResolvedType.PROXYCHAIN, masque, trojan))
             )
         )
         assertEquals(
-            AetherDependency.Conflicting,
+            AetherDependency.TwoExits,
             AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless), outbound("warp", CoreResolvedType.NORMAL, masque)))
         )
         assertEquals(
-            AetherDependency.Conflicting,
+            AetherDependency.TwoExits,
             AetherDependency.of(
                 listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless), outbound("warp", CoreResolvedType.PROXYCHAIN, trojan, masque))
             )
+        )
+        // Another tunnel is another core, wherever it dials out.
+        assertEquals(
+            AetherDependency.Conflicting,
+            AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.PROXYCHAIN, masque, vless), outbound("warp", CoreResolvedType.NORMAL, wireguard)))
         )
     }
 
@@ -160,7 +165,7 @@ class AetherDependencyTest {
             remarks = "warp masked"; aetherProtocol = AetherProtocol.MASQUE.type; finalMask = """{"tcp": [{"type": "fragment"}]}"""
         }
         assertEquals(
-            AetherDependency.Conflicting,
+            AetherDependency.TwoExits,
             AetherDependency.of(listOf(outbound("proxy", CoreResolvedType.NORMAL, masque), outbound("warp", CoreResolvedType.NORMAL, masked)))
         )
         val alsoMasked = masked.copy(remarks = "warp masked again")

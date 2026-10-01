@@ -674,6 +674,7 @@ object CoreConfigManager {
         val message = when (dependency) {
             AetherDependency.None, is AetherDependency.Single -> return null
             AetherDependency.Conflicting -> context.getString(R.string.aether_config_single_profile)
+            AetherDependency.TwoExits -> context.getString(R.string.aether_config_two_exits)
             is AetherDependency.TwoAetherHops -> context.getString(R.string.aether_chain_one_profile)
             is AetherDependency.UnusableCommand -> context.getString(R.string.aether_custom_invalid_command, dependency.written)
             is AetherDependency.NoOutbound -> context.getString(R.string.aether_custom_no_outbound, AppConfig.LOOPBACK, dependency.port)

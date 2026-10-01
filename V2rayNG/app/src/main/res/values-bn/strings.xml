@@ -663,6 +663,7 @@
     <string name="aether_exit_node_name_taken">এখানে রাউটিংয়ে exit-node নামের একটি প্রোফাইল ব্যবহৃত হচ্ছে, আর exit-node হলো সেই আউটবাউন্ডের নাম যার মধ্য দিয়ে Aether কোর বাইরে সংযোগ করে; প্রোফাইলটির নাম বদলান</string>
     <string name="aether_chain_hop_missing">এই প্রক্সি চেইনে Aether প্রোফাইল যে হপের মধ্য দিয়ে বাইরে সংযোগ করে সেটি তৈরি করা যায়নি, তাই Aether কোর সেটি ছাড়াই ইন্টারনেটে পৌঁছাত</string>
     <string name="aether_config_single_profile">একটি কনফিগারেশন শুধুমাত্র একটি Aether প্রোফাইল ব্যবহার করতে পারে</string>
+    <string name="aether_config_two_exits">এখানে একটি Aether কোরকে দুইভাবে বাইরে সংযোগ করতে হতো: একই টানেল একা এবং প্রক্সি চেইনের একটি হপের পেছনে, দুটি ভিন্ন হপের পেছনে, বা exit-node-এর দুটি ভিন্ন সেটিং দিয়ে ব্যবহৃত হয়েছে</string>
     <string name="aether_custom_no_outbound">কনফিগারেশনের কোনো SOCKS আউটবাউন্ড %1$s:%2$d-এ সংযোগ করে না, যেখানে Aether কমান্ড শোনে</string>
     <string name="aether_custom_exit_node_selected">এই কনফিগারেশনের একটি ব্যালান্সার বা অবজারভেটরি সেই আউটবাউন্ডগুলো বাছে যাদের ট্যাগ %1$s দিয়ে শুরু, যার মধ্যে exit-node-ও পড়ে, যে আউটবাউন্ডের মধ্য দিয়ে Aether কোর বাইরে সংযোগ করে; সেই সিলেক্টর বদলান</string>
     <string name="aether_custom_invalid_command">aetherCommand অবশ্যই Aether কোরের কমান্ড লাইন টেক্সট হিসেবে হতে হবে, --bind এর পরে যে ঠিকানায় এটি শোনে সেটিসহ: %1$s</string>

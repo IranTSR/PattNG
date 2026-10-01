@@ -37,6 +37,12 @@ sealed interface AetherDependency {
     /** Aether profiles with different settings, which one core cannot serve. */
     data object Conflicting : AetherDependency
 
+    /**
+     * One tunnel that would dial out two ways: on its own and through a hop of a proxy chain, through
+     * two different hops, or by two different exit-node settings. One core dials out one way.
+     */
+    data object TwoExits : AetherDependency
+
     /** A proxy chain with more than one Aether hop. */
     data class TwoAetherHops(val chainTag: String) : AetherDependency
 
@@ -90,7 +96,7 @@ sealed interface AetherDependency {
                     if (found == null) {
                         found = core
                     } else if (core != found) {
-                        return Conflicting
+                        return if (core.arguments == found.arguments) TwoExits else Conflicting
                     }
                 }
             }
