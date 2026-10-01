@@ -65,6 +65,28 @@ class ZeptunConfigTest {
         assertTrue(toml.contains("hijack = false"))
     }
 
+    @Test
+    fun `log level maps hev error to zeptun err`() {
+        // zeptun's log.Level enum has "err", not "error"; the unmapped name
+        // made zeptun reject the config with ConfigError (rc=-16).
+        assertTrue(ZeptunConfig.buildToml(base.copy(logLevel = "error")).contains("log_level = \"err\""))
+        assertTrue(ZeptunConfig.buildToml(base.copy(logLevel = "warn")).contains("log_level = \"warn\""))
+        assertTrue(ZeptunConfig.buildToml(base.copy(logLevel = "info")).contains("log_level = \"info\""))
+        assertTrue(ZeptunConfig.buildToml(base.copy(logLevel = "debug")).contains("log_level = \"debug\""))
+    }
+
+    @Test
+    fun `log level falls back to warn for unknown values`() {
+        assertTrue(ZeptunConfig.buildToml(base.copy(logLevel = "bogus")).contains("log_level = \"warn\""))
+        assertTrue(ZeptunConfig.buildToml(base.copy(logLevel = "")).contains("log_level = \"warn\""))
+    }
+
+    @Test
+    fun `root json maps hev error to zeptun err`() {
+        val json = ZeptunConfig.buildRootJson(rootBase.copy(logLevel = "error"))
+        assertTrue(json.contains("\"log_level\": \"err\""))
+    }
+
     // ---------------------------------------------------------- root JSON
 
     private val rootBase = ZeptunConfig.RootParams(

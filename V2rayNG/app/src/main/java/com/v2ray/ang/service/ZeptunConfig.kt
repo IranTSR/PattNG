@@ -16,7 +16,11 @@ object ZeptunConfig {
 
     fun buildToml(params: Params): String = buildString {
         appendLine("preset = \"mobile\"")
-        appendLine("log_level = \"${params.logLevel}\"")
+        // The stored level comes from the hev tunnel setting, whose names
+        // ("error", "warn", "info", "debug") do not match zeptun's log.Level
+        // enum ("err", "warn", "info", "debug", "trace"). An unmapped name
+        // makes the TOML parser fail with ConfigError (rc=-16).
+        appendLine("log_level = \"${mapLogLevel(params.logLevel)}\"")
         appendLine()
         appendLine("[tun]")
         // The interface already exists: VpnService.Builder.establish() created
@@ -45,6 +49,22 @@ object ZeptunConfig {
 
     internal fun tomlEscape(s: String): String =
         s.replace("\\", "\\\\").replace("\"", "\\\"")
+
+    /**
+     * Maps a stored tunnel log-level name to a value of zeptun's `log.Level`
+     * enum (`err`, `warn`, `info`, `debug`, `trace`). The setting is shared
+     * with the hev engine, whose level names differ ("error" vs "err"); passing
+     * one through unmapped makes zeptun reject the whole config with
+     * ConfigError. Unknown values fall back to "warn".
+     */
+    fun mapLogLevel(storedLevel: String): String = when (storedLevel.lowercase()) {
+        "err", "error", "fatal" -> "err"
+        "warn", "warning" -> "warn"
+        "info" -> "info"
+        "debug" -> "debug"
+        "trace", "verbose" -> "trace"
+        else -> "warn"
+    }
 
     /**
      * Root-mode parameters. Unlike [Params] (VPN mode, fd handed over), the CLI
@@ -81,7 +101,9 @@ object ZeptunConfig {
         return buildString {
             appendLine("{")
             appendLine("  \"preset\": \"mobile\",")
-            appendLine("  \"log_level\": \"${params.logLevel}\",")
+            // Same level-name mapping as the TOML builder: the JSON parser
+            // fills the same log.Level enum, so "error" would be rejected here too.
+            appendLine("  \"log_level\": \"${mapLogLevel(params.logLevel)}\",")
             appendLine("  \"tun\": {")
             appendLine("    \"name\": \"${params.tunName}\",")
             appendLine("    \"mtu\": ${params.mtu},")
