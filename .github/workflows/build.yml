@@ -20,7 +20,7 @@ jobs:
       # The stable release aether's own release workflow built with; pinned so a new stable
       # release cannot change or break the release build on its own. Bump it together with
       # the aether submodule.
-      RUST_TOOLCHAIN: "1.98.1"
+      RUST_TOOLCHAIN: "1.99.0"
       # The Go line the Psiphon client's go.mod asks for, which also covers lyrebird's older one;
       # aether/psiphon-build.sh and aether/pt-build.sh pin the programs themselves. Bump it when a
       # bumped aether submodule pins a program that asks for a newer line.
