@@ -1,5 +1,7 @@
 package com.v2ray.ang.enums
 
+import java.util.Locale
+
 enum class AetherProtocol(val type: String) {
     MASQUE("masque"),
     WIREGUARD("wg"),
@@ -180,5 +182,72 @@ enum class AetherTorRelays(val type: String) {
 
     companion object {
         fun fromString(type: String?) = entries.find { it.type == type } ?: AUTO
+    }
+}
+
+/**
+ * Which WARP keys a registration gets, named the way the core's --register names them: every key, or the keys of one
+ * protocol, both hops' keys for a two-hop one.
+ */
+enum class AetherKeyKind(val type: String) {
+    ALL("all"),
+    WIREGUARD("wg"),
+    MASQUE("masque"),
+    GOOL("gool"),
+    MIM("mim");
+
+    companion object {
+        fun fromString(type: String?) = entries.find { it.type == type } ?: ALL
+
+        /** The kind the core reads [word] after --register as, under any of the names it accepts; null for none. */
+        fun ofRegister(word: String?): AetherKeyKind? = when (word?.trim()?.lowercase(Locale.ROOT)) {
+            "all" -> ALL
+            "wg", "wireguard", "warp" -> WIREGUARD
+            "masque" -> MASQUE
+            "gool", "wiw", "warp-in-warp" -> GOOL
+            "mim", "masque-in-masque" -> MIM
+            else -> null
+        }
+    }
+}
+
+/**
+ * The cipher suites the TLS handshakes of a registration offer, after a client whose ClientHello was captured: its TLS
+ * 1.2 suites as BoringSSL names them, in its order, and whether it sends GREASE values. BoringSSL writes its TLS 1.3
+ * suites first, in an order of its own, so only the TLS 1.2 part follows the client.
+ */
+enum class AetherFingerprint(val type: String, val ciphers: String, val grease: Boolean) {
+    /** c02b c02f c02c c030 cca9 cca8 c013 c014 009c 009d 002f 0035, after a GREASE value. */
+    CHROME(
+        "chrome",
+        "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:" +
+            "ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:" +
+            "AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA:AES256-SHA",
+        true,
+    ),
+
+    /** c02b c02f cca9 cca8 c02c c030 c013 c014 009c 009d 002f 0035. */
+    FIREFOX(
+        "firefox",
+        "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:" +
+            "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:" +
+            "AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA:AES256-SHA",
+        false,
+    ),
+
+    /**
+     * c02c c030 c02b c02f cca9 cca8 c027: the suites of Python's list that BoringSSL has. Python offers c024 c028 c023
+     * after cca8 and 009f 009e 006b 0067 after c027 as well; BoringSSL has no DHE suite and no CBC suite with SHA-384,
+     * nor ECDSA with SHA-256, and refuses a cipher list that names one.
+     */
+    PYTHON(
+        "python",
+        "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:" +
+            "ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-SHA256",
+        false,
+    );
+
+    companion object {
+        fun fromString(type: String?) = entries.find { it.type == type } ?: CHROME
     }
 }

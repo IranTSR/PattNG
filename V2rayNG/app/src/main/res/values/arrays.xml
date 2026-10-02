@@ -234,6 +234,11 @@
         <item>gool</item>
         <item>mim</item>
     </string-array>
+    <string-array name="aether_keys_fingerprint_entries" translatable="false">
+        <item>Chrome</item>
+        <item>Firefox</item>
+        <item>Python</item>
+    </string-array>
     <string-array name="aether_transport_entries" translatable="false">
         <item>HTTP/3</item>
         <item>HTTP/2</item>

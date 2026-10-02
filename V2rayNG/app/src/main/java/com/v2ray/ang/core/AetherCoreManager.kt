@@ -76,10 +76,6 @@ object AetherCoreManager {
     /** The option that names the proxy the core dials out through. */
     internal const val UPSTREAM = "--upstream"
 
-    /** The option that has the core register identities and end, with the word naming which: here all four. */
-    private const val REGISTER = "--register"
-    private const val REGISTER_EVERY_KEY = "all"
-
     /**
      * The pluggable transport Tor's bridges run through, shipped beside the core as a library. It is
      * lyrebird, which speaks every transport the core asks bridges for; the core is told so by name,
@@ -239,16 +235,16 @@ object AetherCoreManager {
     }
 
     /**
-     * The port a scan or a key renewal of [profile] binds: none, since nothing dials it, unless Tor
-     * around the tunnel comes along, whose own listener follows the tunnel's and needs a real port,
-     * because the core dials the address Tor was told to listen on. Opens a socket to find one.
+     * The port a scan of [profile] binds: none, since nothing dials it, unless Tor around the tunnel
+     * comes along, whose own listener follows the tunnel's and needs a real port, because the core
+     * dials the address Tor was told to listen on. Opens a socket to find one.
      */
     fun scanPort(profile: ProfileItem): Int =
         if (AetherTor.fromString(profile.aetherTor) == AetherTor.REVERSE) Utils.findRandomFreePort() else 0
 
-    /** True when [profile] reaches WARP through Tor or Psiphon, which then has to come up before anything else can. */
-    fun reachesWarpThroughCarrier(profile: ProfileItem): Boolean =
-        AetherTor.fromString(profile.aetherTor) == AetherTor.REVERSE || AetherPsiphon.fromString(profile.aetherPsiphon) == AetherPsiphon.REVERSE
+    /** True when a core on [arguments] reaches WARP through Tor or Psiphon, which then has to come up before anything else can. */
+    fun reachesWarpThroughCarrier(arguments: List<String>): Boolean =
+        torModeOf(arguments) == AetherTor.REVERSE || psiphonModeOf(arguments) == AetherPsiphon.REVERSE
 
     @Volatile
     private var session: Session? = null
@@ -407,17 +403,6 @@ object AetherCoreManager {
     }
 
     /**
-     * The run that registers a new key of every kind, both WireGuard keys and both MASQUE keys, and
-     * ends without scanning or opening a tunnel: the core's `--register all`, on the scan
-     * arguments of [profile] for [port], see [scanPort]. It registers the way [profile] reaches
-     * WARP: directly, or through the Tor or Psiphon around its tunnel, the WireGuard keys as well,
-     * since a registration is an HTTPS request, which either carrier carries. The protocol and scan
-     * options go along unused.
-     */
-    internal fun keyRenewalArguments(profile: ProfileItem, port: Int): List<String> =
-        listOf(REGISTER, REGISTER_EVERY_KEY) + buildArguments(profile, port, scan = true)
-
-    /**
      * Maps the app's core log level setting onto the levels the core accepts. Only the session
      * follows the setting: scans and key renewals keep the default because they read info lines.
      */
@@ -432,6 +417,13 @@ object AetherCoreManager {
     /** [arguments] at [logLevel], unless they name a level of their own, as a hand-written command may. */
     internal fun withLogLevel(arguments: List<String>, logLevel: String): List<String> =
         if ("--log-level" in arguments || "--verbose" in arguments) arguments else arguments + listOf("--log-level", logLevel)
+
+    /**
+     * [arguments] at a level that writes the core's info lines, which a run that waits for one of
+     * them needs: as they are, unless they name a quieter level, which gives way to the default.
+     */
+    internal fun withInfoLines(arguments: List<String>): List<String> =
+        if (showsInfo(arguments)) arguments else withoutOption(arguments, "--log-level") + listOf("--log-level", DEFAULT_LOG_LEVEL)
 
     /**
      * Where the Psiphon client keeps its datastore: the servers it was given, fetched and discovered.

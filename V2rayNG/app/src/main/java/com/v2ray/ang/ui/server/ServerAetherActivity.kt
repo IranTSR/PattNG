@@ -1,6 +1,7 @@
 package com.v2ray.ang.ui.server
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
@@ -72,7 +73,6 @@ import com.v2ray.ang.extension.toastSuccess
 import com.v2ray.ang.fmt.AetherFmt
 import com.v2ray.ang.handler.SettingsManager
 import com.v2ray.ang.ui.compose.CollapsiblePreferenceGroupHeader
-import com.v2ray.ang.ui.compose.ConfirmDialog
 import com.v2ray.ang.ui.compose.FormDropdownField
 import com.v2ray.ang.ui.compose.FormTextField
 import com.v2ray.ang.ui.compose.SettingsSwitchItem
@@ -114,18 +114,16 @@ class ServerAetherActivity : BaseServerActivity() {
         val psiphonRegions by viewModel.psiphonRegions.collectAsStateWithLifecycle()
         val isTorTransportsAvailable by viewModel.isTorTransportsAvailable.collectAsStateWithLifecycle()
         val scanState by viewModel.scanState.collectAsStateWithLifecycle()
-        val isRenewingIdentity by viewModel.isRenewingIdentity.collectAsStateWithLifecycle()
         val session by viewModel.session.collectAsStateWithLifecycle()
         val log by viewModel.log.collectAsStateWithLifecycle()
         val listenPort by viewModel.listenPort.collectAsStateWithLifecycle()
-        var showRenewConfirm by rememberSaveable { mutableStateOf(false) }
         // Folded away unless one of its settings holds a value, so a profile that set one shows it at once.
         var showAdvanced by rememberSaveable { mutableStateOf(uiState.hasAdvancedAetherSettings) }
         val isScanning = scanState == AetherScanState.Scanning
-        val isBusy = isScanning || isRenewingIdentity
-        // The key files are shared by every Aether profile, so a live session on any of them blocks renewal.
-        // Only the daemon-side evidence counts: a running non-Aether profile leaves both actions open.
-        val renewBlocked = session != null
+        val isBusy = isScanning
+        // What Psiphon has learned is shared by every Aether profile, so a live session on any of them keeps it.
+        // Only the daemon-side evidence counts: a running non-Aether profile leaves it open.
+        val sessionLive = session != null
 
         val protocol = AetherProtocol.fromString(uiState.aetherProtocol)
         val psiphon = AetherPsiphon.fromString(uiState.aetherPsiphon)
@@ -164,6 +162,15 @@ class ServerAetherActivity : BaseServerActivity() {
             title = serverConfigType.toString(),
             onSaveClick = { saveServer(uiState) }
         ) {
+            // The WARP keys are shared by every Aether profile and got on a page of their own, with settings of its own.
+            // A scan holds the exit a run of that page dials out through, so the page opens once it has ended.
+            OutlinedButton(
+                onClick = { startActivity(Intent(this@ServerAetherActivity, ServerAetherKeysActivity::class.java)) },
+                enabled = !isScanning,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Text(stringResource(R.string.aether_action_renew_key))
+            }
             FormTextField(
                 stringResource(R.string.server_lab_remarks),
                 uiState.remarks,
@@ -352,7 +359,7 @@ class ServerAetherActivity : BaseServerActivity() {
                 // What Psiphon has learned is shared by every profile, like the WARP key, and goes only while no session runs on it.
                 OutlinedButton(
                     onClick = viewModel::clearPsiphonData,
-                    enabled = isCoreAvailable && !isBusy && !renewBlocked,
+                    enabled = isCoreAvailable && !isBusy && !sessionLive,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     Text(stringResource(R.string.aether_action_clear_psiphon))
@@ -466,38 +473,6 @@ class ServerAetherActivity : BaseServerActivity() {
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedButton(
-                        onClick = { showRenewConfirm = true },
-                        enabled = isCoreAvailable && !isBusy && !renewBlocked
-                    ) {
-                        if (isRenewingIdentity) {
-                            ProgressMark()
-                        }
-                        Text(
-                            stringResource(
-                                if (isRenewingIdentity) R.string.aether_action_renewing_key else R.string.aether_action_renew_key
-                            )
-                        )
-                    }
-                    if (isRenewingIdentity) {
-                        TextButton(onClick = viewModel::cancelRenewal) {
-                            Text(stringResource(R.string.action_cancel))
-                        }
-                    }
-                }
-                if (renewBlocked) {
-                    Text(
-                        text = stringResource(R.string.aether_renew_blocked),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
             }
             CollapsiblePreferenceGroupHeader(
                 title = stringResource(R.string.aether_lab_advanced),
@@ -558,18 +533,6 @@ class ServerAetherActivity : BaseServerActivity() {
                 }
             }
             AetherLogPanel(entries = log)
-        }
-
-        if (showRenewConfirm) {
-            ConfirmDialog(
-                message = stringResource(R.string.aether_confirm_renew_key),
-                confirmText = stringResource(R.string.aether_action_renew_key),
-                onConfirm = {
-                    showRenewConfirm = false
-                    viewModel.renewIdentity(uiState.toProfileItem(initialConfig, listenPort))
-                },
-                onDismiss = { showRenewConfirm = false }
-            )
         }
     }
 
@@ -669,7 +632,7 @@ private fun AetherRegionField(value: String, regions: List<String>, onValueChang
 }
 
 @Composable
-private fun ProgressMark() {
+internal fun ProgressMark() {
     CircularProgressIndicator(
         modifier = Modifier
             .padding(end = 8.dp)
@@ -678,8 +641,9 @@ private fun ProgressMark() {
     )
 }
 
+/** The log of an Aether page: [entries], newest last, or [emptyText] while there are none, with a button that copies them. */
 @Composable
-private fun AetherLogPanel(entries: List<AetherLogEntry>) {
+internal fun AetherLogPanel(entries: List<AetherLogEntry>, @StringRes emptyText: Int = R.string.aether_log_empty) {
     val context = LocalContext.current
     val listState = rememberLazyListState()
 
@@ -716,7 +680,7 @@ private fun AetherLogPanel(entries: List<AetherLogEntry>) {
         ) {
             if (entries.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.aether_log_empty),
+                    text = stringResource(emptyText),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(12.dp)

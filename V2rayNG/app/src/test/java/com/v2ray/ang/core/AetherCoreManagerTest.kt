@@ -1021,42 +1021,32 @@ class AetherCoreManagerTest {
         assertEquals(0, AetherCoreManager.scanPort(profile().copy(aetherPsiphon = "reverse")))
         assertEquals(0, AetherCoreManager.scanPort(profile().copy(aetherTor = "chain")))
         assertTrue(AetherCoreManager.scanPort(profile().copy(aetherTor = "reverse")) > 0)
-
-        assertFalse(AetherCoreManager.reachesWarpThroughCarrier(profile()))
-        assertFalse(AetherCoreManager.reachesWarpThroughCarrier(profile().copy(aetherPsiphon = "chain", aetherTor = "chain")))
-        assertTrue(AetherCoreManager.reachesWarpThroughCarrier(profile().copy(aetherPsiphon = "reverse")))
-        assertTrue(AetherCoreManager.reachesWarpThroughCarrier(profile().copy(aetherTor = "reverse")))
     }
 
     @Test
-    fun aKeyRenewalRegistersEveryKeyInOneRunThatEnds() {
-        // Whatever the profile's own protocol, every key is renewed.
-        for (protocol in AetherProtocol.entries) {
-            val run = AetherCoreManager.keyRenewalArguments(profile(protocol), 0)
-            assertEquals("all", valueAfter(run, "--register"))
-            assertFalse("--peer" in run)
-            assertFalse("--upstream" in run)
-            // The run is stopped at a line written at the info level.
-            assertEquals("info", valueAfter(run, "--log-level"))
-        }
+    fun aCoreReachesWarpThroughACarrierAroundTheTunnelOnly() {
+        fun scanOf(profile: ProfileItem) = AetherCoreManager.buildArguments(profile, 0, scan = true)
+        assertFalse(AetherCoreManager.reachesWarpThroughCarrier(scanOf(profile())))
+        assertFalse(AetherCoreManager.reachesWarpThroughCarrier(scanOf(profile().copy(aetherPsiphon = "chain", aetherTor = "chain"))))
+        assertTrue(AetherCoreManager.reachesWarpThroughCarrier(scanOf(profile().copy(aetherPsiphon = "reverse"))))
+        assertTrue(AetherCoreManager.reachesWarpThroughCarrier(scanOf(profile().copy(aetherTor = "reverse"))))
+
+        // A command written by hand, as the WARP keys page may run, is read the way the core reads it.
+        assertTrue(AetherCoreManager.reachesWarpThroughCarrier(listOf("--register", "all", "--tor-reverse")))
+        assertFalse(AetherCoreManager.reachesWarpThroughCarrier(listOf("--register", "all", "--psiphon-reverse", "--psiphon")))
+        assertFalse(AetherCoreManager.reachesWarpThroughCarrier(listOf("--register", "all")))
     }
 
     @Test
-    fun aKeyRenewalGoesThroughTheCarrierAroundTheTunnelOnly() {
-        // The core registers through Tor or Psiphon around the tunnel, the WireGuard keys as well.
-        val tor = AetherCoreManager.keyRenewalArguments(profile().copy(aetherTor = "reverse", aetherTorBridges = "first"), 41234)
-        assertEquals("all", valueAfter(tor, "--register"))
-        assertTrue("--tor-reverse" in tor)
-        assertTrue("--tor-bridges" in tor)
-        assertEquals("127.0.0.1:41235", valueAfter(tor, "--tor-bind"))
-
-        val psiphon = AetherCoreManager.keyRenewalArguments(profile().copy(aetherPsiphon = "reverse", aetherPsiphonMode = "cdn"), 0)
-        assertTrue("--psiphon-reverse" in psiphon)
-        assertEquals("cdn", valueAfter(psiphon, "--psiphon-mode"))
-
-        // A carrier inside the tunnel carries nothing of a registration.
-        val inside = AetherCoreManager.keyRenewalArguments(profile().copy(aetherTor = "chain", aetherPsiphon = "chain"), 0)
-        assertFalse(inside.any { it.startsWith("--tor") || it.startsWith("--psiphon") })
+    fun aRunThatWaitsForAnInfoLineIsNeverQuieterThanInfo() {
+        val run = listOf("--register", "all")
+        // The core writes its info lines unless told otherwise.
+        assertEquals(run, AetherCoreManager.withInfoLines(run))
+        assertEquals(run + listOf("--log-level", "debug"), AetherCoreManager.withInfoLines(run + listOf("--log-level", "debug")))
+        assertEquals(run + "--verbose", AetherCoreManager.withInfoLines(run + "--verbose"))
+        // A quieter level gives way, wherever it stands.
+        assertEquals(run + listOf("--log-level", "info"), AetherCoreManager.withInfoLines(listOf("--log-level", "warn") + run))
+        assertEquals(run + listOf("--log-level", "info"), AetherCoreManager.withInfoLines(run + listOf("--log-level", "error")))
     }
 
     @Test

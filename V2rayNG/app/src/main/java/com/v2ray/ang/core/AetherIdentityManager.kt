@@ -2,7 +2,7 @@ package com.v2ray.ang.core
 
 import android.content.Context
 import com.v2ray.ang.AppConfig
-import com.v2ray.ang.dto.entities.ProfileItem
+import com.v2ray.ang.enums.AetherKeyKind
 import com.v2ray.ang.enums.AetherProtocol
 import com.v2ray.ang.util.LogUtil
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +28,12 @@ data class AetherIdentityStatus(
     val secondary: AetherIdentity? = null,
 )
 
+/** A key file of the identity folder, one of [AetherIdentityManager.KEY_FILES], with the identity it holds; null without one. */
+data class AetherKey(
+    val file: String,
+    val identity: AetherIdentity?,
+)
+
 object AetherIdentityManager {
 
     const val BASE_FILE = "aether.toml"
@@ -36,20 +42,20 @@ object AetherIdentityManager {
     const val WIREGUARD_FILE = "aether-wg.toml"
     const val WIREGUARD_INNER_FILE = "aether-wg-secondary.toml"
 
-    /** The keys of every kind, which a renewal replaces all together. */
+    /** The key files of every kind, in the order the core registers them. */
     internal val KEY_FILES = listOf(WIREGUARD_FILE, WIREGUARD_INNER_FILE, MASQUE_FILE, MASQUE_INNER_FILE)
 
     private const val WORK_DIR = "aether"
 
     /**
      * Where a renewal gathers its new keys. The keys in use stay in [WORK_DIR], untouched, until
-     * every new key is here; only then does each new key take the place of the old one.
+     * every new key it registers is here; only then does each new key take the place of the old one.
      */
     private const val RENEWAL_DIR = "aether-renewal"
 
     /**
-     * Written into [RENEWAL_DIR] once every new key is there. From then on the new keys are the
-     * keys: whatever stops the moving of them, [settle] finishes it.
+     * Written into [RENEWAL_DIR] once every new key of a renewal is there. From then on the new keys
+     * are the keys: whatever stops the moving of them, [settle] finishes it.
      */
     internal const val READY_MARK = "ready"
 
@@ -60,10 +66,13 @@ object AetherIdentityManager {
      */
     private const val PREVIOUS_DIR = "aether-previous"
 
-    /** Four registrations and two MASQUE key enrollments, each of which the core may retry. */
+    /** Four registrations and two MASQUE key enrollments at most, each of which the core may retry. */
     private const val RENEW_TIMEOUT_MS = 4 * 60_000L
 
-    /** A renewal through Tor or Psiphon around the tunnel waits for the carrier to come up first, which takes what a scan may take. */
+    /**
+     * A renewal through Tor or Psiphon, which a command written by hand may ask for, waits for the
+     * carrier to come up first, which takes what a scan may take.
+     */
     private const val RENEW_THROUGH_CARRIER_TIMEOUT_MS = 10 * 60_000L
 
     private const val SOURCE = "aether-key"
@@ -87,27 +96,37 @@ object AetherIdentityManager {
             status(workDir(context), protocol)
         }
 
+    /** Every key of the identity folder, each of [KEY_FILES] with the identity it holds. */
+    suspend fun keys(context: Context): List<AetherKey> =
+        withContext(Dispatchers.IO) {
+            settle(context)
+            keys(workDir(context), KEY_FILES)
+        }
+
     /**
-     * Registers a new key of every kind, the WireGuard and the MASQUE key and the inner hop key of
-     * each, and puts them in place of the keys in use once all of them are there. Until then the
-     * keys in use stay where they are, untouched, so a failure, a cancellation or the app being
-     * killed leaves them in use. Returns the new keys of [profile]'s protocol, or null when the
-     * keys in use stay.
+     * Registers new keys of [kind] by running the core on [arguments], which register them, see
+     * [AetherKeys], and puts them in place of the keys in use once all of them are there. Until then
+     * the keys in use stay where they are, untouched, so a failure, a cancellation or the app being
+     * killed leaves them in use; the keys of another kind are never touched. The core dials out
+     * through the exit-node [exit]. Returns the new keys, or null when the keys in use stay.
      */
     suspend fun renew(
         context: Context,
-        profile: ProfileItem,
+        kind: AetherKeyKind,
+        arguments: List<String>,
+        exit: AetherExit,
         onOutput: (String) -> Unit,
-    ): AetherIdentityStatus? = renewal.withLock {
+    ): List<AetherKey>? = renewal.withLock {
         val workDir = workDir(context)
         val renewalDir = renewalDir(context)
-        if (!renewAll(workDir, renewalDir) { registerAll(context, profile, renewalDir, onOutput) }) return@withLock null
+        val files = filesOf(kind)
+        if (!renew(workDir, renewalDir, files) { register(context, arguments, exit, renewalDir, onOutput) }) return@withLock null
         withContext(Dispatchers.IO) {
             if (!settle(workDir, renewalDir)) {
                 LogUtil.w(AppConfig.TAG, "AetherIdentity: the new keys are ready but not all in place yet; the next core start moves the rest")
             }
-            File(context.filesDir, PREVIOUS_DIR).deleteRecursively()
-            status(workDir, AetherProtocol.fromString(profile.aetherProtocol))
+            if (files == KEY_FILES) File(context.filesDir, PREVIOUS_DIR).deleteRecursively()
+            keys(workDir, files)
         }
     }
 
@@ -115,27 +134,26 @@ object AetherIdentityManager {
     fun settle(context: Context): Boolean = settle(workDir(context), renewalDir(context))
 
     /**
-     * Runs the core once to register every key into [renewalDir]: it registers them, through the
-     * carrier around the tunnel if there is one, and ends without scanning or opening a tunnel; see
-     * [AetherCoreManager.keyRenewalArguments]. The run is over at its word that the keys are saved.
+     * Runs the core once on [arguments] to register the keys they ask for into [renewalDir]: it
+     * registers them, through a carrier if the arguments name one, and ends without scanning or
+     * opening a tunnel. The run is over at its word that the keys are saved, which it writes at the
+     * info level.
      */
-    private suspend fun registerAll(
+    private suspend fun register(
         context: Context,
-        profile: ProfileItem,
+        arguments: List<String>,
+        exit: AetherExit,
         renewalDir: File,
         onOutput: (String) -> Unit,
-    ): Boolean {
-        val port = withContext(Dispatchers.IO) { AetherCoreManager.scanPort(profile) }
-        return AetherCoreManager.runUntil(
-            context = context,
-            arguments = AetherCoreManager.keyRenewalArguments(profile, port),
-            exit = AetherExit.of(profile),
-            timeoutMs = if (AetherCoreManager.reachesWarpThroughCarrier(profile)) RENEW_THROUGH_CARRIER_TIMEOUT_MS else RENEW_TIMEOUT_MS,
-            source = SOURCE,
-            onOutput = onOutput,
-            keysDir = renewalDir,
-        ) { line -> line.takeIf(::isRegistered) } != null
-    }
+    ): Boolean = AetherCoreManager.runUntil(
+        context = context,
+        arguments = AetherCoreManager.withInfoLines(arguments),
+        exit = exit,
+        timeoutMs = if (AetherCoreManager.reachesWarpThroughCarrier(arguments)) RENEW_THROUGH_CARRIER_TIMEOUT_MS else RENEW_TIMEOUT_MS,
+        source = SOURCE,
+        onOutput = onOutput,
+        keysDir = renewalDir,
+    ) { line -> line.takeIf(::isRegistered) } != null
 
     internal fun status(workDir: File, protocol: AetherProtocol): AetherIdentityStatus = when (protocol) {
         AetherProtocol.MASQUE -> AetherIdentityStatus(protocol, read(File(workDir, MASQUE_FILE)))
@@ -152,6 +170,26 @@ object AetherIdentityManager {
             read(File(workDir, MASQUE_INNER_FILE)),
         )
     }
+
+    /** The key files a registration of [kind] writes, in the order of [KEY_FILES]. */
+    fun filesOf(kind: AetherKeyKind): List<String> = when (kind) {
+        AetherKeyKind.ALL -> KEY_FILES
+        AetherKeyKind.WIREGUARD -> listOf(WIREGUARD_FILE)
+        AetherKeyKind.MASQUE -> listOf(MASQUE_FILE)
+        AetherKeyKind.GOOL -> listOf(WIREGUARD_FILE, WIREGUARD_INNER_FILE)
+        AetherKeyKind.MIM -> listOf(MASQUE_FILE, MASQUE_INNER_FILE)
+    }
+
+    /** The key files a tunnel of [protocol] uses: its own, and the inner hop's for a two-hop one. */
+    fun filesOf(protocol: AetherProtocol): List<String> = when (protocol) {
+        AetherProtocol.MASQUE -> listOf(MASQUE_FILE)
+        AetherProtocol.WIREGUARD -> listOf(WIREGUARD_FILE)
+        AetherProtocol.GOOL -> listOf(WIREGUARD_FILE, WIREGUARD_INNER_FILE)
+        AetherProtocol.MIM -> listOf(MASQUE_FILE, MASQUE_INNER_FILE)
+    }
+
+    /** Each of [files] in [dir] with the identity it holds. */
+    internal fun keys(dir: File, files: List<String>): List<AetherKey> = files.map { AetherKey(it, read(File(dir, it))) }
 
     internal fun parse(text: String): AetherIdentity? {
         val fields = mutableMapOf<String, String>()
@@ -177,13 +215,15 @@ object AetherIdentityManager {
 
     /**
      * Gathers new keys in [renewalDir] through [register] and moves them over the keys in [workDir]
-     * once every one of [KEY_FILES] is there and reads as a key. Nothing in [workDir] is touched
-     * before that moment, so whatever stops a renewal earlier leaves the keys in use as they were;
-     * a stop after it is finished by [settle]. True when the new keys took the place of the old ones.
+     * once every one of [files] is there and reads as a key. Nothing in [workDir] is touched before
+     * that moment, so whatever stops a renewal earlier leaves the keys in use as they were; a stop
+     * after it is finished by [settle]. A key not among [files] stays as it is. True when the new
+     * keys took the place of the old ones.
      */
-    internal suspend fun renewAll(
+    internal suspend fun renew(
         workDir: File,
         renewalDir: File,
+        files: List<String>,
         register: suspend () -> Boolean,
     ): Boolean {
         val cleared = withContext(Dispatchers.IO) {
@@ -197,7 +237,11 @@ object AetherIdentityManager {
         val ready = AtomicBoolean(false)
         try {
             if (register()) {
-                withContext(Dispatchers.IO) { ready.set(isComplete(renewalDir) && markReady(renewalDir)) }
+                withContext(Dispatchers.IO) {
+                    // A key the run left beside the ones asked for goes with the folder rather than into place.
+                    (KEY_FILES - files.toSet()).forEach { File(renewalDir, it).delete() }
+                    ready.set(isComplete(renewalDir, files) && markReady(renewalDir))
+                }
             }
         } finally {
             withContext(NonCancellable + Dispatchers.IO) {
@@ -237,8 +281,8 @@ object AetherIdentityManager {
         !source.isFile
     }
 
-    /** Whether every one of [KEY_FILES] is in [dir] and reads as a key. */
-    internal fun isComplete(dir: File): Boolean = KEY_FILES.all { read(File(dir, it)) != null }
+    /** Whether every one of [files] is in [dir] and reads as a key. */
+    internal fun isComplete(dir: File, files: List<String>): Boolean = files.all { read(File(dir, it)) != null }
 
     private fun markReady(dir: File): Boolean = try {
         File(dir, READY_MARK).createNewFile()

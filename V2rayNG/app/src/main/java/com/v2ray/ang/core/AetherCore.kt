@@ -89,12 +89,17 @@ data class AetherCore(val arguments: List<String>, val exit: AetherExit = Aether
          * in the app dials.
          */
         fun ofCommand(command: String): AetherCore? {
-            val words = words(command)
-            val arguments = if (words.firstOrNull()?.startsWith("-") == false) words.drop(1) else words
+            val arguments = argumentsOf(command)
             if (arguments.isEmpty()) return null
             val listener = AetherCoreManager.listenerFlagOf(arguments)
             if (listener !in arguments) return AetherCore(AetherCoreManager.withListener(arguments, listener, AetherCoreManager.socksPort))
             return AetherCore(arguments).takeIf { AetherCoreManager.portAfter(arguments, listener) != null }
+        }
+
+        /** The arguments of [command]: its [words], without a program name in front. */
+        internal fun argumentsOf(command: String): List<String> {
+            val words = words(command)
+            return if (words.firstOrNull()?.startsWith("-") == false) words.drop(1) else words
         }
 
         /** The words of a command line: split on whitespace, with single or double quotes keeping a word together. */

@@ -9,6 +9,7 @@ import com.v2ray.ang.core.AetherScanResult
 import com.v2ray.ang.core.AetherScanner
 import com.v2ray.ang.core.PsiphonServerList
 import com.v2ray.ang.dto.entities.ProfileItem
+import com.v2ray.ang.enums.AetherKeyKind
 import com.v2ray.ang.enums.AetherProtocol
 import com.v2ray.ang.util.LogUtil
 import com.v2ray.ang.util.Utils
@@ -22,6 +23,13 @@ data class AetherSession(val protocol: AetherProtocol?) {
     /** A scan opens a second tunnel on the scanned protocol's key, which disturbs a session using that key. */
     fun disturbedByScanOf(protocol: AetherProtocol): Boolean =
         this.protocol == null || AetherIdentityManager.sharesIdentity(protocol, this.protocol)
+
+    /**
+     * Whether the session uses a key that new keys of [kind] would replace; one whose protocol is unknown
+     * may use any. The keys of the other protocols can change under it.
+     */
+    fun usesKeysOf(kind: AetherKeyKind): Boolean =
+        protocol == null || AetherIdentityManager.filesOf(protocol).any { it in AetherIdentityManager.filesOf(kind) }
 }
 
 interface AetherEditorSource {
@@ -37,7 +45,6 @@ interface AetherEditorSource {
     suspend fun activeSession(): AetherSession?
     suspend fun scan(profile: ProfileItem, onOutput: (String) -> Unit): AetherScanResult?
     suspend fun identityStatus(protocol: AetherProtocol): AetherIdentityStatus
-    suspend fun renewIdentity(profile: ProfileItem, onOutput: (String) -> Unit): AetherIdentityStatus?
 
     /** Forgets what the Psiphon client has learned, so that its next start begins again; true when it is gone. */
     suspend fun clearPsiphonData(): Boolean
@@ -73,9 +80,6 @@ class AetherEditorRepository(private val context: Context) : AetherEditorSource 
 
     override suspend fun identityStatus(protocol: AetherProtocol): AetherIdentityStatus =
         AetherIdentityManager.status(context, protocol)
-
-    override suspend fun renewIdentity(profile: ProfileItem, onOutput: (String) -> Unit): AetherIdentityStatus? =
-        AetherIdentityManager.renew(context, profile, onOutput)
 
     override suspend fun clearPsiphonData(): Boolean = withContext(Dispatchers.IO) {
         PsiphonServerList.forgetRemembered()

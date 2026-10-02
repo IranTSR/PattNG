@@ -71,6 +71,17 @@ object AppConfig {
 
     /** PattNG: the loopback port every Aether core listens on, whatever its profile; see SettingsManager.getAetherListenPort. */
     const val PREF_AETHER_LISTEN_PORT = "pref_aether_listen_port"
+
+    /** PattNG: the settings of the page that gets new WARP keys, which no profile shares; see AetherKeysSettings. */
+    const val PREF_AETHER_KEYS_KIND = "pref_aether_keys_kind"
+    const val PREF_AETHER_KEYS_ENROLL_ADDRESS = "pref_aether_keys_enroll_address"
+    const val PREF_AETHER_KEYS_ECH = "pref_aether_keys_ech"
+    const val PREF_AETHER_KEYS_ECH_DNS = "pref_aether_keys_ech_dns"
+    const val PREF_AETHER_KEYS_ECH_DOMAIN = "pref_aether_keys_ech_domain"
+    const val PREF_AETHER_KEYS_FINGERPRINT = "pref_aether_keys_fingerprint"
+    const val PREF_AETHER_KEYS_FINAL_MASK = "pref_aether_keys_final_mask"
+    const val PREF_AETHER_KEYS_DIAL_MODE = "pref_aether_keys_dial_mode"
+    const val PREF_AETHER_KEYS_COMMAND = "pref_aether_keys_command"
     const val PREF_REMOTE_DNS = "pref_remote_dns"
     const val PREF_DOMESTIC_DNS = "pref_domestic_dns"
     const val PREF_DNS_HOSTS = "pref_dns_hosts"
@@ -189,6 +200,9 @@ object AppConfig {
     /** PattNG: where the Aether core asks for the ECH key, and the domain whose key it takes, unless a profile names others. */
     const val AETHER_ECH_DNS = "udp://1.1.1.1"
     const val AETHER_ECH_DOMAIN = "cloudflare-ech.com"
+
+    /** PattNG: where the Aether core sends the calls to the WARP API, which register and enroll the keys, unless told otherwise. */
+    const val AETHER_ENROLL_ADDRESS = "api.cloudflareclient.com"
 
     const val WIREGUARD_LOCAL_ADDRESS_V4 = "172.16.0.2/32"
     const val WIREGUARD_LOCAL_ADDRESS_V6 = "2606:4700:110:8f81:d551:a0:532e:a2b3/128"

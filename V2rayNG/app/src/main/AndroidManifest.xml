@@ -112,6 +112,10 @@
             android:exported="false"
             android:windowSoftInputMode="stateUnchanged|adjustResize" />
         <activity
+            android:name=".ui.server.ServerAetherKeysActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateUnchanged|adjustResize" />
+        <activity
             android:name=".ui.server.ServerHysteria2Activity"
             android:exported="false"
             android:windowSoftInputMode="stateUnchanged|adjustResize" />
