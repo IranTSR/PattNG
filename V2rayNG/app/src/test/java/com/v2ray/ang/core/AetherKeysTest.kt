@@ -23,6 +23,8 @@ class AetherKeysTest {
         "ECDHE-RSA-CHACHA20-POLY1305" to 0xcca8,
         "ECDHE-RSA-AES128-SHA" to 0xc013,
         "ECDHE-RSA-AES256-SHA" to 0xc014,
+        "ECDHE-ECDSA-AES128-SHA" to 0xc009,
+        "ECDHE-ECDSA-AES256-SHA" to 0xc00a,
         "ECDHE-RSA-AES128-SHA256" to 0xc027,
         "AES128-GCM-SHA256" to 0x009c,
         "AES256-GCM-SHA384" to 0x009d,
@@ -47,6 +49,8 @@ class AetherKeysTest {
             tls12Of("130213031301c02cc030c02bc02fcca9cca8c024c028c023c027009f009e006b0067") - missing.toSet(),
             suitesOf(AetherFingerprint.PYTHON)
         )
+        // Go lists its TLS 1.3 suites last, which BoringSSL cannot do; its TLS 1.2 suites are all there.
+        assertEquals(tls12Of("c02bc02fc02cc030cca9cca8c009c013c00ac014130113021303"), suitesOf(AetherFingerprint.GO))
     }
 
     @Test
@@ -54,6 +58,7 @@ class AetherKeysTest {
         assertTrue(AetherFingerprint.CHROME.grease)
         assertFalse(AetherFingerprint.FIREFOX.grease)
         assertFalse(AetherFingerprint.PYTHON.grease)
+        assertFalse(AetherFingerprint.GO.grease)
 
         for (fingerprint in AetherFingerprint.entries) {
             val arguments = AetherKeys.arguments(AetherKeysSettings(fingerprint = fingerprint))

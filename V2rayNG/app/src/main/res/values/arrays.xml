@@ -238,6 +238,7 @@
         <item>Chrome</item>
         <item>Firefox</item>
         <item>Python</item>
+        <item>Go</item>
     </string-array>
     <string-array name="aether_transport_entries" translatable="false">
         <item>HTTP/3</item>
