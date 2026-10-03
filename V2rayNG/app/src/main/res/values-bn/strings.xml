@@ -85,6 +85,8 @@
     <string name="server_lab_stream_fingerprint">ফিঙ্গারপ্রিন্ট</string>
     <string name="server_lab_stream_alpn" translatable="false">ALPN</string>
     <string name="server_lab_cipher_suites">সাইফার স্যুট (Cipher Suites)</string>
+    <string name="toast_cipher_suites_need_unsafe">cipherSuites শুধু unsafe fingerprint-এর সঙ্গে কাজ করে। unsafe বেছে নিন, অথবা cipherSuites খালি করুন।</string>
+    <string name="toast_alpn_h2_before_http1">unsafe fingerprint-এর সঙ্গে WebSocket ও HTTPUpgrade সংযুক্ত হয় না যখন alpn-এ h2 থাকে http/1.1-এর আগে। http/1.1 বেছে নিন, অথবা alpn খালি রাখুন।</string>
     <string name="server_lab_allow_insecure">সার্টিফিকেট যাচাই এড়িয়ে যান (allowInsecure)</string>
     <string name="server_lab_sni" translatable="false">SNI</string>
     <string name="server_lab_address3">ঠিকানা</string>

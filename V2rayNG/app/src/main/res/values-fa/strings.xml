@@ -85,6 +85,8 @@
     <string name="server_lab_stream_fingerprint">اثرانگشت</string>
     <string name="server_lab_stream_alpn" translatable="false">ALPN</string>
     <string name="server_lab_cipher_suites">مجموعه رمزنگاری (Cipher Suites)</string>
+    <string name="toast_cipher_suites_need_unsafe">cipherSuites فقط با fingerprint از نوع unsafe اعمال می‌شود. unsafe را انتخاب کنید یا cipherSuites را خالی کنید.</string>
+    <string name="toast_alpn_h2_before_http1">WebSocket و HTTPUpgrade با fingerprint از نوع unsafe وصل نمی‌شوند وقتی alpn، h2 را پیش از http/1.1 بگذارد. http/1.1 را انتخاب کنید یا alpn را خالی بگذارید.</string>
     <string name="server_lab_allow_insecure">نادیده گرفتن تأیید گواهی (allowInsecure)</string>
     <string name="server_lab_sni" translatable="false">SNI</string>
     <string name="server_lab_address3">نشانی</string>

@@ -85,6 +85,8 @@
     <string name="server_lab_stream_fingerprint">جا کلک</string>
     <string name="server_lab_stream_alpn" translatable="false">ALPN</string>
     <string name="server_lab_cipher_suites">Cipher Suites</string>
+    <string name="toast_cipher_suites_need_unsafe">cipherSuites فقط وا fingerprint unsafe اعمال ابۊ. unsafe نه انتخاب کنین یا cipherSuites نه خالی کنین.</string>
+    <string name="toast_alpn_h2_before_http1">WebSocket وو HTTPUpgrade وا fingerprint unsafe وصل نیبۊن وختی که alpn، h2 نه پیش زه http/1.1 بنه. http/1.1 نه انتخاب کنین یا alpn نه خالی بلین.</string>
     <string name="server_lab_allow_insecure">تئیڌ گوواهی ن ناڌیڌه بگرین (allowInsecure)</string>
     <string name="server_lab_sni" translatable="false">SNI</string>
     <string name="server_lab_address3">نشۊوی</string>
