@@ -86,7 +86,7 @@
     <string name="server_lab_stream_alpn" translatable="false">ALPN</string>
     <string name="server_lab_cipher_suites">مجموعات التشفير (Cipher Suites)</string>
     <string name="toast_cipher_suites_need_unsafe">لا تُطبَّق cipherSuites إلا مع بصمة unsafe. اختر unsafe أو أفرغ cipherSuites.</string>
-    <string name="toast_alpn_h2_before_http1">لا يتصل WebSocket وHTTPUpgrade عندما يضع alpn البروتوكول h2 قبل http/1.1. اختر http/1.1 أو اترك alpn فارغًا.</string>
+    <string name="toast_websocket_alpn_http1_only">لا يتصل WebSocket وHTTPUpgrade إلا مع alpn بقيمة http/1.1 أو بدونه. اختر http/1.1 أو اترك alpn فارغًا.</string>
     <string name="server_lab_allow_insecure">تخطي التحقق من الشهادة (allowInsecure)</string>
     <string name="server_lab_sni" translatable="false">SNI</string>
     <string name="server_lab_address3">العنوان</string>

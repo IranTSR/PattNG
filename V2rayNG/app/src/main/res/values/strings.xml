@@ -86,7 +86,7 @@
     <string name="server_lab_stream_alpn" translatable="false">ALPN</string>
     <string name="server_lab_cipher_suites">Cipher Suites</string>
     <string name="toast_cipher_suites_need_unsafe">cipherSuites only apply with the unsafe fingerprint. Choose unsafe, or clear cipherSuites.</string>
-    <string name="toast_alpn_h2_before_http1">WebSocket and HTTPUpgrade do not connect when alpn puts h2 before http/1.1. Choose http/1.1, or leave alpn empty.</string>
+    <string name="toast_websocket_alpn_http1_only">WebSocket and HTTPUpgrade connect only with alpn http/1.1 or none. Choose http/1.1, or leave alpn empty.</string>
     <string name="server_lab_allow_insecure">allowInsecure</string>
     <string name="server_lab_sni" translatable="false">SNI</string>
     <string name="server_lab_address3">address</string>

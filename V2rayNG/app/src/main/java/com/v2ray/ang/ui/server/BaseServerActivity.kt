@@ -464,7 +464,7 @@ abstract class BaseServerActivity : BaseComponentActivity() {
         val tlsError = when (TlsSettingsCheck.validate(config)) {
             null -> null
             TlsSettingsCheck.Error.CIPHER_SUITES_NEED_UNSAFE -> R.string.toast_cipher_suites_need_unsafe
-            TlsSettingsCheck.Error.H2_BEFORE_HTTP1 -> R.string.toast_alpn_h2_before_http1
+            TlsSettingsCheck.Error.WEBSOCKET_ALPN_NOT_HTTP1 -> R.string.toast_websocket_alpn_http1_only
         }
         if (tlsError != null) {
             toast(tlsError, long = true)

@@ -45,28 +45,34 @@ class TlsSettingsCheckTest {
     }
 
     @Test
-    fun webSocketAndHttpUpgradeWithTheUnsafeFingerprintTakeNoH2AheadOfHttp1() {
+    fun webSocketAndHttpUpgradeTakeOnlyHttp1OrNoAlpnWhateverTheFingerprint() {
         for (network in listOf("ws", "httpupgrade")) {
-            for (alpn in listOf("h2", "h2,http/1.1", "h3,h2,http/1.1", "h3,h2", " h2 , http/1.1 ")) {
-                assertEquals("$network $alpn", Error.H2_BEFORE_HTTP1, TlsSettingsCheck.validate(profile(fingerprint = "unsafe", network = network, alpn = alpn)))
-            }
-            for (alpn in listOf(null, "", "http/1.1", "h3", "http/1.1,h2", "http/1.1, h2", "h3,http/1.1,h2")) {
-                assertNull("$network $alpn", TlsSettingsCheck.validate(profile(fingerprint = "unsafe", network = network, alpn = alpn)))
+            for (fingerprint in listOf("unsafe", "chrome", "", "firefox", null)) {
+                for (alpn in listOf("h2", "h2,http/1.1", "h3,h2,http/1.1", "h3,h2", "h3", "http/1.1,h2", " h2 , http/1.1 ", "http/1.1,h3")) {
+                    assertEquals(
+                        "$network $fingerprint $alpn",
+                        Error.WEBSOCKET_ALPN_NOT_HTTP1,
+                        TlsSettingsCheck.validate(profile(fingerprint = fingerprint, network = network, alpn = alpn))
+                    )
+                }
+                // Read as CoreOutboundBuilder reads it: names trimmed, empty ones skipped.
+                for (alpn in listOf(null, "", " ", "http/1.1", " http/1.1 ", "http/1.1,")) {
+                    assertNull("$network $fingerprint $alpn", TlsSettingsCheck.validate(profile(fingerprint = fingerprint, network = network, alpn = alpn)))
+                }
             }
         }
     }
 
     @Test
-    fun theAlpnRuleKeepsToWebSocketAndHttpUpgradeWithTheUnsafeFingerprint() {
-        // Other transports keep h2 ahead.
+    fun theAlpnRuleKeepsToWebSocketAndHttpUpgrade() {
         for (network in listOf("tcp", "grpc", "xhttp", null)) {
-            assertNull("$network", TlsSettingsCheck.validate(profile(fingerprint = "unsafe", network = network, alpn = "h2,http/1.1")))
+            for (alpn in listOf("h2,http/1.1", "h3", "h2")) {
+                assertNull("$network $alpn", TlsSettingsCheck.validate(profile(fingerprint = "chrome", network = network, alpn = alpn)))
+            }
         }
-        // With the other fingerprints the fork picks the alpn of these transports itself.
-        assertNull(TlsSettingsCheck.validate(profile(fingerprint = "chrome", network = "ws", alpn = "h2")))
-        assertNull(TlsSettingsCheck.validate(profile(fingerprint = "", network = "httpupgrade", alpn = "h3,h2")))
-        // cipherSuites with the unsafe fingerprint still meet the alpn rule.
-        assertEquals(Error.H2_BEFORE_HTTP1, TlsSettingsCheck.validate(profile(fingerprint = "unsafe", cipherSuites = suites, network = "ws", alpn = "h2")))
+        // cipherSuites with the unsafe fingerprint still meet the alpn rule, and without it they are refused first.
+        assertEquals(Error.WEBSOCKET_ALPN_NOT_HTTP1, TlsSettingsCheck.validate(profile(fingerprint = "unsafe", cipherSuites = suites, network = "ws", alpn = "h2")))
+        assertEquals(Error.CIPHER_SUITES_NEED_UNSAFE, TlsSettingsCheck.validate(profile(fingerprint = "chrome", cipherSuites = suites, network = "ws", alpn = "h2")))
     }
 
     @Test

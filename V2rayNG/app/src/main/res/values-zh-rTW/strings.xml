@@ -86,7 +86,7 @@
     <string name="server_lab_stream_alpn" translatable="false">ALPN</string>
     <string name="server_lab_cipher_suites">加密套件 (Cipher Suites)</string>
     <string name="toast_cipher_suites_need_unsafe">cipherSuites 僅在指紋為 unsafe 時生效。請選擇 unsafe，或清空 cipherSuites。</string>
-    <string name="toast_alpn_h2_before_http1">若 alpn 將 h2 排在 http/1.1 之前，WebSocket 和 HTTPUpgrade 無法連線。請選擇 http/1.1，或留空 alpn。</string>
+    <string name="toast_websocket_alpn_http1_only">WebSocket 和 HTTPUpgrade 僅在 alpn 為 http/1.1 或為空時才能連線。請選擇 http/1.1，或留空 alpn。</string>
     <string name="server_lab_allow_insecure">跳過憑證驗證 (allowInsecure)</string>
     <string name="server_lab_sni" translatable="false">SNI</string>
     <string name="server_lab_address3">伺服器位址</string>

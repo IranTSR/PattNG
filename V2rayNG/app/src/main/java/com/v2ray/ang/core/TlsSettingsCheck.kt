@@ -24,11 +24,12 @@ object TlsSettingsCheck {
         CIPHER_SUITES_NEED_UNSAFE,
 
         /**
-         * h2 ahead of http/1.1 in the alpn of WebSocket or HTTPUpgrade with the unsafe fingerprint: Go's crypto/tls
-         * offers the alpn as written, and through a CDN such as Cloudflare these transports then do not connect. With
-         * the other fingerprints the fork offers http/1.1 for them, unless alpn is h2,http/1.1 exactly.
+         * An alpn other than http/1.1 alone for WebSocket or HTTPUpgrade, whatever the fingerprint. These transports
+         * speak HTTP/1.1 after the handshake whatever it negotiated, and Cloudflare picks h2 whenever it is offered,
+         * even after http/1.1; the unsafe fingerprint offers the alpn as written, the others offer h2,http/1.1 when it
+         * is written so; and some Cloudflare hosts refuse h3 alone. With no alpn they offer http/1.1.
          */
-        H2_BEFORE_HTTP1,
+        WEBSOCKET_ALPN_NOT_HTTP1,
     }
 
     /**
@@ -48,15 +49,13 @@ object TlsSettingsCheck {
         val unsafe = profile.fingerPrint?.lowercase(Locale.ROOT) == UNSAFE_FINGERPRINT
         if (!profile.cipherSuites.isNullOrBlank() && !unsafe) return Error.CIPHER_SUITES_NEED_UNSAFE
         val upgrade = profile.network == NetworkType.WS.type || profile.network == NetworkType.HTTP_UPGRADE.type
-        if (upgrade && unsafe && h2BeforeHttp1(profile.alpn)) return Error.H2_BEFORE_HTTP1
+        if (upgrade && !isHttp1OrNone(profile.alpn)) return Error.WEBSOCKET_ALPN_NOT_HTTP1
         return null
     }
 
-    /** Whether [alpn], read as CoreOutboundBuilder reads it, offers h2 with no http/1.1 ahead of it. */
-    private fun h2BeforeHttp1(alpn: String?): Boolean {
+    /** Whether [alpn], read as CoreOutboundBuilder reads it, is http/1.1 alone or nothing at all. */
+    private fun isHttp1OrNone(alpn: String?): Boolean {
         val protocols = alpn?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
-        val h2 = protocols.indexOf("h2")
-        val http1 = protocols.indexOf("http/1.1")
-        return h2 >= 0 && (http1 < 0 || h2 < http1)
+        return protocols.isEmpty() || protocols == listOf("http/1.1")
     }
 }
