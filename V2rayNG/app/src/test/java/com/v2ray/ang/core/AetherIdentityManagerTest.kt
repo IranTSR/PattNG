@@ -412,6 +412,36 @@ class AetherIdentityManagerTest {
     }
 
     @Test
+    fun aCoreNeedsTheKeysOfItsProtocolAndNoneWithPsiphonOrTorAlone() {
+        fun needed(vararg arguments: String) = AetherIdentityManager.filesNeededBy(arguments.toList())
+        val masque = AetherIdentityManager.MASQUE_FILE
+        val wireguard = AetherIdentityManager.WIREGUARD_FILE
+        assertEquals(listOf(masque), needed("--protocol", "masque", "--h2"))
+        assertEquals(listOf(wireguard), needed("--protocol", "wg", "--tor"))
+        assertEquals(listOf(wireguard, AetherIdentityManager.WIREGUARD_INNER_FILE), needed("--wiw-outer", "162.159.192.1:2408"))
+        assertEquals(listOf(masque, AetherIdentityManager.MASQUE_INNER_FILE), needed("--protocol", "mim", "--psiphon-reverse"))
+        // With no protocol named the core runs MASQUE.
+        assertEquals(listOf(masque), needed())
+        assertEquals(emptyList<String>(), needed("--protocol", "wg", "--psiphon-only"))
+        assertEquals(emptyList<String>(), needed("--tor-only"))
+    }
+
+    @Test
+    fun aKeyThatIsNotThereOrDoesNotReadAsOneIsMissing() {
+        val dir = workDir(
+            AetherIdentityManager.MASQUE_FILE to keyFile("masque"),
+            AetherIdentityManager.MASQUE_INNER_FILE to "device_id = \"\"",
+        )
+
+        assertEquals(emptyList<String>(), AetherIdentityManager.missing(dir, listOf(AetherIdentityManager.MASQUE_FILE)))
+        assertEquals(
+            listOf(AetherIdentityManager.MASQUE_INNER_FILE, AetherIdentityManager.WIREGUARD_FILE),
+            AetherIdentityManager.missing(dir, AetherIdentityManager.filesOf(AetherKeyKind.MIM) + AetherIdentityManager.WIREGUARD_FILE)
+        )
+        assertEquals(emptyList<String>(), AetherIdentityManager.missing(dir, emptyList()))
+    }
+
+    @Test
     fun aRenewalLeavesEverythingButTheKeysAlone() = runBlocking {
         val dir = keysInUse()
         File(dir, "aether-wg-lastconn.toml").writeText("peer = \"162.159.192.1:2408\"")

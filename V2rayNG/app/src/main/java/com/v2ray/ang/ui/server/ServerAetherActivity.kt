@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -117,8 +118,9 @@ class ServerAetherActivity : BaseServerActivity() {
         val session by viewModel.session.collectAsStateWithLifecycle()
         val log by viewModel.log.collectAsStateWithLifecycle()
         val listenPort by viewModel.listenPort.collectAsStateWithLifecycle()
+        val keysCheck by viewModel.keysCheck.collectAsStateWithLifecycle()
         // Folded away unless one of its settings holds a value, so a profile that set one shows it at once.
-        var showAdvanced by rememberSaveable { mutableStateOf(uiState.hasAdvancedAetherSettings) }
+        var showOther by rememberSaveable { mutableStateOf(uiState.hasOtherAetherSettings) }
         val isScanning = scanState == AetherScanState.Scanning
         val isBusy = isScanning
         // What Psiphon has learned is shared by every Aether profile, so a live session on any of them keeps it.
@@ -132,6 +134,9 @@ class ServerAetherActivity : BaseServerActivity() {
         val torBridges = AetherTorBridges.fromString(uiState.aetherTorBridges)
         // With Psiphon or Tor alone there is no WARP tunnel, and nothing about one to set.
         val warpUsed = psiphon != AetherPsiphon.ONLY && tor != AetherTor.ONLY
+        // Obfuscation shapes the UDP of WireGuard and HTTP/3 alone; MASQUE over HTTP/2, chosen or forced by a carrier
+        // around the tunnel, takes none.
+        val overHttp2 = AetherCoreManager.masqueOverHttp2(protocol, AetherTransport.fromString(uiState.aetherTransport), tor, psiphon)
         val usesHttp2 = protocol.overMasque &&
             AetherTransport.fromString(uiState.aetherTransport) == AetherTransport.HTTP2
         // A scan opens a second tunnel on this protocol's key; a live session on that key must not be disturbed.
@@ -158,9 +163,16 @@ class ServerAetherActivity : BaseServerActivity() {
             }
         }
 
+        LaunchedEffect(keysCheck) {
+            if (keysCheck == AetherKeysCheck.SaveReady) {
+                viewModel.onKeysCheckHandled()
+                saveServer(uiState)
+            }
+        }
+
         ServerEditorScaffold(
             title = serverConfigType.toString(),
-            onSaveClick = { saveServer(uiState) }
+            onSaveClick = { requestSave(uiState, listenPort) }
         ) {
             // The WARP keys are shared by every Aether profile and got on a page of their own, with settings of its own.
             // A scan holds the exit a run of that page dials out through, so the page opens once it has ended.
@@ -245,21 +257,37 @@ class ServerAetherActivity : BaseServerActivity() {
                     values = R.array.aether_scan_values,
                     onValueChange = { uiState.aetherScanMode = it }
                 )
-                AetherDropdownField(
-                    label = R.string.aether_lab_obfuscation,
-                    value = uiState.aetherObfuscation,
-                    entries = R.array.aether_obfuscation_entries,
-                    values = R.array.aether_obfuscation_values,
-                    onValueChange = { uiState.aetherObfuscation = it }
-                )
-                AetherDropdownField(
-                    label = R.string.aether_lab_ip_version,
-                    value = uiState.aetherIpVersion,
-                    entries = R.array.aether_ip_entries,
-                    values = R.array.aether_ip_values,
-                    onValueChange = { uiState.aetherIpVersion = it }
-                )
+                if (!overHttp2) {
+                    AetherDropdownField(
+                        label = R.string.aether_lab_obfuscation,
+                        value = uiState.aetherObfuscation,
+                        entries = R.array.aether_obfuscation_entries,
+                        values = R.array.aether_obfuscation_values,
+                        onValueChange = { uiState.aetherObfuscation = it }
+                    )
+                }
+                // The ClientHello of the MASQUE handshakes: over HTTP/3, which carries TLS 1.3 alone, only its GREASE shows.
+                if (protocol.overMasque) {
+                    AetherDropdownField(
+                        label = R.string.aether_lab_fingerprint,
+                        value = uiState.aetherFingerprint,
+                        entries = R.array.aether_fingerprint_entries,
+                        values = R.array.aether_fingerprint_values,
+                        onValueChange = { uiState.aetherFingerprint = it }
+                    )
+                }
             }
+            // Set on the exit-node, where what the core sends leaves Xray, as an ordinary profile sets them on its outbound.
+            FormTextField(
+                stringResource(R.string.aether_lab_exit_final_mask),
+                uiState.finalMask,
+                { uiState.finalMask = it }
+            )
+            FormTextField(
+                stringResource(R.string.aether_lab_exit_dial_mode),
+                uiState.dialMode,
+                { uiState.dialMode = it }
+            )
             AetherDropdownField(
                 label = R.string.aether_lab_psiphon,
                 value = uiState.aetherPsiphon,
@@ -445,6 +473,13 @@ class ServerAetherActivity : BaseServerActivity() {
                         keyboardType = KeyboardType.Number
                     )
                 }
+                AetherDropdownField(
+                    label = R.string.aether_lab_ip_version,
+                    value = uiState.aetherIpVersion,
+                    entries = R.array.aether_ip_entries,
+                    values = R.array.aether_ip_values,
+                    onValueChange = { uiState.aetherIpVersion = it }
+                )
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -475,11 +510,11 @@ class ServerAetherActivity : BaseServerActivity() {
                 }
             }
             CollapsiblePreferenceGroupHeader(
-                title = stringResource(R.string.aether_lab_advanced),
-                expanded = showAdvanced,
-                onExpandedChange = { showAdvanced = it }
+                title = stringResource(R.string.aether_lab_other_settings),
+                expanded = showOther,
+                onExpandedChange = { showOther = it }
             )
-            if (showAdvanced) {
+            if (showOther) {
                 if (warpUsed) {
                     FormTextField(
                         stringResource(R.string.aether_lab_dns),
@@ -495,17 +530,6 @@ class ServerAetherActivity : BaseServerActivity() {
                     )
                 }
                 CommonTargetStrategyField(uiState)
-                // Set on the exit-node, where what the core sends leaves Xray, as an ordinary profile sets them on its outbound.
-                FormTextField(
-                    stringResource(R.string.aether_lab_exit_final_mask),
-                    uiState.finalMask,
-                    { uiState.finalMask = it }
-                )
-                FormTextField(
-                    stringResource(R.string.aether_lab_exit_dial_mode),
-                    uiState.dialMode,
-                    { uiState.dialMode = it }
-                )
             }
             if (!isCoreAvailable) {
                 Text(
@@ -534,6 +558,35 @@ class ServerAetherActivity : BaseServerActivity() {
             }
             AetherLogPanel(entries = log)
         }
+
+        // A key the profile, or its scan, needs is missing: get it first on the WARP keys page, or go on, and the core
+        // registers what it lacks on its own.
+        (keysCheck as? AetherKeysCheck.Missing)?.let { missing ->
+            AetherKeysMissingDialog(
+                anywayText = stringResource(if (missing.scan) R.string.aether_action_scan_anyway else R.string.aether_action_save_anyway),
+                onGetKeys = {
+                    viewModel.onKeysCheckHandled()
+                    startActivity(Intent(this@ServerAetherActivity, ServerAetherKeysActivity::class.java))
+                },
+                onAnyway = {
+                    viewModel.onKeysCheckHandled()
+                    if (missing.scan) viewModel.scan(uiState.toProfileItem(initialConfig, listenPort), anyway = true) else saveServer(uiState)
+                },
+                onDismiss = viewModel::onKeysCheckHandled
+            )
+        }
+    }
+
+    /**
+     * Saves the profile once it passes the editor's checks and the WARP keys it needs are there: the screen saves on
+     * [AetherKeysCheck.SaveReady], and asks first when a key is missing.
+     */
+    private fun requestSave(state: ServerUiState, listenPort: Int) {
+        if (!validateBasicConfig(state)) return
+        val config = state.toProfileItem(initialConfig, listenPort)
+        if (!validateCommonConfig(state, config)) return
+        if (!validateProtocolConfig(config)) return
+        viewModel.checkKeysBeforeSave(config)
     }
 
     override fun validateBasicConfig(state: ServerUiState): Boolean {
@@ -628,6 +681,34 @@ private fun AetherRegionField(value: String, regions: List<String>, onValueChang
         value = codes.indexOf(current).takeIf { it >= 0 }?.let { labels[it] } ?: any,
         options = listOf(any) + labels,
         onValueChange = { picked -> onValueChange(if (picked == any) "" else codes.getOrNull(labels.indexOf(picked)).orEmpty()) }
+    )
+}
+
+/**
+ * Says that a WARP key is missing and offers to get it first, on the WARP keys page, or to go on as [anywayText] says.
+ * Dismissed, it does neither.
+ */
+@Composable
+private fun AetherKeysMissingDialog(anywayText: String, onGetKeys: () -> Unit, onAnyway: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        text = {
+            Text(
+                text = stringResource(R.string.aether_keys_missing),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onAnyway) {
+                Text(anywayText)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onGetKeys) {
+                Text(stringResource(R.string.aether_action_renew_key))
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surface
     )
 }
 

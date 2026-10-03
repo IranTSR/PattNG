@@ -4,6 +4,8 @@ import android.content.Context
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.enums.AetherKeyKind
 import com.v2ray.ang.enums.AetherProtocol
+import com.v2ray.ang.enums.AetherPsiphon
+import com.v2ray.ang.enums.AetherTor
 import com.v2ray.ang.util.LogUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -187,6 +189,26 @@ object AetherIdentityManager {
         AetherProtocol.GOOL -> listOf(WIREGUARD_FILE, WIREGUARD_INNER_FILE)
         AetherProtocol.MIM -> listOf(MASQUE_FILE, MASQUE_INNER_FILE)
     }
+
+    /**
+     * The key files a core on [arguments] needs: those of the protocol they run, read as the core reads it, and none
+     * when they run Psiphon or Tor alone, with no WARP tunnel.
+     */
+    fun filesNeededBy(arguments: List<String>): List<String> =
+        if (AetherCoreManager.psiphonModeOf(arguments) == AetherPsiphon.ONLY || AetherCoreManager.torModeOf(arguments) == AetherTor.ONLY) {
+            emptyList()
+        } else {
+            filesOf(AetherCoreManager.protocolOf(arguments))
+        }
+
+    /** Which of [files] the identity folder lacks: not there, or not readable as a key. */
+    suspend fun missing(context: Context, files: List<String>): List<String> =
+        withContext(Dispatchers.IO) {
+            settle(context)
+            missing(workDir(context), files)
+        }
+
+    internal fun missing(dir: File, files: List<String>): List<String> = files.filter { read(File(dir, it)) == null }
 
     /** Each of [files] in [dir] with the identity it holds. */
     internal fun keys(dir: File, files: List<String>): List<AetherKey> = files.map { AetherKey(it, read(File(dir, it))) }

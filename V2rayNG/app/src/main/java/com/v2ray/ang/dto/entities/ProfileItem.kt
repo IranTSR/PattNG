@@ -86,6 +86,12 @@ data class ProfileItem(
     var aetherTransport: String? = null,
     var aetherScanMode: String? = null,
     var aetherObfuscation: String? = null,
+
+    /**
+     * The ClientHello of the core's TLS handshakes, an AetherFingerprint type: its TLS 1.2 cipher suites and whether it
+     * carries GREASE; null means Chrome's. Only a MASQUE tunnel takes it.
+     */
+    var aetherFingerprint: String? = null,
     var aetherIpVersion: String? = null,
     var aetherWiwOuter: String? = null,
     var aetherWiwInner: String? = null,

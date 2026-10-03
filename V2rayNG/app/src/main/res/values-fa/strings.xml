@@ -633,7 +633,7 @@
     <string name="aether_hint_exit_loc">DE,SE فقط همان‌ها را مجاز می‌کند؛ !IR,RU آن‌ها را رد می‌کند؛ خالی یعنی هر کشوری</string>
     <string name="aether_invalid_exit_loc">کدهای دوحرفی کشور را با کاما جدا بنویسید، با ! در ابتدا برای رد کردن</string>
     <string name="aether_lab_tor_relays">منبع پل‌ها</string>
-    <string name="aether_lab_advanced">تنظیمات پیشرفته</string>
+    <string name="aether_lab_other_settings">تنظیمات دیگر</string>
     <string name="aether_lab_command">فرمان Aether</string>
     <string name="aether_command_custom">دستی ویرایش شده: این فرمان همان‌طور که نوشته شده اجرا می‌شود و تنظیمات بالا اعمال نمی‌شوند</string>
     <string name="aether_action_use_settings">استفاده از تنظیمات</string>
@@ -673,12 +673,15 @@
     <string name="aether_keys_kind_all">همه</string>
     <string name="aether_keys_lab_enroll_address">نشانی درخواست</string>
     <string name="aether_keys_hint_ech">نام سرور را در درخواست‌های WARP API پنهان می‌کند؛ بدون کلید ECH قابل استفاده، هیچ کلید WARP درخواست نمی‌شود</string>
-    <string name="aether_keys_lab_fingerprint">اثرانگشت</string>
+    <string name="aether_lab_fingerprint">اثرانگشت</string>
     <string name="aether_keys_invalid_enroll_address">نشانی درخواست باید یک نشانی IP یا نام دامنه باشد، با پورت یا بدون آن، مثل 188.114.97.6:443 یا [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">فرمان باید کلید ثبت کند: --register و پس از آن all، wg، masque، gool یا mim</string>
     <string name="aether_keys_command_custom">ویرایش دستی: این فرمان همان‌طور که نوشته شده اجرا می‌شود؛ از تنظیمات بالا فقط finalMask و dialMode برای exit-node اعمال می‌شوند</string>
     <string name="aether_keys_log_empty">خروجی هسته و کلیدهای WARP اینجا نمایش داده می‌شود</string>
     <string name="aether_scan_blocked">پیش از اسکن، اتصال Aether را قطع کنید؛ اسکن یک تونل دوم با کلید اتصال فعلی باز می‌کند</string>
+    <string name="aether_keys_missing">کلید WARP لازم را ندارید؛ لطفاً اول آن را دریافت کنید</string>
+    <string name="aether_action_save_anyway">با این حال ذخیره کن</string>
+    <string name="aether_action_scan_anyway">با این حال اسکن کن</string>
     <string name="aether_chain_one_profile">یک زنجیره پروکسی فقط می‌تواند یک پروفایل Aether داشته باشد</string>
     <string name="aether_exit_node_name_taken">در مسیریابی اینجا از پروفایلی با نام exit-node استفاده شده، و exit-node نام outbound ـی است که هستهٔ Aether از راه آن به بیرون وصل می‌شود؛ نام آن پروفایل را تغییر دهید</string>
     <string name="aether_chain_hop_missing">گامی که پروفایل Aether این زنجیرهٔ پروکسی از راه آن به بیرون وصل می‌شود ساخته نشد، و هستهٔ Aether بدون آن به اینترنت می‌رسید</string>

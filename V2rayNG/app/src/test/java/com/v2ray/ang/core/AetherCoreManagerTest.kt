@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.gson.JsonParser
 import com.v2ray.ang.R
 import com.v2ray.ang.dto.entities.ProfileItem
+import com.v2ray.ang.enums.AetherFingerprint
 import com.v2ray.ang.enums.AetherIpVersion
 import com.v2ray.ang.enums.AetherObfuscation
 import com.v2ray.ang.enums.AetherProtocol
@@ -671,6 +672,53 @@ class AetherCoreManagerTest {
         }
 
         override fun close() = server.close()
+    }
+
+    @Test
+    fun masqueOverHttp2TakesNoObfuscation() {
+        assertNull(valueAfter(AetherCoreManager.buildArguments(profile(transport = AetherTransport.HTTP2), 10819), "--noize"))
+        assertNull(valueAfter(AetherCoreManager.buildArguments(profile(AetherProtocol.MIM, AetherTransport.HTTP2), 10819), "--noize"))
+        assertNull(valueAfter(AetherCoreManager.buildArguments(profile(transport = AetherTransport.HTTP2), 0, scan = true), "--noize"))
+        // Tor or Psiphon around the tunnel carry TCP alone, so the core takes HTTP/2 whatever the transport says.
+        assertNull(valueAfter(AetherCoreManager.buildArguments(profile().copy(aetherTor = "reverse"), 10819), "--noize"))
+        assertNull(valueAfter(AetherCoreManager.buildArguments(profile().copy(aetherPsiphon = "reverse"), 10819), "--noize"))
+        // Over HTTP/3, with a carrier inside the tunnel, and on WireGuard whatever the transport says, it stays.
+        assertEquals("aggressive", valueAfter(AetherCoreManager.buildArguments(profile(), 10819), "--noize"))
+        assertEquals("aggressive", valueAfter(AetherCoreManager.buildArguments(profile().copy(aetherTor = "chain"), 10819), "--noize"))
+        assertEquals("aggressive", valueAfter(AetherCoreManager.buildArguments(profile(AetherProtocol.WIREGUARD, AetherTransport.HTTP2), 10819), "--noize"))
+
+        assertTrue(AetherCoreManager.masqueOverHttp2(AetherProtocol.MIM, AetherTransport.HTTP2, AetherTor.OFF, AetherPsiphon.OFF))
+        assertTrue(AetherCoreManager.masqueOverHttp2(AetherProtocol.MASQUE, AetherTransport.HTTP3, AetherTor.REVERSE, AetherPsiphon.OFF))
+        assertFalse(AetherCoreManager.masqueOverHttp2(AetherProtocol.MASQUE, AetherTransport.HTTP3, AetherTor.CHAIN, AetherPsiphon.CHAIN))
+        assertFalse(AetherCoreManager.masqueOverHttp2(AetherProtocol.GOOL, AetherTransport.HTTP2, AetherTor.OFF, AetherPsiphon.OFF))
+    }
+
+    @Test
+    fun theFingerprintShapesEveryMasqueTunnelAndNoOther() {
+        for (protocol in listOf(AetherProtocol.MASQUE, AetherProtocol.MIM)) {
+            for (transport in AetherTransport.entries) {
+                // Chrome's list is named too, so that the command says what is sent; Chrome sends GREASE.
+                val chrome = AetherCoreManager.buildArguments(profile(protocol, transport), 10819)
+                assertEquals(AetherFingerprint.CHROME.ciphers, valueAfter(chrome, "--tls-ciphers"))
+                assertFalse("--disable-grease" in chrome)
+                for (fingerprint in listOf(AetherFingerprint.FIREFOX, AetherFingerprint.PYTHON, AetherFingerprint.GO)) {
+                    val arguments = AetherCoreManager.buildArguments(profile(protocol, transport).copy(aetherFingerprint = fingerprint.type), 10819)
+                    assertEquals(fingerprint.ciphers, valueAfter(arguments, "--tls-ciphers"))
+                    assertTrue("--disable-grease" in arguments)
+                }
+            }
+        }
+        // A profile from before the setting is Chrome's.
+        val older = AetherCoreManager.buildArguments(profile().copy(aetherFingerprint = null), 10819)
+        assertEquals(AetherFingerprint.CHROME.ciphers, valueAfter(older, "--tls-ciphers"))
+        // WireGuard has no TLS handshake of its own to shape.
+        for (protocol in listOf(AetherProtocol.WIREGUARD, AetherProtocol.GOOL)) {
+            val arguments = AetherCoreManager.buildArguments(profile(protocol, AetherTransport.HTTP2).copy(aetherFingerprint = "go"), 10819)
+            assertFalse("--tls-ciphers" in arguments)
+            assertFalse("--disable-grease" in arguments)
+        }
+        // A scan's probes send the ClientHello the tunnel will.
+        assertTrue("--disable-grease" in AetherCoreManager.buildArguments(profile().copy(aetherFingerprint = "firefox"), 0, scan = true))
     }
 
     @Test

@@ -631,7 +631,7 @@
     <string name="aether_hint_exit_loc">DE,SE chỉ cho phép các nước đó; !IR,RU từ chối các nước đó; để trống chấp nhận mọi nơi</string>
     <string name="aether_invalid_exit_loc">Hãy nhập mã quốc gia hai chữ cái, phân cách bằng dấu phẩy, thêm ! ở đầu để từ chối</string>
     <string name="aether_lab_tor_relays">Nguồn bridge</string>
-    <string name="aether_lab_advanced">Cài đặt nâng cao</string>
+    <string name="aether_lab_other_settings">Cài đặt khác</string>
     <string name="aether_lab_command">Lệnh Aether</string>
     <string name="aether_command_custom">Đã sửa tay: lệnh này chạy đúng như đã viết, các thiết lập bên trên không được áp dụng</string>
     <string name="aether_action_use_settings">Dùng thiết lập</string>
@@ -671,12 +671,15 @@
     <string name="aether_keys_kind_all">Tất cả</string>
     <string name="aether_keys_lab_enroll_address">Địa chỉ yêu cầu</string>
     <string name="aether_keys_hint_ech">Ẩn tên máy chủ trong các yêu cầu tới WARP API; không có khóa ECH dùng được thì không yêu cầu khóa WARP nào</string>
-    <string name="aether_keys_lab_fingerprint">Fingerprint</string>
+    <string name="aether_lab_fingerprint">Fingerprint</string>
     <string name="aether_keys_invalid_enroll_address">Địa chỉ yêu cầu phải là địa chỉ IP hoặc tên miền, có hoặc không có cổng, ví dụ 188.114.97.6:443 hoặc [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">Lệnh phải đăng ký khóa: --register theo sau là all, wg, masque, gool hoặc mim</string>
     <string name="aether_keys_command_custom">Đã sửa tay: lệnh này chạy đúng như đã viết; trong các thiết lập bên trên chỉ còn finalMask và dialMode của exit-node được áp dụng</string>
     <string name="aether_keys_log_empty">Đầu ra của lõi và các khóa WARP sẽ hiển thị ở đây</string>
     <string name="aether_scan_blocked">Hãy ngắt kết nối Aether trước khi quét; việc quét sẽ mở một đường hầm thứ hai bằng khóa của kết nối hiện tại</string>
+    <string name="aether_keys_missing">Bạn chưa có khóa WARP cần thiết; hãy lấy khóa trước</string>
+    <string name="aether_action_save_anyway">Vẫn lưu</string>
+    <string name="aether_action_scan_anyway">Vẫn quét</string>
     <string name="aether_chain_one_profile">Một chuỗi proxy chỉ có thể có một hồ sơ Aether</string>
     <string name="aether_exit_node_name_taken">Định tuyến ở đây dùng một hồ sơ tên exit-node, mà exit-node là tên outbound qua đó lõi Aether kết nối ra ngoài; hãy đổi tên hồ sơ đó</string>
     <string name="aether_chain_hop_missing">Không thể dựng chặng mà hồ sơ Aether trong chuỗi proxy này dùng để kết nối ra ngoài, và lõi Aether sẽ ra Internet mà không qua nó</string>

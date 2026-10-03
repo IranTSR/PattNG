@@ -46,6 +46,9 @@ interface AetherEditorSource {
     suspend fun scan(profile: ProfileItem, onOutput: (String) -> Unit): AetherScanResult?
     suspend fun identityStatus(protocol: AetherProtocol): AetherIdentityStatus
 
+    /** Which of [files], key files of the identity folder, are not there or not readable as keys. */
+    suspend fun missingKeys(files: List<String>): List<String>
+
     /** Forgets what the Psiphon client has learned, so that its next start begins again; true when it is gone. */
     suspend fun clearPsiphonData(): Boolean
 
@@ -80,6 +83,8 @@ class AetherEditorRepository(private val context: Context) : AetherEditorSource 
 
     override suspend fun identityStatus(protocol: AetherProtocol): AetherIdentityStatus =
         AetherIdentityManager.status(context, protocol)
+
+    override suspend fun missingKeys(files: List<String>): List<String> = AetherIdentityManager.missing(context, files)
 
     override suspend fun clearPsiphonData(): Boolean = withContext(Dispatchers.IO) {
         PsiphonServerList.forgetRemembered()

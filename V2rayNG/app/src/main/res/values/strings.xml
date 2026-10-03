@@ -637,7 +637,7 @@
     <string name="aether_hint_exit_loc">DE,SE allows only those; !IR,RU refuses those; blank accepts any</string>
     <string name="aether_invalid_exit_loc">Write two-letter country codes separated by commas, with a leading ! to refuse them</string>
     <string name="aether_lab_tor_relays">Bridge sources</string>
-    <string name="aether_lab_advanced">Advanced settings</string>
+    <string name="aether_lab_other_settings">Other settings</string>
     <string name="aether_lab_command">Aether command</string>
     <string name="aether_command_custom">Edited by hand: this command runs as written, and the settings above are not applied</string>
     <string name="aether_action_use_settings">Use the settings</string>
@@ -677,12 +677,15 @@
     <string name="aether_keys_kind_all">All</string>
     <string name="aether_keys_lab_enroll_address">Request address</string>
     <string name="aether_keys_hint_ech">Hides the server name of the calls to the WARP API; without a usable ECH key, no WARP key is requested</string>
-    <string name="aether_keys_lab_fingerprint">Fingerprint</string>
+    <string name="aether_lab_fingerprint">Fingerprint</string>
     <string name="aether_keys_invalid_enroll_address">The request address must be an IP address or a domain name, with or without a port, such as 188.114.97.6:443 or [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">The command has to register keys: --register followed by all, wg, masque, gool or mim</string>
     <string name="aether_keys_command_custom">Edited by hand: this command runs as written; of the settings above, only the exit-node finalMask and dialMode still apply</string>
     <string name="aether_keys_log_empty">The core\'s output and the WARP keys appear here</string>
     <string name="aether_scan_blocked">Disconnect the Aether profile before scanning; a scan would open a second tunnel on the running connection\'s key</string>
+    <string name="aether_keys_missing">You don\'t have the required WARP key; please get it first</string>
+    <string name="aether_action_save_anyway">Save anyway</string>
+    <string name="aether_action_scan_anyway">Scan anyway</string>
     <string name="aether_chain_one_profile">A proxy chain can have only one Aether profile</string>
     <string name="aether_exit_node_name_taken">A profile named exit-node is used by routing here, and exit-node is the name of the outbound the Aether core dials out by; rename that profile</string>
     <string name="aether_chain_hop_missing">The hop the Aether profile of this proxy chain dials out through could not be built, and the Aether core would reach the internet without it</string>

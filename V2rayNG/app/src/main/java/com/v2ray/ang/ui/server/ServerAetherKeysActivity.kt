@@ -186,9 +186,9 @@ class ServerAetherKeysActivity : BaseComponentActivity() {
                 keyboardType = KeyboardType.Uri
             )
         }
-        val fingerprintLabels = stringArrayResource(R.array.aether_keys_fingerprint_entries)
+        val fingerprintLabels = stringArrayResource(R.array.aether_fingerprint_entries)
         FormDropdownField(
-            label = stringResource(R.string.aether_keys_lab_fingerprint),
+            label = stringResource(R.string.aether_lab_fingerprint),
             value = fingerprintLabels.getOrElse(settings.fingerprint.ordinal) { settings.fingerprint.type },
             options = fingerprintLabels.toList(),
             onValueChange = { picked -> AetherFingerprint.entries.getOrNull(fingerprintLabels.indexOf(picked))?.let(viewModel::setFingerprint) },

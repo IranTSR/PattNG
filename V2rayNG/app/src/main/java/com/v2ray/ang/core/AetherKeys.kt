@@ -61,8 +61,7 @@ object AetherKeys {
             addAll(listOf("--ech-dns", settings.echDns.trim().ifEmpty { AppConfig.AETHER_ECH_DNS }))
             addAll(listOf("--ech-domain", settings.echDomain.trim().ifEmpty { AppConfig.AETHER_ECH_DOMAIN }))
         }
-        addAll(listOf("--tls-ciphers", settings.fingerprint.ciphers))
-        if (!settings.fingerprint.grease) add("--disable-grease")
+        addAll(settings.fingerprint.arguments)
     }
 
     /** The command line [arguments] makes of [settings], as the page shows it. */

@@ -637,7 +637,7 @@
     <string name="aether_hint_exit_loc">DE,SE разрешает только эти страны; !IR,RU запрещает их; пустое поле принимает любую</string>
     <string name="aether_invalid_exit_loc">Укажите двухбуквенные коды стран через запятую, с ! в начале для запрета</string>
     <string name="aether_lab_tor_relays">Источники мостов</string>
-    <string name="aether_lab_advanced">Дополнительные настройки</string>
+    <string name="aether_lab_other_settings">Прочие настройки</string>
     <string name="aether_lab_command">Команда Aether</string>
     <string name="aether_command_custom">Изменено вручную: эта команда выполняется как написана, настройки выше не применяются</string>
     <string name="aether_action_use_settings">Использовать настройки</string>
@@ -677,12 +677,15 @@
     <string name="aether_keys_kind_all">Все</string>
     <string name="aether_keys_lab_enroll_address">Адрес запросов</string>
     <string name="aether_keys_hint_ech">Скрывает имя сервера в запросах к WARP API; без пригодного ключа ECH ключ WARP не запрашивается</string>
-    <string name="aether_keys_lab_fingerprint">Отпечаток</string>
+    <string name="aether_lab_fingerprint">Отпечаток</string>
     <string name="aether_keys_invalid_enroll_address">Адрес запросов должен быть IP-адресом или доменным именем, с портом или без, например 188.114.97.6:443 или [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">Команда должна регистрировать ключи: --register, а за ним all, wg, masque, gool или mim</string>
     <string name="aether_keys_command_custom">Изменено вручную: команда выполняется как написана; из настроек выше действуют только finalMask и dialMode для exit-node</string>
     <string name="aether_keys_log_empty">Здесь появятся вывод ядра и ключи WARP</string>
     <string name="aether_scan_blocked">Отключите профиль Aether, прежде чем сканировать: сканирование откроет второй туннель с ключом текущего подключения</string>
+    <string name="aether_keys_missing">У вас нет нужного ключа WARP; сначала получите его</string>
+    <string name="aether_action_save_anyway">Всё равно сохранить</string>
+    <string name="aether_action_scan_anyway">Всё равно сканировать</string>
     <string name="aether_chain_one_profile">В цепочке прокси может быть только один профиль Aether</string>
     <string name="aether_exit_node_name_taken">Здесь маршрутизация использует профиль с именем exit-node, а exit-node — это имя исходящего подключения, через которое ядро Aether выходит наружу; переименуйте этот профиль</string>
     <string name="aether_chain_hop_missing">Не удалось построить звено, через которое профиль Aether в этой цепочке прокси выходит наружу, и ядро Aether вышло бы в интернет без него</string>

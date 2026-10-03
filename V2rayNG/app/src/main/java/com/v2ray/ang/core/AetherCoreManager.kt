@@ -11,6 +11,7 @@ import com.v2ray.ang.R
 import com.v2ray.ang.dto.AetherEndpoint
 import com.v2ray.ang.dto.AetherRange
 import com.v2ray.ang.dto.entities.ProfileItem
+import com.v2ray.ang.enums.AetherFingerprint
 import com.v2ray.ang.enums.AetherIpVersion
 import com.v2ray.ang.enums.AetherObfuscation
 import com.v2ray.ang.enums.AetherProtocol
@@ -242,6 +243,13 @@ object AetherCoreManager {
     fun scanPort(profile: ProfileItem): Int =
         if (AetherTor.fromString(profile.aetherTor) == AetherTor.REVERSE) Utils.findRandomFreePort() else 0
 
+    /**
+     * Whether a tunnel over MASQUE runs over HTTP/2: chosen so, or dialled through Tor or Psiphon around it, which carry
+     * TCP alone, so that the core takes HTTP/2 whatever [transport] says.
+     */
+    fun masqueOverHttp2(protocol: AetherProtocol, transport: AetherTransport, tor: AetherTor, psiphon: AetherPsiphon): Boolean =
+        protocol.overMasque && (transport == AetherTransport.HTTP2 || tor == AetherTor.REVERSE || psiphon == AetherPsiphon.REVERSE)
+
     /** True when a core on [arguments] reaches WARP through Tor or Psiphon, which then has to come up before anything else can. */
     fun reachesWarpThroughCarrier(arguments: List<String>): Boolean =
         torModeOf(arguments) == AetherTor.REVERSE || psiphonModeOf(arguments) == AetherPsiphon.REVERSE
@@ -308,17 +316,18 @@ object AetherCoreManager {
             if (psiphon != AetherPsiphon.ONLY && tor != AetherTor.ONLY) {
                 addAll(listOf("--protocol", protocol.type))
                 addAll(listOf("--scan", AetherScanMode.fromString(profile.aetherScanMode).type))
-                // Automatic obfuscation is the core's own choice per protocol, so nothing is said about it.
-                AetherObfuscation.fromString(profile.aetherObfuscation).takeUnless { it == AetherObfuscation.AUTO }
+                // Automatic obfuscation is the core's own choice per protocol, so nothing is said about it; MASQUE over
+                // HTTP/2 takes none at all, since obfuscation shapes the UDP of WireGuard and HTTP/3 alone.
+                val transport = AetherTransport.fromString(profile.aetherTransport)
+                AetherObfuscation.fromString(profile.aetherObfuscation)
+                    .takeUnless { it == AetherObfuscation.AUTO || masqueOverHttp2(protocol, transport, tor, psiphon) }
                     ?.let { addAll(listOf("--noize", it.type)) }
                 addAll(listOf("--ip", AetherIpVersion.fromString(profile.aetherIpVersion).type))
                 settingValue(profile.aetherDns)?.let { addAll(listOf("--dns", it)) }
                 // A scan keeps the exit rule as well, so that it ends on an endpoint the session will accept.
                 settingValue(profile.aetherExitLoc)?.let { addAll(listOf("--exit-loc", it)) }
 
-                if (protocol.overMasque &&
-                    AetherTransport.fromString(profile.aetherTransport) == AetherTransport.HTTP2
-                ) {
+                if (protocol.overMasque && transport == AetherTransport.HTTP2) {
                     add("--h2")
                     if (profile.aetherFragment == true) {
                         add("--fragment")
@@ -335,6 +344,9 @@ object AetherCoreManager {
                     addAll(listOf("--ech-dns", settingValue(profile.aetherEchDns) ?: AppConfig.AETHER_ECH_DNS))
                     addAll(listOf("--ech-domain", settingValue(profile.aetherEchDomain) ?: AppConfig.AETHER_ECH_DOMAIN))
                 }
+                // The ClientHello of the MASQUE handshakes, and of the WARP API calls and the ECH key lookup the core makes:
+                // over HTTP/3, which carries TLS 1.3 alone, only its GREASE shows.
+                if (protocol.overMasque) addAll(AetherFingerprint.fromString(profile.aetherFingerprint).arguments)
 
                 if (protocol.twoHops) {
                     val hop = if (protocol == AetherProtocol.MIM) "--mim" else "--wiw"

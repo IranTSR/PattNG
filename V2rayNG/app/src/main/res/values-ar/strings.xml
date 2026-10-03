@@ -641,7 +641,7 @@
     <string name="aether_hint_exit_loc">DE,SE يسمح بهذه فقط؛ !IR,RU يرفضها؛ الفراغ يقبل أي موقع</string>
     <string name="aether_invalid_exit_loc">اكتب رموز دول من حرفين مفصولة بفواصل، مع ! في البداية لرفضها</string>
     <string name="aether_lab_tor_relays">مصادر الجسور</string>
-    <string name="aether_lab_advanced">إعدادات متقدمة</string>
+    <string name="aether_lab_other_settings">إعدادات أخرى</string>
     <string name="aether_lab_command">أمر Aether</string>
     <string name="aether_command_custom">مُعدَّل يدويًا: يُنفَّذ هذا الأمر كما هو مكتوب، ولا تُطبَّق الإعدادات أعلاه</string>
     <string name="aether_action_use_settings">استخدام الإعدادات</string>
@@ -681,12 +681,15 @@
     <string name="aether_keys_kind_all">الكل</string>
     <string name="aether_keys_lab_enroll_address">عنوان الطلب</string>
     <string name="aether_keys_hint_ech">يخفي اسم الخادم في طلبات WARP API؛ بدون مفتاح ECH صالح للاستخدام لا يُطلب أي مفتاح WARP</string>
-    <string name="aether_keys_lab_fingerprint">البصمة</string>
+    <string name="aether_lab_fingerprint">البصمة</string>
     <string name="aether_keys_invalid_enroll_address">يجب أن يكون عنوان الطلب عنوان IP أو اسم نطاق، مع منفذ أو بدونه، مثل 188.114.97.6:443 أو [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">يجب أن يسجّل الأمر مفاتيح: --register متبوعًا بـ all أو wg أو masque أو gool أو mim</string>
     <string name="aether_keys_command_custom">مُعدَّل يدويًا: يُنفَّذ هذا الأمر كما هو مكتوب؛ ومن الإعدادات أعلاه لا يُطبَّق إلا finalMask وdialMode الخاصان بـ exit-node</string>
     <string name="aether_keys_log_empty">تظهر هنا مخرجات النواة ومفاتيح WARP</string>
     <string name="aether_scan_blocked">افصل ملف Aether قبل الفحص؛ الفحص سيفتح نفقًا ثانيًا بمفتاح الاتصال الحالي</string>
+    <string name="aether_keys_missing">ليس لديك مفتاح WARP المطلوب؛ احصل عليه أولًا</string>
+    <string name="aether_action_save_anyway">الحفظ على أي حال</string>
+    <string name="aether_action_scan_anyway">الفحص على أي حال</string>
     <string name="aether_chain_one_profile">لا يمكن أن تحتوي سلسلة الوكيل إلا على ملف Aether واحد</string>
     <string name="aether_exit_node_name_taken">يُستخدم ملف باسم exit-node في التوجيه هنا، وexit-node هو اسم المنفذ الصادر الذي تتصل عبره نواة Aether بالخارج؛ غيّر اسم ذلك الملف</string>
     <string name="aether_chain_hop_missing">تعذّر إنشاء القفزة التي يتصل عبرها ملف Aether في سلسلة الوكيل هذه بالخارج، وكانت نواة Aether ستصل إلى الإنترنت بدونها</string>

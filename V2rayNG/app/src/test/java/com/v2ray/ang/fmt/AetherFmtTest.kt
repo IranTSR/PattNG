@@ -66,7 +66,8 @@ class AetherFmtTest {
         assertEquals("masque", parsed?.aetherProtocol)
         assertEquals("h2", parsed?.aetherTransport)
         assertEquals("verified", parsed?.aetherScanMode)
-        assertEquals("aggressive", parsed?.aetherObfuscation)
+        // Over HTTP/2 obfuscation does nothing, and the link leaves it out.
+        assertEquals("auto", parsed?.aetherObfuscation)
         assertEquals("both", parsed?.aetherIpVersion)
         assertEquals(true, parsed?.aetherFragment)
     }
@@ -291,6 +292,33 @@ class AetherFmtTest {
             AetherFmt.normalize(profile { aetherPsiphon = "chain"; aetherTor = "reverse" }, takenPorts = setOf(10821))
         )
         assertNull(AetherFmt.normalize(profile { aetherPsiphon = "chain"; aetherTor = "reverse" }, takenPorts = setOf(10822)))
+    }
+
+    @Test
+    fun theFingerprintRidesWithMasqueAndChromesStaysOutOfALink() {
+        for (fingerprint in listOf("firefox", "python", "go")) {
+            for (transport in AetherTransport.entries) {
+                val text = link(profile { aetherTransport = transport.type; aetherFingerprint = fingerprint })
+                assertTrue(text, text.contains("fingerprint=$fingerprint"))
+                assertEquals(fingerprint, AetherFmt.parse(text)?.aetherFingerprint)
+            }
+        }
+        val chrome = link(profile { aetherFingerprint = "chrome" })
+        assertFalse(chrome.contains("fingerprint="))
+        assertNull(AetherFmt.parse(chrome)?.aetherFingerprint)
+        // WireGuard has no TLS handshake of its own to shape.
+        assertFalse(link(profile { aetherProtocol = AetherProtocol.WIREGUARD.type; aetherFingerprint = "go" }).contains("fingerprint="))
+    }
+
+    @Test
+    fun obfuscationStaysOutOfTheLinkOfMasqueOverHttp2() {
+        assertTrue(link(profile {}).contains("noize=balanced"))
+        assertFalse(link(profile { aetherTransport = AetherTransport.HTTP2.type }).contains("noize="))
+        // Tor or Psiphon around the tunnel carry TCP alone, so the core takes HTTP/2 whatever the transport says.
+        assertFalse(link(profile { aetherPsiphon = "reverse" }).contains("noize="))
+        assertFalse(link(profile { aetherTor = "reverse" }).contains("noize="))
+        // WireGuard keeps it whatever the transport says.
+        assertTrue(link(profile { aetherProtocol = AetherProtocol.WIREGUARD.type; aetherTransport = AetherTransport.HTTP2.type }).contains("noize=balanced"))
     }
 
     @Test

@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import com.v2ray.ang.R
 import com.v2ray.ang.core.AetherIdentity
+import com.v2ray.ang.core.AetherIdentityManager
 import com.v2ray.ang.core.AetherIdentityStatus
 import com.v2ray.ang.core.AetherScanResult
 import com.v2ray.ang.dto.AetherEndpoint
@@ -43,6 +44,7 @@ class ServerAetherViewModelTest {
         var regions: List<String> = emptyList()
         var port = 10819
         val identities = mutableMapOf<AetherProtocol, AetherIdentityStatus>()
+        val missingFiles = mutableSetOf<String>()
 
         override suspend fun isCoreAvailable() = available
         override suspend fun isPsiphonAvailable(): Boolean = false
@@ -52,6 +54,7 @@ class ServerAetherViewModelTest {
         override suspend fun identityStatus(protocol: AetherProtocol) =
             identities[protocol] ?: AetherIdentityStatus(protocol, null)
 
+        override suspend fun missingKeys(files: List<String>) = files.filter { it in missingFiles }
         override suspend fun clearPsiphonData() = clearer()
         override suspend fun psiphonRegions() = regions
         override suspend fun listenPort() = port
@@ -366,6 +369,72 @@ class ServerAetherViewModelTest {
         viewModel.scan(profile)
         assertEquals(1, scans)
         assertEquals(AetherScanState.Found(found), viewModel.scanState.value)
+    }
+
+    @Test
+    fun aScanWhoseKeysAreMissingAsksFirstAndGoesAheadWhenToldTo() {
+        var scans = 0
+        source.scanner = { _, _ -> scans++; found }
+        source.missingFiles += AetherIdentityManager.MASQUE_FILE
+        val viewModel = viewModel()
+        assertNull(viewModel.keysCheck.value)
+
+        viewModel.scan(profile)
+        assertEquals(0, scans)
+        assertEquals(AetherScanState.Idle, viewModel.scanState.value)
+        assertEquals(AetherKeysCheck.Missing(scan = true), viewModel.keysCheck.value)
+        assertTrue(viewModel.log.value.isEmpty())
+
+        viewModel.onKeysCheckHandled()
+        assertNull(viewModel.keysCheck.value)
+        viewModel.scan(profile, anyway = true)
+        assertEquals(1, scans)
+        assertNull(viewModel.keysCheck.value)
+        assertEquals(AetherScanState.Found(found), viewModel.scanState.value)
+    }
+
+    @Test
+    fun aScanNeedsOnlyTheKeysOfItsProtocol() {
+        var scans = 0
+        source.scanner = { _, _ -> scans++; null }
+        source.missingFiles += listOf(AetherIdentityManager.MASQUE_FILE, AetherIdentityManager.MASQUE_INNER_FILE)
+        val viewModel = viewModel()
+
+        viewModel.scan(profile.copy(aetherProtocol = AetherProtocol.WIREGUARD.type))
+        assertEquals(1, scans)
+        assertNull(viewModel.keysCheck.value)
+
+        viewModel.onScanHandled()
+        viewModel.scan(profile.copy(aetherProtocol = AetherProtocol.MIM.type))
+        assertEquals(1, scans)
+        assertEquals(AetherKeysCheck.Missing(scan = true), viewModel.keysCheck.value)
+    }
+
+    @Test
+    fun aSaveGoesOnOnlyWhenTheKeysTheProfileNeedsAreThere() {
+        val viewModel = viewModel()
+
+        viewModel.checkKeysBeforeSave(profile)
+        assertEquals(AetherKeysCheck.SaveReady, viewModel.keysCheck.value)
+        viewModel.onKeysCheckHandled()
+        assertNull(viewModel.keysCheck.value)
+
+        // A MASQUE profile needs no inner hop key; masque-in-masque does.
+        source.missingFiles += AetherIdentityManager.MASQUE_INNER_FILE
+        viewModel.checkKeysBeforeSave(profile)
+        assertEquals(AetherKeysCheck.SaveReady, viewModel.keysCheck.value)
+        viewModel.checkKeysBeforeSave(profile.copy(aetherProtocol = AetherProtocol.MIM.type))
+        assertEquals(AetherKeysCheck.Missing(scan = false), viewModel.keysCheck.value)
+
+        // A command written by hand counts as it runs.
+        source.missingFiles += AetherIdentityManager.WIREGUARD_FILE
+        viewModel.checkKeysBeforeSave(profile.copy(aetherCommand = "aether --bind 127.0.0.1:10819 --protocol wg"))
+        assertEquals(AetherKeysCheck.Missing(scan = false), viewModel.keysCheck.value)
+
+        // Psiphon alone needs no WARP key at all.
+        source.missingFiles += AetherIdentityManager.KEY_FILES
+        viewModel.checkKeysBeforeSave(profile.copy(aetherPsiphon = "only"))
+        assertEquals(AetherKeysCheck.SaveReady, viewModel.keysCheck.value)
     }
 
     @Test

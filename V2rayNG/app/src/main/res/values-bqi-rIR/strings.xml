@@ -633,7 +633,7 @@
     <string name="aether_hint_exit_loc">DE,SE فقط هموناره مجاز اکنه؛ !IR,RU اونونه رد اکنه؛ خالی یعنی هر ولاتی</string>
     <string name="aether_invalid_exit_loc">کدیای دوحرفی ولات نه وا کاما سوا بنویسین، وا ! من اول سی رد کردن</string>
     <string name="aether_lab_tor_relays">منبع پل‌یا</string>
-    <string name="aether_lab_advanced">تنظیمات پیشرفته</string>
+    <string name="aether_lab_other_settings">تنظیمات دیه</string>
     <string name="aether_lab_command">فرمان Aether</string>
     <string name="aether_command_custom">وا دست ویرایش بیده: ای فرمان همی‌طور که نوشته بیده اجرا ابۊ وو تنظیمات بالا اعمال نیبۊن</string>
     <string name="aether_action_use_settings">استفاده زه تنظیمات</string>
@@ -673,12 +673,15 @@
     <string name="aether_keys_kind_all">همه</string>
     <string name="aether_keys_lab_enroll_address">نشونی درخواست</string>
     <string name="aether_keys_hint_ech">نوم سرور من درخواستا WARP API قایم اکنه؛ بی کلید ECH قابل استفاده، هیچ کلید WARP درخواست نیبۊ</string>
-    <string name="aether_keys_lab_fingerprint">جا کلک</string>
+    <string name="aether_lab_fingerprint">جا کلک</string>
     <string name="aether_keys_invalid_enroll_address">نشونی درخواست باید یه نشونی IP یا نوم دامنه بۊ، با پورت یا بی پورت، چی 188.114.97.6:443 یا [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">فرمان باید کلید ثبت کنه: --register وو پشت سرس all، wg، masque، gool یا mim</string>
     <string name="aether_keys_command_custom">وا دست ویرایش بیده: ای فرمان همی‌طور که نوشته بیده اجرا ابۊ؛ ز تنظیمات بالا تنها finalMask وو dialMode سی exit-node اعمال ابۊن</string>
     <string name="aether_keys_log_empty">خروجی هسته وو کلیدا WARP ایچو نشووݩ داڌه ابۊن</string>
     <string name="aether_scan_blocked">پیش زه اسکن، اتصال Aether نه قطع کنین؛ اسکن یه تونل دوم وا کلید اتصال ایسا وا ایکنه</string>
+    <string name="aether_keys_missing">کلید WARP لازم نه ندارین؛ اول اونه بگیرین</string>
+    <string name="aether_action_save_anyway">هر طور بۊ ذخیره کن</string>
+    <string name="aether_action_scan_anyway">هر طور بۊ اسکن کن</string>
     <string name="aether_chain_one_profile">یه زنجیره پروکسی فقط ایتره یه پروفایل Aether داشته بۊ</string>
     <string name="aether_exit_node_name_taken">یه پروفایل وا نوم exit-node ایچو من مسیریابی استفاده ابۊ، وو exit-node نوم outbound ـیه که هسته Aether زه ری وو بیرون وصل ابۊ؛ نوم او پروفایل نه آلشت کنین</string>
     <string name="aether_chain_hop_missing">گامی که پروفایل Aether ای زنجیره پروکسی زه ری وو بیرون وصل ابۊ ساخته نبی، وو هسته Aether بی او وو اینترنت ارسی</string>

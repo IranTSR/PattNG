@@ -256,6 +256,10 @@ enum class AetherFingerprint(val type: String, val ciphers: String, val grease: 
         false,
     );
 
+    /** The core's options for this fingerprint: its TLS 1.2 suites, and GREASE left out where it sends none. */
+    val arguments: List<String>
+        get() = listOf("--tls-ciphers", ciphers) + if (grease) emptyList() else listOf("--disable-grease")
+
     companion object {
         fun fromString(type: String?) = entries.find { it.type == type } ?: CHROME
     }

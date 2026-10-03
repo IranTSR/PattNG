@@ -6,8 +6,10 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
+import com.v2ray.ang.core.AetherCore
 import com.v2ray.ang.core.AetherCoreManager
 import com.v2ray.ang.core.AetherIdentity
+import com.v2ray.ang.core.AetherIdentityManager
 import com.v2ray.ang.core.AetherIdentityStatus
 import com.v2ray.ang.core.AetherScanResult
 import com.v2ray.ang.dto.entities.ProfileItem
@@ -26,6 +28,15 @@ sealed interface AetherScanState {
     data object Scanning : AetherScanState
     data class Found(val result: AetherScanResult) : AetherScanState
     data object NotFound : AetherScanState
+}
+
+/** What a check of the WARP keys a profile needs ends with, for the screen to act on once. */
+sealed interface AetherKeysCheck {
+    /** Every key the profile needs is there: the save goes on. */
+    data object SaveReady : AetherKeysCheck
+
+    /** A key the profile needs, or its scan when [scan], is missing: the screen asks whether to get it first. */
+    data class Missing(val scan: Boolean) : AetherKeysCheck
 }
 
 sealed interface AetherLogText {
@@ -73,6 +84,9 @@ class ServerAetherViewModel(
     private val _log = MutableStateFlow<List<AetherLogEntry>>(emptyList())
     val log: StateFlow<List<AetherLogEntry>> = _log.asStateFlow()
 
+    private val _keysCheck = MutableStateFlow<AetherKeysCheck?>(null)
+    val keysCheck: StateFlow<AetherKeysCheck?> = _keysCheck.asStateFlow()
+
     private val nextLogId = AtomicLong()
     private var scanJob: Job? = null
     private var reportedIdentity: AetherIdentityStatus? = null
@@ -93,7 +107,11 @@ class ServerAetherViewModel(
         viewModelScope.launch { _session.value = source.activeSession() }
     }
 
-    fun scan(profile: ProfileItem) {
+    /**
+     * Scans for an endpoint of [profile]. Unless [anyway], a scan whose protocol lacks a WARP key does not start, and
+     * [keysCheck] asks first whether to get the key; the core would register it on its own.
+     */
+    fun scan(profile: ProfileItem, anyway: Boolean = false) {
         if (isBusy) return
         _scanState.value = AetherScanState.Scanning
         scanJob = viewModelScope.launch {
@@ -105,6 +123,14 @@ class ServerAetherViewModel(
                     _scanState.value = AetherScanState.Idle
                     append(Log.WARN, AetherLogText.Resource(R.string.aether_scan_blocked))
                     return@launch
+                }
+                if (!anyway) {
+                    val needed = AetherIdentityManager.filesNeededBy(AetherCoreManager.buildArguments(profile, 0, scan = true))
+                    if (source.missingKeys(needed).isNotEmpty()) {
+                        _scanState.value = AetherScanState.Idle
+                        _keysCheck.value = AetherKeysCheck.Missing(scan = true)
+                        return@launch
+                    }
                 }
                 append(Log.INFO, AetherLogText.Resource(R.string.aether_log_scan_started))
                 val result = source.scan(profile, ::appendOutput)
@@ -130,6 +156,22 @@ class ServerAetherViewModel(
         if (_scanState.value != AetherScanState.Scanning) {
             _scanState.value = AetherScanState.Idle
         }
+    }
+
+    /**
+     * Looks whether the WARP keys [profile] needs are there before it is saved: [keysCheck] then says
+     * [AetherKeysCheck.SaveReady], or [AetherKeysCheck.Missing] for the screen to ask first. A profile that
+     * runs Psiphon or Tor alone needs none.
+     */
+    fun checkKeysBeforeSave(profile: ProfileItem) {
+        viewModelScope.launch {
+            val needed = AetherIdentityManager.filesNeededBy(AetherCore.of(profile, _listenPort.value).arguments)
+            _keysCheck.value = if (source.missingKeys(needed).isEmpty()) AetherKeysCheck.SaveReady else AetherKeysCheck.Missing(scan = false)
+        }
+    }
+
+    fun onKeysCheckHandled() {
+        _keysCheck.value = null
     }
 
     fun showIdentity(protocol: AetherProtocol) {

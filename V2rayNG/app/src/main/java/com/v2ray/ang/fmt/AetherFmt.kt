@@ -6,6 +6,7 @@ import com.v2ray.ang.core.AetherCoreManager
 import com.v2ray.ang.dto.AetherEndpoint
 import com.v2ray.ang.dto.AetherRange
 import com.v2ray.ang.dto.entities.ProfileItem
+import com.v2ray.ang.enums.AetherFingerprint
 import com.v2ray.ang.enums.AetherIpVersion
 import com.v2ray.ang.enums.AetherObfuscation
 import com.v2ray.ang.enums.AetherProtocol
@@ -63,6 +64,7 @@ object AetherFmt : FmtBase() {
         // A value the core would not take is left out; the profile then follows the default.
         config.aetherEchDns = queryParam["ech_dns"]?.trim()?.takeIf { config.aetherEch == true && isEchDns(it) }
         config.aetherEchDomain = queryParam["ech_domain"]?.trim()?.takeIf { config.aetherEch == true && isEchDomain(it) }
+        config.aetherFingerprint = queryParam["fingerprint"]?.let { AetherFingerprint.fromString(it).type }
         config.aetherDns = queryParam["dns"]
         config.aetherExitLoc = queryParam["exit_loc"]
         // A link from before the Aether listen port was one setting for every profile may name a port of its own, which counts no more.
@@ -101,8 +103,16 @@ object AetherFmt : FmtBase() {
             "protocol" to protocol.type,
             "scan" to AetherScanMode.fromString(config.aetherScanMode).type,
         )
-        // Automatic obfuscation is the core's own choice per protocol; a link says nothing about it.
-        AetherObfuscation.fromString(config.aetherObfuscation).takeUnless { it == AetherObfuscation.AUTO }?.let { query["noize"] = it.type }
+        // Automatic obfuscation is the core's own choice per protocol, and MASQUE over HTTP/2 takes none; a link says nothing about either.
+        val overHttp2 = AetherCoreManager.masqueOverHttp2(
+            protocol,
+            AetherTransport.fromString(config.aetherTransport),
+            AetherTor.fromString(config.aetherTor),
+            AetherPsiphon.fromString(config.aetherPsiphon),
+        )
+        AetherObfuscation.fromString(config.aetherObfuscation)
+            .takeUnless { it == AetherObfuscation.AUTO || overHttp2 }
+            ?.let { query["noize"] = it.type }
         query["ip"] = AetherIpVersion.fromString(config.aetherIpVersion).type
         config.aetherDns?.takeIf { it.isNotBlank() }?.let { query["dns"] = it }
         config.aetherExitLoc?.takeIf { it.isNotBlank() }?.let { query["exit_loc"] = it }
@@ -120,6 +130,9 @@ object AetherFmt : FmtBase() {
                 config.aetherEchDns?.takeIf { it.isNotBlank() }?.let { query["ech_dns"] = it }
                 config.aetherEchDomain?.takeIf { it.isNotBlank() }?.let { query["ech_domain"] = it }
             }
+            // Chrome's is the default and needs no word.
+            AetherFingerprint.fromString(config.aetherFingerprint).takeUnless { it == AetherFingerprint.CHROME }
+                ?.let { query["fingerprint"] = it.type }
         }
         if (protocol.twoHops) {
             AetherEndpoint.parse(config.aetherWiwOuter)?.let { query["outer"] = it.toString() }

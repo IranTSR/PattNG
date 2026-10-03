@@ -15,6 +15,7 @@ import com.v2ray.ang.AppConfig.WIREGUARD_LOCAL_REMOTE_DNS
 import com.v2ray.ang.core.AetherCore
 import com.v2ray.ang.core.AetherCoreManager
 import com.v2ray.ang.dto.entities.ProfileItem
+import com.v2ray.ang.enums.AetherFingerprint
 import com.v2ray.ang.enums.AetherIpVersion
 import com.v2ray.ang.enums.AetherObfuscation
 import com.v2ray.ang.enums.AetherProtocol
@@ -88,6 +89,7 @@ class ServerUiState(
     aetherTransport: String = AetherTransport.HTTP3.type,
     aetherScanMode: String = AetherScanMode.BALANCED.type,
     aetherObfuscation: String = AetherObfuscation.AUTO.type,
+    aetherFingerprint: String = AetherFingerprint.CHROME.type,
     aetherIpVersion: String = AetherIpVersion.V4.type,
     aetherWiwOuter: String = "",
     aetherWiwInner: String = "",
@@ -168,6 +170,7 @@ class ServerUiState(
     var aetherTransport by mutableStateOf(aetherTransport)
     var aetherScanMode by mutableStateOf(aetherScanMode)
     var aetherObfuscation by mutableStateOf(aetherObfuscation)
+    var aetherFingerprint by mutableStateOf(aetherFingerprint)
     var aetherIpVersion by mutableStateOf(aetherIpVersion)
     var aetherWiwOuter by mutableStateOf(aetherWiwOuter)
     var aetherWiwInner by mutableStateOf(aetherWiwInner)
@@ -206,12 +209,10 @@ class ServerUiState(
      * Whether an Aether setting the editor keeps folded away holds a value of its own, so that the
      * folded section opens by itself and nothing set stays out of sight.
      */
-    val hasAdvancedAetherSettings: Boolean
+    val hasOtherAetherSettings: Boolean
         get() = aetherDns.isNotBlank() ||
             aetherExitLoc.isNotBlank() ||
-            (targetStrategy.isNotBlank() && targetStrategy != TARGET_STRATEGY_AS_IS) ||
-            finalMask.isNotBlank() ||
-            dialMode.isNotBlank()
+            (targetStrategy.isNotBlank() && targetStrategy != TARGET_STRATEGY_AS_IS)
 
     var isRemarksError by mutableStateOf(false)
     var isAddressError by mutableStateOf(false)
@@ -300,6 +301,7 @@ class ServerUiState(
             aetherTransport = if (isAether) aetherTransport else null,
             aetherScanMode = if (isAether) aetherScanMode else null,
             aetherObfuscation = if (isAether) aetherObfuscation else null,
+            aetherFingerprint = if (isAether) aetherFingerprint else null,
             aetherIpVersion = if (isAether) aetherIpVersion else null,
             aetherWiwOuter = if (isAether) aetherWiwOuter.nullIfBlank() else null,
             aetherWiwInner = if (isAether) aetherWiwInner.nullIfBlank() else null,
@@ -392,6 +394,7 @@ class ServerUiState(
                 aetherTransport = AetherTransport.fromString(initialConfig.aetherTransport).type,
                 aetherScanMode = AetherScanMode.fromString(initialConfig.aetherScanMode).type,
                 aetherObfuscation = AetherObfuscation.fromString(initialConfig.aetherObfuscation).type,
+                aetherFingerprint = AetherFingerprint.fromString(initialConfig.aetherFingerprint).type,
                 aetherIpVersion = AetherIpVersion.fromString(initialConfig.aetherIpVersion).type,
                 aetherWiwOuter = initialConfig.aetherWiwOuter ?: "",
                 aetherWiwInner = initialConfig.aetherWiwInner ?: "",

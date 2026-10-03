@@ -2,6 +2,7 @@ package com.v2ray.ang.ui.server
 
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.entities.ProfileItem
+import com.v2ray.ang.enums.AetherFingerprint
 import com.v2ray.ang.enums.AetherIpVersion
 import com.v2ray.ang.enums.AetherObfuscation
 import com.v2ray.ang.enums.AetherProtocol
@@ -208,29 +209,39 @@ class ServerUiStateTest {
     fun theFoldedSettingsAnnounceThemselvesOnlyWhenOneHoldsAValue() {
         val state = ServerUiState.from(ProfileItem.create(EConfigType.AETHER))
         assertEquals(AetherIpVersion.V4.type, state.aetherIpVersion)
-        assertEquals(false, state.hasAdvancedAetherSettings)
+        assertEquals(false, state.hasOtherAetherSettings)
 
         // The IP version stands outside the fold, so it does not count.
         state.aetherIpVersion = AetherIpVersion.DUAL.type
-        assertEquals(false, state.hasAdvancedAetherSettings)
+        assertEquals(false, state.hasOtherAetherSettings)
 
         state.aetherDns = "1.1.1.1"
-        assertEquals(true, state.hasAdvancedAetherSettings)
+        assertEquals(true, state.hasOtherAetherSettings)
         state.aetherDns = ""
         state.aetherExitLoc = "!IR"
-        assertEquals(true, state.hasAdvancedAetherSettings)
+        assertEquals(true, state.hasOtherAetherSettings)
         state.aetherExitLoc = ""
         state.targetStrategy = "UseIPv4v6"
-        assertEquals(true, state.hasAdvancedAetherSettings)
+        assertEquals(true, state.hasOtherAetherSettings)
         state.targetStrategy = ""
-        // The exit-node's finalMask and dialMode sit in the fold as well.
+        // The exit-node's finalMask and dialMode stand outside the fold, after the fingerprint.
         state.finalMask = """{"tcp": []}"""
-        assertEquals(true, state.hasAdvancedAetherSettings)
-        state.finalMask = " "
         state.dialMode = "custom"
-        assertEquals(true, state.hasAdvancedAetherSettings)
-        state.dialMode = ""
-        assertEquals(false, state.hasAdvancedAetherSettings)
+        assertEquals(false, state.hasOtherAetherSettings)
+    }
+
+    @Test
+    fun theFingerprintStartsAsChromesAndIsStoredAsChosen() {
+        val state = ServerUiState.from(ProfileItem.create(EConfigType.AETHER))
+        assertEquals(AetherFingerprint.CHROME.type, state.aetherFingerprint)
+
+        state.aetherFingerprint = AetherFingerprint.GO.type
+        val stored = state.toProfileItem(ProfileItem.create(EConfigType.AETHER))
+        assertEquals("go", stored.aetherFingerprint)
+        assertEquals("go", ServerUiState.from(stored).aetherFingerprint)
+
+        // A value no build wrote reads as Chrome's.
+        assertEquals("chrome", ServerUiState.from(stored.copy(aetherFingerprint = "lynx")).aetherFingerprint)
     }
 
     @Test

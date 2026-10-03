@@ -631,7 +631,7 @@
     <string name="aether_hint_exit_loc">DE,SE 表示只允许这些；!IR,RU 表示拒绝这些；留空则接受任意</string>
     <string name="aether_invalid_exit_loc">请填写以逗号分隔的两位国家代码，前加 ! 表示拒绝</string>
     <string name="aether_lab_tor_relays">网桥来源</string>
-    <string name="aether_lab_advanced">高级设置</string>
+    <string name="aether_lab_other_settings">其他设置</string>
     <string name="aether_lab_command">Aether 命令</string>
     <string name="aether_command_custom">已手动编辑：此命令按原样运行，上面的设置不再生效</string>
     <string name="aether_action_use_settings">使用上方设置</string>
@@ -671,12 +671,15 @@
     <string name="aether_keys_kind_all">全部</string>
     <string name="aether_keys_lab_enroll_address">请求地址</string>
     <string name="aether_keys_hint_ech">隐藏 WARP API 请求中的服务器名称；没有可用的 ECH 密钥时不会请求 WARP 密钥</string>
-    <string name="aether_keys_lab_fingerprint">Fingerprint</string>
+    <string name="aether_lab_fingerprint">Fingerprint</string>
     <string name="aether_keys_invalid_enroll_address">请求地址必须是 IP 地址或域名，可带端口，例如 188.114.97.6:443 或 [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">命令必须注册密钥：--register 后跟 all、wg、masque、gool 或 mim</string>
     <string name="aether_keys_command_custom">已手动编辑：此命令按原样执行；上方设置中只有 exit-node 的 finalMask 和 dialMode 仍然生效</string>
     <string name="aether_keys_log_empty">内核输出和 WARP 密钥会显示在这里</string>
     <string name="aether_scan_blocked">请先断开 Aether 连接，再进行扫描；扫描会使用当前连接的密钥打开第二条隧道</string>
+    <string name="aether_keys_missing">缺少所需的 WARP 密钥，请先获取</string>
+    <string name="aether_action_save_anyway">仍然保存</string>
+    <string name="aether_action_scan_anyway">仍然扫描</string>
     <string name="aether_chain_one_profile">一个代理链只能包含一个 Aether 配置</string>
     <string name="aether_exit_node_name_taken">此处路由使用了名为 exit-node 的配置，而 exit-node 是 Aether 内核向外连接所经出站的名称；请重命名该配置</string>
     <string name="aether_chain_hop_missing">无法构建此代理链中 Aether 配置向外连接所经的那一跳，Aether 内核将会不经它直接连接互联网</string>
