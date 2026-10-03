@@ -240,6 +240,23 @@
         <item>Python</item>
         <item>Go</item>
     </string-array>
+    <!-- The resolvers and the domains the ECH fields offer, the default first; either field takes any other value the core does. -->
+    <string-array name="aether_ech_dns_options" translatable="false">
+        <item>udp://1.1.1.1</item>
+        <item>udp://8.8.8.8</item>
+        <item>https://1.1.1.1/dns-query@sni=www.microsoft.com</item>
+        <item>https://doq.dns4all.eu/dns-query@address=194.0.5.3</item>
+        <item>tcp://1.1.1.1</item>
+        <item>tcp://8.8.8.8</item>
+    </string-array>
+    <string-array name="aether_ech_domain_options" translatable="false">
+        <item>cloudflare-ech.com</item>
+        <item>crypto.cloudflare.com</item>
+        <item>ip.gs</item>
+        <item>api.cloudflareclient.com</item>
+        <item>consumer-masque.cloudflareclient.com</item>
+        <item>consumer-masque-proxy.cloudflareclient.com</item>
+    </string-array>
     <string-array name="aether_fingerprint_values" translatable="false">
         <item>chrome</item>
         <item>firefox</item>

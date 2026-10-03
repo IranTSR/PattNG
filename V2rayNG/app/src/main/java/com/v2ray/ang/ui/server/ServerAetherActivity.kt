@@ -235,17 +235,22 @@ class ServerAetherActivity : BaseServerActivity() {
                         onCheckedChange = { uiState.aetherEch = it }
                     )
                     // Where the key comes from: the HTTPS record of the ECH domain, asked of the ECH DNS.
+                    // Lists to pick from, which take any other value the core does as well.
                     if (uiState.aetherEch) {
-                        FormTextField(
-                            stringResource(R.string.aether_lab_ech_dns),
-                            uiState.aetherEchDns,
-                            { uiState.aetherEchDns = it },
+                        FormDropdownField(
+                            label = stringResource(R.string.aether_lab_ech_dns),
+                            value = uiState.aetherEchDns,
+                            options = stringArrayResource(R.array.aether_ech_dns_options).toList(),
+                            onValueChange = { uiState.aetherEchDns = it },
+                            editable = true,
                             keyboardType = KeyboardType.Uri
                         )
-                        FormTextField(
-                            stringResource(R.string.aether_lab_ech_domain),
-                            uiState.aetherEchDomain,
-                            { uiState.aetherEchDomain = it },
+                        FormDropdownField(
+                            label = stringResource(R.string.aether_lab_ech_domain),
+                            value = uiState.aetherEchDomain,
+                            options = stringArrayResource(R.array.aether_ech_domain_options).toList(),
+                            onValueChange = { uiState.aetherEchDomain = it },
+                            editable = true,
                             keyboardType = KeyboardType.Uri
                         )
                     }

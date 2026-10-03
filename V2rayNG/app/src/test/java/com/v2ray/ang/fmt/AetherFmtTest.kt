@@ -365,6 +365,13 @@ class AetherFmtTest {
             "udp://2606:4700::1111",
             "https://doq.dns4all.eu/dns-query",
             "https://1.1.1.1:8443/dns-query",
+            // Where the connection goes and what the ClientHello names, each once and in either order.
+            "https://1.1.1.1/dns-query@sni=www.microsoft.com",
+            "https://doq.dns4all.eu/dns-query@address=194.0.5.3",
+            "https://doq.dns4all.eu/dns-query@address=2.2.2.2@sni=google.com",
+            "https://doq.dns4all.eu/dns-query@SNI=google.com@address=[2606:4700::1111]",
+            "https://doq.dns4all.eu/dns-query@address=2606:4700::1111",
+            "https://doq.dns4all.eu/dns-query@address=front.example.net",
         )
         for (dns in good) {
             val config = profile { aetherEch = true; aetherEchDns = " $dns " }
@@ -390,6 +397,18 @@ class AetherFmtTest {
             "udp://\uff11.\uff11.\uff11.\uff11",
             "https://dns example/dns-query",
             "https://dns.example/dns-query?x='1'",
+            // What the core refuses after a DoH URL: an empty or unusable setting, a port, an IP address as the
+            // server name, a setting named twice or one it does not know.
+            "https://@address=2.2.2.2",
+            "https://doq.dns4all.eu/dns-query@address=",
+            "https://doq.dns4all.eu/dns-query@address=2.2.2.2:443",
+            "https://doq.dns4all.eu/dns-query@sni=",
+            "https://doq.dns4all.eu/dns-query@sni=2.2.2.2",
+            "https://doq.dns4all.eu/dns-query@sni=[::1]",
+            "https://doq.dns4all.eu/dns-query@sni=google.com@sni=bing.com",
+            "https://doq.dns4all.eu/dns-query@address=1.1.1.1@address=2.2.2.2",
+            "https://doq.dns4all.eu/dns-query@port=443",
+            "https://doq.dns4all.eu/dns-query@google.com",
         )
         for (dns in bad) {
             assertEquals(dns, AetherFmt.Problem.INVALID_ECH_DNS, AetherFmt.normalize(profile { aetherEch = true; aetherEchDns = dns }))

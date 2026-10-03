@@ -169,19 +169,24 @@ class ServerAetherKeysActivity : BaseComponentActivity() {
             onCheckedChange = viewModel::setEch,
             enabled = enabled
         )
-        // Where the key comes from: the HTTPS record of the ECH domain, asked of the ECH DNS.
+        // Where the key comes from: the HTTPS record of the ECH domain, asked of the ECH DNS. Lists to pick from, as in
+        // the Aether editor, which take any other value the core does as well.
         if (settings.ech) {
-            FormTextField(
-                stringResource(R.string.aether_lab_ech_dns),
-                settings.echDns,
-                viewModel::setEchDns,
+            FormDropdownField(
+                label = stringResource(R.string.aether_lab_ech_dns),
+                value = settings.echDns,
+                options = stringArrayResource(R.array.aether_ech_dns_options).toList(),
+                onValueChange = viewModel::setEchDns,
+                editable = true,
                 enabled = enabled,
                 keyboardType = KeyboardType.Uri
             )
-            FormTextField(
-                stringResource(R.string.aether_lab_ech_domain),
-                settings.echDomain,
-                viewModel::setEchDomain,
+            FormDropdownField(
+                label = stringResource(R.string.aether_lab_ech_domain),
+                value = settings.echDomain,
+                options = stringArrayResource(R.array.aether_ech_domain_options).toList(),
+                onValueChange = viewModel::setEchDomain,
+                editable = true,
                 enabled = enabled,
                 keyboardType = KeyboardType.Uri
             )

@@ -251,7 +251,7 @@ object AetherFmt : FmtBase() {
     /**
      * Whether [value] names a resolver the core asks for the ECH key, as its --ech-dns takes it: udp:// or tcp:// and
      * an IP address, on port 53 unless one is given, or the https:// URL of a DNS-over-HTTPS server, on port 443
-     * unless it names one.
+     * unless it names one, with @address= and @sni= after it if need be, see [isDohEndpoint].
      */
     internal fun isEchDns(value: String): Boolean {
         // Quotes would not come back from the command line the editor shows, which is split into words.
@@ -259,7 +259,7 @@ object AetherFmt : FmtBase() {
         val scheme = value.substringBefore("://", "").lowercase(Locale.ROOT)
         val rest = value.substringAfter("://", "")
         return when (scheme) {
-            "https" -> rest.takeWhile { it !in "/?#" }.isNotEmpty()
+            "https" -> isDohEndpoint(rest)
             "udp", "tcp" -> rest.trimEnd('/').let { address ->
                 // As the core reads an address: ASCII digits only, and brackets around an IPv6 address alone.
                 address.all { it.code < 0x80 } &&
@@ -268,6 +268,31 @@ object AetherFmt : FmtBase() {
             }
             else -> false
         }
+    }
+
+    /**
+     * Whether [rest], what follows https://, names a DNS-over-HTTPS server as the core reads one: a URL with a host,
+     * then @address= an IP address or a domain name, where the connection goes on the URL's port, and @sni= a domain
+     * name, which the ClientHello names, each at most once and in either order. Left out, the connection goes to the
+     * URL's host and the ClientHello names it, or names nothing when it is an IP address.
+     */
+    private fun isDohEndpoint(rest: String): Boolean {
+        val pieces = rest.split('@')
+        if (pieces.first().takeWhile { it !in "/?#" }.isEmpty()) return false
+        val named = mutableSetOf<String>()
+        for (piece in pieces.drop(1)) {
+            if ('=' !in piece) return false
+            val name = piece.substringBefore('=').lowercase(Locale.ROOT)
+            val setting = piece.substringAfter('=')
+            val isAddress = AetherEndpoint.of(setting, "443") != null
+            val fits = when (name) {
+                "address" -> isAddress || isEchDomain(setting)
+                "sni" -> !isAddress && isEchDomain(setting)
+                else -> false
+            }
+            if (!fits || !named.add(name)) return false
+        }
+        return true
     }
 
     /**
