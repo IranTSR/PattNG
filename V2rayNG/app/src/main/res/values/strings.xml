@@ -132,6 +132,10 @@
     <string name="server_lab_xhttp_mode">XHTTP Mode</string>
     <string name="server_lab_xhttp_extra">XHTTP Extra raw JSON, format: { XHTTPObject }</string>
     <string name="server_lab_final_mask">finalMask raw JSON, format: { FinalMaskObject }</string>
+    <string name="final_mask_replace_title">Replace the finalMask?</string>
+    <string name="final_mask_replace_message">The current JSON is not on the list and will be lost. Replace it with %1$s?</string>
+    <string name="final_mask_action_replace">Replace</string>
+    <string name="acc_final_mask_presets">Choose a ready-made finalMask</string>
     <string name="server_lab_dial_mode" translatable="false">dialMode</string>
     <string name="server_lab_target_strategy" translatable="false">targetStrategy</string>
     <string name="server_lab_ech_config_list" translatable="false">echConfigList</string>

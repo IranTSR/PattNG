@@ -132,6 +132,10 @@
     <string name="server_lab_xhttp_mode">XHTTP 模式</string>
     <string name="server_lab_xhttp_extra">XHTTP Extra 原始 JSON，格式： { XHTTPObject }</string>
     <string name="server_lab_final_mask">finalMask 原始 JSON，格式：{ FinalMaskObject }</string>
+    <string name="final_mask_replace_title">取代 finalMask？</string>
+    <string name="final_mask_replace_message">目前的 JSON 不在清單中，取代後將遺失。要取代為 %1$s 嗎？</string>
+    <string name="final_mask_action_replace">取代</string>
+    <string name="acc_final_mask_presets">選擇現成的 finalMask</string>
     <string name="server_lab_dial_mode" translatable="false">dialMode</string>
     <string name="server_lab_ech_config_list" translatable="false">echConfigList</string>
     <string name="server_lab_ech_outbound">echOutbound 原始 JSON，格式：{ OutboundObject }</string>

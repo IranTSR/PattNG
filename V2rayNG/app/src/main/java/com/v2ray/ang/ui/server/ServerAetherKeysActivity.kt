@@ -200,7 +200,7 @@ class ServerAetherKeysActivity : BaseComponentActivity() {
             enabled = enabled
         )
         // Set on the exit-node, the Xray outbound by which what the core sends leaves, as the editor sets a profile's.
-        FormTextField(
+        FinalMaskField(
             stringResource(R.string.aether_lab_exit_final_mask),
             settings.finalMask,
             viewModel::setFinalMask,

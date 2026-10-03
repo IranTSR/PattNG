@@ -349,5 +349,17 @@
         <item>ForceIPv4v6</item>
         <item>ForceIPv6v4</item>
     </string-array>
+    <!-- The finalMasks the finalMask fields offer, by name, and at the same index the JSON a pick puts in the field:
+         quoted, so that its spaces stay, with \n for a line break. -->
+    <string-array name="final_mask_preset_names" translatable="false">
+        <item>tlshello-0-len (0-104-1-0-0-114-1-1-11)</item>
+        <item>tlshello (6-98-1-0-0-114-1-1-11)</item>
+        <item>udp-noise (rnd-24-1200-1230)</item>
+    </string-array>
+    <string-array name="final_mask_preset_values" translatable="false">
+        <item>"{\n  \"tcp\": [\n    {\"type\": \"fragment\", \"settings\": {\"packets\": \"tlshello\", \"lengths\": [\"0\", \"104\", \"1\"], \"delays\": [\"0\"], \"maxSplit\": \"0\"}},\n    {\"type\": \"fragment\", \"settings\": {\"packets\": \"1-1\", \"lengths\": [\"114\", \"1\"], \"delays\": [\"1\"], \"maxSplit\": \"11\"}}\n  ]\n}"</item>
+        <item>"{\n  \"tcp\": [\n    {\"type\": \"fragment\", \"settings\": {\"packets\": \"tlshello\", \"lengths\": [\"6\", \"98\", \"1\"], \"delays\": [\"0\"], \"maxSplit\": \"0\"}},\n    {\"type\": \"fragment\", \"settings\": {\"packets\": \"1-1\", \"lengths\": [\"114\", \"1\"], \"delays\": [\"1\"], \"maxSplit\": \"11\"}}\n  ]\n}"</item>
+        <item>"{\n  \"udp\": [\n    {\n      \"type\": \"noise\",\n      \"settings\": {\n        \"reset\": \"28\",\n        \"noise\": [\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}\n        ]\n      }\n    }\n  ]\n}"</item>
+    </string-array>
 
 </resources>

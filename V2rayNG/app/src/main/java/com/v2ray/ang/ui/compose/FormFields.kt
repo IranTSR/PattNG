@@ -40,6 +40,7 @@ fun FormTextField(
     maxLines: Int = 5,
     isError: Boolean = false,
     supportingText: String? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     Box(
         modifier = modifier
@@ -53,6 +54,7 @@ fun FormTextField(
             placeholder = placeholder?.let { { Text(it) } },
             isError = isError,
             supportingText = supportingText?.let { { Text(it) } },
+            trailingIcon = trailingIcon,
             singleLine = false,
             maxLines = maxLines,
             enabled = enabled,

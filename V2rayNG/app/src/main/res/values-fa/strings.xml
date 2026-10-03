@@ -132,6 +132,10 @@
     <string name="server_lab_xhttp_mode">حالت XHTTP</string>
     <string name="server_lab_xhttp_extra">خام JSON XHTTP Extra، قالب: { XHTTPObject }</string>
     <string name="server_lab_final_mask">JSON خام finalMask، قالب: { FinalMaskObject }</string>
+    <string name="final_mask_replace_title">finalMask جایگزین شود؟</string>
+    <string name="final_mask_replace_message">JSON فعلی در فهرست نیست و پاک می‌شود. با %1$s جایگزین شود؟</string>
+    <string name="final_mask_action_replace">جایگزین کن</string>
+    <string name="acc_final_mask_presets">انتخاب یک finalMask آماده</string>
     <string name="server_lab_dial_mode" translatable="false">dialMode</string>
     <string name="server_lab_ech_config_list" translatable="false">echConfigList</string>
     <string name="server_lab_ech_outbound">JSON خام echOutbound، قالب: { OutboundObject }</string>

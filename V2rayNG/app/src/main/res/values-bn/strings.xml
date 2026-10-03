@@ -132,6 +132,10 @@
     <string name="server_lab_xhttp_mode">XHTTP মোড</string>
     <string name="server_lab_xhttp_extra">XHTTP Extra-এর কাঁচা JSON, ফরম্যাট: { XHTTPObject }</string>
     <string name="server_lab_final_mask">finalMask-এর কাঁচা JSON, ফরম্যাট: { FinalMaskObject }</string>
+    <string name="final_mask_replace_title">finalMask বদলাবেন?</string>
+    <string name="final_mask_replace_message">বর্তমান JSON তালিকায় নেই এবং হারিয়ে যাবে। এর বদলে %1$s বসাবেন?</string>
+    <string name="final_mask_action_replace">বদলান</string>
+    <string name="acc_final_mask_presets">একটি তৈরি finalMask বেছে নিন</string>
     <string name="server_lab_dial_mode" translatable="false">dialMode</string>
     <string name="server_lab_ech_config_list" translatable="false">echConfigList</string>
     <string name="server_lab_ech_outbound">echOutbound-এর কাঁচা JSON, ফরম্যাট: { OutboundObject }</string>

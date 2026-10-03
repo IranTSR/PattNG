@@ -70,7 +70,7 @@ class ServerWireguardActivity : BaseServerActivity() {
             keyboardType = KeyboardType.Number
         )
 
-        FormTextField(
+        FinalMaskField(
             stringResource(R.string.server_lab_final_mask),
             state.finalMask,
             { state.finalMask = it }

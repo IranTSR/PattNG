@@ -283,7 +283,7 @@ class ServerAetherActivity : BaseServerActivity() {
                 }
             }
             // Set on the exit-node, where what the core sends leaves Xray, as an ordinary profile sets them on its outbound.
-            FormTextField(
+            FinalMaskField(
                 stringResource(R.string.aether_lab_exit_final_mask),
                 uiState.finalMask,
                 { uiState.finalMask = it }
