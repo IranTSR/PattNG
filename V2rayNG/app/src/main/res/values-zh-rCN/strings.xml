@@ -633,7 +633,7 @@
     <string name="aether_lab_tor_relays">网桥来源</string>
     <string name="aether_lab_other_settings">其他设置</string>
     <string name="aether_lab_command">Aether 命令</string>
-    <string name="aether_command_custom">已手动编辑：此命令按原样运行，上面的设置不再生效</string>
+    <string name="aether_command_custom">已手动编辑：此命令按原样运行，上面的设置不再生效（Xray-core 的设置除外）</string>
     <string name="aether_action_use_settings">使用上方设置</string>
     <string name="aether_invalid_command">命令必须包含 Aether 内核的参数，并在 --bind 后给出监听端口</string>
     <string name="aether_unsupported_abi">此设备不支持 Aether 内核</string>
@@ -674,7 +674,6 @@
     <string name="aether_lab_fingerprint">Fingerprint</string>
     <string name="aether_keys_invalid_enroll_address">请求地址必须是 IP 地址或域名，可带端口，例如 188.114.97.6:443 或 [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">命令必须注册密钥：--register 后跟 all、wg、masque、gool 或 mim</string>
-    <string name="aether_keys_command_custom">已手动编辑：此命令按原样执行；上方设置中只有 exit-node 的 finalMask 和 dialMode 仍然生效</string>
     <string name="aether_keys_log_empty">内核输出和 WARP 密钥会显示在这里</string>
     <string name="aether_scan_blocked">请先断开 Aether 连接，再进行扫描；扫描会使用当前连接的密钥打开第二条隧道</string>
     <string name="aether_keys_missing">缺少所需的 WARP 密钥，请先获取</string>

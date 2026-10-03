@@ -635,7 +635,7 @@
     <string name="aether_lab_tor_relays">منبع پل‌یا</string>
     <string name="aether_lab_other_settings">تنظیمات دیه</string>
     <string name="aether_lab_command">فرمان Aether</string>
-    <string name="aether_command_custom">وا دست ویرایش بیده: ای فرمان همی‌طور که نوشته بیده اجرا ابۊ وو تنظیمات بالا اعمال نیبۊن</string>
+    <string name="aether_command_custom">وا دست ویرایش بیده: ای فرمان همی‌طور که نوشته بیده اجرا ابۊ وو تنظیمات بالا اعمال نیبۊن، بجز تنظیمات Xray-core</string>
     <string name="aether_action_use_settings">استفاده زه تنظیمات</string>
     <string name="aether_invalid_command">فرمان باید آرگومان‌های هسته Aether داشته بۊ وو پورت گوش‌دادن پس زه --bind بیا</string>
     <string name="aether_unsupported_abi">هسته Aether سی ای دستگاه د دسترس نیه</string>
@@ -676,7 +676,6 @@
     <string name="aether_lab_fingerprint">جا کلک</string>
     <string name="aether_keys_invalid_enroll_address">نشونی درخواست باید یه نشونی IP یا نوم دامنه بۊ، با پورت یا بی پورت، چی 188.114.97.6:443 یا [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">فرمان باید کلید ثبت کنه: --register وو پشت سرس all، wg، masque، gool یا mim</string>
-    <string name="aether_keys_command_custom">وا دست ویرایش بیده: ای فرمان همی‌طور که نوشته بیده اجرا ابۊ؛ ز تنظیمات بالا تنها finalMask وو dialMode سی exit-node اعمال ابۊن</string>
     <string name="aether_keys_log_empty">خروجی هسته وو کلیدا WARP ایچو نشووݩ داڌه ابۊن</string>
     <string name="aether_scan_blocked">پیش زه اسکن، اتصال Aether نه قطع کنین؛ اسکن یه تونل دوم وا کلید اتصال ایسا وا ایکنه</string>
     <string name="aether_keys_missing">کلید WARP لازم نه ندارین؛ اول اونه بگیرین</string>

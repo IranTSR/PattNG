@@ -253,7 +253,7 @@ class ServerAetherKeysActivity : BaseComponentActivity() {
             viewModel::setCommand,
             enabled = enabled,
             maxLines = 8,
-            supportingText = if (customCommand) stringResource(R.string.aether_keys_command_custom) else null
+            supportingText = if (customCommand) stringResource(R.string.aether_command_custom) else null
         )
         if (customCommand) {
             TextButton(

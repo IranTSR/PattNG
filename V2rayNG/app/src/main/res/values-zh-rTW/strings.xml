@@ -633,7 +633,7 @@
     <string name="aether_lab_tor_relays">橋接來源</string>
     <string name="aether_lab_other_settings">其他設定</string>
     <string name="aether_lab_command">Aether 命令</string>
-    <string name="aether_command_custom">已手動編輯：此命令按原樣執行，上方的設定不再生效</string>
+    <string name="aether_command_custom">已手動編輯：此命令按原樣執行，上方的設定不再生效（Xray-core 的設定除外）</string>
     <string name="aether_action_use_settings">使用上方設定</string>
     <string name="aether_invalid_command">命令必須包含 Aether 核心的參數，並在 --bind 後給出監聽連接埠</string>
     <string name="aether_unsupported_abi">此裝置不支援 Aether 核心</string>
@@ -674,7 +674,6 @@
     <string name="aether_lab_fingerprint">Fingerprint</string>
     <string name="aether_keys_invalid_enroll_address">請求位址必須是 IP 位址或網域名稱，可帶連接埠，例如 188.114.97.6:443 或 [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">命令必須註冊金鑰：--register 後接 all、wg、masque、gool 或 mim</string>
-    <string name="aether_keys_command_custom">已手動編輯：此命令按原樣執行；上方設定中只有 exit-node 的 finalMask 和 dialMode 仍然生效</string>
     <string name="aether_keys_log_empty">核心輸出和 WARP 金鑰會顯示在這裡</string>
     <string name="aether_scan_blocked">請先中斷 Aether 連線，再進行掃描；掃描會使用目前連線的金鑰開啟第二條隧道</string>
     <string name="aether_keys_missing">缺少所需的 WARP 金鑰，請先取得</string>

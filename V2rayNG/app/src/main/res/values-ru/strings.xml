@@ -639,7 +639,7 @@
     <string name="aether_lab_tor_relays">Источники мостов</string>
     <string name="aether_lab_other_settings">Прочие настройки</string>
     <string name="aether_lab_command">Команда Aether</string>
-    <string name="aether_command_custom">Изменено вручную: эта команда выполняется как написана, настройки выше не применяются</string>
+    <string name="aether_command_custom">Изменено вручную: эта команда выполняется как написана, настройки выше не применяются, кроме настроек Xray-core</string>
     <string name="aether_action_use_settings">Использовать настройки</string>
     <string name="aether_invalid_command">Команда должна содержать аргументы ядра Aether, с портом прослушивания после --bind</string>
     <string name="aether_unsupported_abi">Ядро Aether недоступно для этого устройства</string>
@@ -680,7 +680,6 @@
     <string name="aether_lab_fingerprint">Отпечаток</string>
     <string name="aether_keys_invalid_enroll_address">Адрес запросов должен быть IP-адресом или доменным именем, с портом или без, например 188.114.97.6:443 или [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">Команда должна регистрировать ключи: --register, а за ним all, wg, masque, gool или mim</string>
-    <string name="aether_keys_command_custom">Изменено вручную: команда выполняется как написана; из настроек выше действуют только finalMask и dialMode для exit-node</string>
     <string name="aether_keys_log_empty">Здесь появятся вывод ядра и ключи WARP</string>
     <string name="aether_scan_blocked">Отключите профиль Aether, прежде чем сканировать: сканирование откроет второй туннель с ключом текущего подключения</string>
     <string name="aether_keys_missing">У вас нет нужного ключа WARP; сначала получите его</string>

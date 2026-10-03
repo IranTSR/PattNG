@@ -643,7 +643,7 @@
     <string name="aether_lab_tor_relays">مصادر الجسور</string>
     <string name="aether_lab_other_settings">إعدادات أخرى</string>
     <string name="aether_lab_command">أمر Aether</string>
-    <string name="aether_command_custom">مُعدَّل يدويًا: يُنفَّذ هذا الأمر كما هو مكتوب، ولا تُطبَّق الإعدادات أعلاه</string>
+    <string name="aether_command_custom">مُعدَّل يدويًا: يُنفَّذ هذا الأمر كما هو مكتوب، ولا تُطبَّق الإعدادات أعلاه، باستثناء إعدادات Xray-core</string>
     <string name="aether_action_use_settings">استخدام الإعدادات</string>
     <string name="aether_invalid_command">يجب أن يحتوي الأمر على وسائط نواة Aether، مع منفذ الاستماع بعد --bind</string>
     <string name="aether_unsupported_abi">نواة Aether غير متوفرة لهذا الجهاز</string>
@@ -684,7 +684,6 @@
     <string name="aether_lab_fingerprint">البصمة</string>
     <string name="aether_keys_invalid_enroll_address">يجب أن يكون عنوان الطلب عنوان IP أو اسم نطاق، مع منفذ أو بدونه، مثل 188.114.97.6:443 أو [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">يجب أن يسجّل الأمر مفاتيح: --register متبوعًا بـ all أو wg أو masque أو gool أو mim</string>
-    <string name="aether_keys_command_custom">مُعدَّل يدويًا: يُنفَّذ هذا الأمر كما هو مكتوب؛ ومن الإعدادات أعلاه لا يُطبَّق إلا finalMask وdialMode الخاصان بـ exit-node</string>
     <string name="aether_keys_log_empty">تظهر هنا مخرجات النواة ومفاتيح WARP</string>
     <string name="aether_scan_blocked">افصل ملف Aether قبل الفحص؛ الفحص سيفتح نفقًا ثانيًا بمفتاح الاتصال الحالي</string>
     <string name="aether_keys_missing">ليس لديك مفتاح WARP المطلوب؛ احصل عليه أولًا</string>

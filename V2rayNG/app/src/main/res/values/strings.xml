@@ -639,7 +639,7 @@
     <string name="aether_lab_tor_relays">Bridge sources</string>
     <string name="aether_lab_other_settings">Other settings</string>
     <string name="aether_lab_command">Aether command</string>
-    <string name="aether_command_custom">Edited by hand: this command runs as written, and the settings above are not applied</string>
+    <string name="aether_command_custom">Edited by hand: this command runs as written, and the settings above are not applied, except for Xray-core settings</string>
     <string name="aether_action_use_settings">Use the settings</string>
     <string name="aether_invalid_command">The command has to name arguments for the Aether core, with the port it listens on after --bind</string>
     <string name="aether_unsupported_abi">The Aether core is not available for this device</string>
@@ -680,7 +680,6 @@
     <string name="aether_lab_fingerprint">Fingerprint</string>
     <string name="aether_keys_invalid_enroll_address">The request address must be an IP address or a domain name, with or without a port, such as 188.114.97.6:443 or [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">The command has to register keys: --register followed by all, wg, masque, gool or mim</string>
-    <string name="aether_keys_command_custom">Edited by hand: this command runs as written; of the settings above, only the exit-node finalMask and dialMode still apply</string>
     <string name="aether_keys_log_empty">The core\'s output and the WARP keys appear here</string>
     <string name="aether_scan_blocked">Disconnect the Aether profile before scanning; a scan would open a second tunnel on the running connection\'s key</string>
     <string name="aether_keys_missing">You don\'t have the required WARP key; please get it first</string>

@@ -635,7 +635,7 @@
     <string name="aether_lab_tor_relays">ব্রিজের উৎস</string>
     <string name="aether_lab_other_settings">অন্যান্য সেটিংস</string>
     <string name="aether_lab_command">Aether কমান্ড</string>
-    <string name="aether_command_custom">হাতে সম্পাদিত: এই কমান্ড যেমন লেখা তেমনই চলে, উপরের সেটিংস প্রয়োগ হয় না</string>
+    <string name="aether_command_custom">হাতে সম্পাদিত: এই কমান্ড যেমন লেখা তেমনই চলে, Xray-core-এর সেটিংস ছাড়া উপরের সেটিংস প্রয়োগ হয় না</string>
     <string name="aether_action_use_settings">সেটিংস ব্যবহার করুন</string>
     <string name="aether_invalid_command">কমান্ডে Aether কোরের আর্গুমেন্ট থাকতে হবে, --bind এর পরে শোনার পোর্টসহ</string>
     <string name="aether_unsupported_abi">এই ডিভাইসের জন্য Aether কোর উপলব্ধ নয়</string>
@@ -676,7 +676,6 @@
     <string name="aether_lab_fingerprint">ফিঙ্গারপ্রিন্ট</string>
     <string name="aether_keys_invalid_enroll_address">অনুরোধের ঠিকানা একটি IP ঠিকানা বা ডোমেইন নাম হতে হবে, পোর্টসহ বা পোর্ট ছাড়া, যেমন 188.114.97.6:443 বা [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">কমান্ডটিকে কী নিবন্ধন করতে হবে: --register, তারপর all, wg, masque, gool বা mim</string>
-    <string name="aether_keys_command_custom">হাতে সম্পাদিত: এই কমান্ড যেমন লেখা তেমনই চলে; উপরের সেটিংসের মধ্যে শুধু exit-node-এর finalMask ও dialMode প্রযোজ্য থাকে</string>
     <string name="aether_keys_log_empty">কোরের আউটপুট ও WARP কী এখানে দেখা যাবে</string>
     <string name="aether_scan_blocked">স্ক্যান করার আগে Aether সংযোগ বিচ্ছিন্ন করুন; স্ক্যান চলমান সংযোগের কী দিয়ে দ্বিতীয় একটি টানেল খুলবে</string>
     <string name="aether_keys_missing">প্রয়োজনীয় WARP কী আপনার কাছে নেই; আগে সেটি নিন</string>

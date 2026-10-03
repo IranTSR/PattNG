@@ -635,7 +635,7 @@
     <string name="aether_lab_tor_relays">منبع پل‌ها</string>
     <string name="aether_lab_other_settings">تنظیمات دیگر</string>
     <string name="aether_lab_command">فرمان Aether</string>
-    <string name="aether_command_custom">دستی ویرایش شده: این فرمان همان‌طور که نوشته شده اجرا می‌شود و تنظیمات بالا اعمال نمی‌شوند</string>
+    <string name="aether_command_custom">دستی ویرایش شده: این فرمان همان‌طور که نوشته شده اجرا می‌شود و تنظیمات بالا اعمال نمی‌شوند، به‌جز تنظیمات Xray-core</string>
     <string name="aether_action_use_settings">استفاده از تنظیمات</string>
     <string name="aether_invalid_command">فرمان باید آرگومان‌های هسته Aether را داشته باشد و پورت گوش‌دادن پس از --bind بیاید</string>
     <string name="aether_unsupported_abi">هسته Aether برای این دستگاه در دسترس نیست</string>
@@ -676,7 +676,6 @@
     <string name="aether_lab_fingerprint">اثرانگشت</string>
     <string name="aether_keys_invalid_enroll_address">نشانی درخواست باید یک نشانی IP یا نام دامنه باشد، با پورت یا بدون آن، مثل 188.114.97.6:443 یا [2606:4700::1]:8443</string>
     <string name="aether_keys_invalid_command">فرمان باید کلید ثبت کند: --register و پس از آن all، wg، masque، gool یا mim</string>
-    <string name="aether_keys_command_custom">ویرایش دستی: این فرمان همان‌طور که نوشته شده اجرا می‌شود؛ از تنظیمات بالا فقط finalMask و dialMode برای exit-node اعمال می‌شوند</string>
     <string name="aether_keys_log_empty">خروجی هسته و کلیدهای WARP اینجا نمایش داده می‌شود</string>
     <string name="aether_scan_blocked">پیش از اسکن، اتصال Aether را قطع کنید؛ اسکن یک تونل دوم با کلید اتصال فعلی باز می‌کند</string>
     <string name="aether_keys_missing">کلید WARP لازم را ندارید؛ لطفاً اول آن را دریافت کنید</string>
