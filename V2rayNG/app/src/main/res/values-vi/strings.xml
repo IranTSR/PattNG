@@ -132,10 +132,10 @@
     <string name="server_lab_xhttp_mode">Chế độ XHTTP</string>
     <string name="server_lab_xhttp_extra">JSON thô của XHTTP Extra, định dạng: { XHTTPObject }</string>
     <string name="server_lab_final_mask">JSON thô của finalMask, định dạng: { FinalMaskObject }</string>
-    <string name="final_mask_replace_title">Thay finalMask?</string>
-    <string name="final_mask_replace_message">JSON hiện tại không có trong danh sách và sẽ bị mất. Thay bằng %1$s?</string>
-    <string name="final_mask_action_replace">Thay</string>
-    <string name="acc_final_mask_presets">Chọn một finalMask có sẵn</string>
+    <string name="preset_replace_title">Thay %1$s?</string>
+    <string name="preset_replace_message">%1$s hiện tại không có trong danh sách và sẽ bị mất. Thay bằng %2$s?</string>
+    <string name="preset_action_replace">Thay</string>
+    <string name="acc_choose_preset">Chọn một %1$s có sẵn</string>
     <string name="server_lab_dial_mode" translatable="false">dialMode</string>
     <string name="server_lab_ech_config_list" translatable="false">echConfigList</string>
     <string name="server_lab_ech_outbound">JSON thô của echOutbound, định dạng: { OutboundObject }</string>

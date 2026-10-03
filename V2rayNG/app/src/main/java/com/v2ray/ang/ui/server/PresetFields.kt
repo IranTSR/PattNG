@@ -1,5 +1,6 @@
 package com.v2ray.ang.ui.server
 
+import androidx.annotation.ArrayRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -26,9 +27,7 @@ import com.v2ray.ang.ui.compose.FormTextField
 
 /**
  * The finalMask field of the server editors and of the exit-node on the Aether pages: JSON written by hand, or one of
- * the finalMasks the arrow lists by name, put in the field and edited from there as need be. The field holds the
- * finalMask either way, so what is saved is the pick as edited. Only the arrow opens the list, so that a tap in the
- * JSON only moves the cursor, and a pick asks first before it takes the place of JSON of the user's own.
+ * the finalMasks the arrow lists, matched in whatever spacing or key order it is written.
  */
 @Composable
 internal fun FinalMaskField(
@@ -37,12 +36,64 @@ internal fun FinalMaskField(
     onValueChange: (String) -> Unit,
     enabled: Boolean = true,
 ) {
-    val names = stringArrayResource(R.array.final_mask_preset_names).toList()
-    val values = stringArrayResource(R.array.final_mask_preset_values).toList()
-    val presets = remember(values) { FinalMaskPresets(values) }
+    PresetField(
+        label = label,
+        setting = stringResource(R.string.preset_setting_final_mask),
+        value = value,
+        onValueChange = onValueChange,
+        presetNames = R.array.final_mask_preset_names,
+        presetValues = R.array.final_mask_preset_values,
+        match = FieldPresets.Match.JSON,
+        enabled = enabled
+    )
+}
+
+/**
+ * The cipherSuites field of a TLS profile: names joined by ':', written by hand or one of the lists the arrow offers,
+ * matched name by name as Xray reads them, whatever the white space around each.
+ */
+@Composable
+internal fun CipherSuitesField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+    PresetField(
+        label = label,
+        setting = stringResource(R.string.preset_setting_cipher_suites),
+        value = value,
+        onValueChange = onValueChange,
+        presetNames = R.array.cipher_suites_preset_names,
+        presetValues = R.array.cipher_suites_preset_values,
+        match = FieldPresets.Match.NAMES,
+        enabled = true
+    )
+}
+
+/**
+ * A text field with an arrow that lists ready-made values by name, for a setting whose value can be too long to list.
+ * A pick puts its value in the field, which stays free to edit, so what is saved is the pick as edited, and the name of
+ * the value the field holds shows under it. Only the arrow opens the list, so that a tap in the text only moves the
+ * cursor, and a pick asks first before it takes the place of a value of the user's own. [setting] names what the field
+ * sets, on the arrow and in that question.
+ */
+@Composable
+private fun PresetField(
+    label: String,
+    setting: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    @ArrayRes presetNames: Int,
+    @ArrayRes presetValues: Int,
+    match: FieldPresets.Match,
+    enabled: Boolean,
+) {
+    val names = stringArrayResource(presetNames).toList()
+    val values = stringArrayResource(presetValues).toList()
+    val presets = remember(values, match) { FieldPresets(values, match) }
     val held = remember(presets, value) { presets.indexOf(value) }
     var expanded by rememberSaveable { mutableStateOf(false) }
-    // The name of a pick that waits to be let take the place of JSON of the user's own.
+    // The name of a pick that waits to be let take the place of a value of the user's own.
     var replacing by rememberSaveable { mutableStateOf<String?>(null) }
 
     Box {
@@ -57,7 +108,7 @@ internal fun FinalMaskField(
                 IconButton(onClick = { expanded = !expanded }, enabled = enabled) {
                     Icon(
                         painter = painterResource(R.drawable.ic_expand_more_24dp),
-                        contentDescription = stringResource(R.string.acc_final_mask_presets),
+                        contentDescription = stringResource(R.string.acc_choose_preset, setting),
                         modifier = Modifier.rotate(if (expanded) 180f else 0f)
                     )
                 }
@@ -87,9 +138,9 @@ internal fun FinalMaskField(
     }
     replacing?.let { name ->
         ConfirmDialog(
-            title = stringResource(R.string.final_mask_replace_title),
-            message = stringResource(R.string.final_mask_replace_message, name),
-            confirmText = stringResource(R.string.final_mask_action_replace),
+            title = stringResource(R.string.preset_replace_title, setting),
+            message = stringResource(R.string.preset_replace_message, setting, name),
+            confirmText = stringResource(R.string.preset_action_replace),
             onConfirm = { values.getOrNull(names.indexOf(name))?.let(onValueChange) },
             onDismiss = { replacing = null }
         )

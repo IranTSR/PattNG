@@ -314,7 +314,7 @@ abstract class BaseServerActivity : BaseComponentActivity() {
                     options.alpnOptions,
                     { state.alpn = it }
                 )
-                FormTextField(
+                CipherSuitesField(
                     stringResource(R.string.server_lab_cipher_suites),
                     state.cipherSuites,
                     { state.cipherSuites = it }

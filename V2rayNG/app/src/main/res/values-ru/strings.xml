@@ -132,10 +132,10 @@
     <string name="server_lab_xhttp_mode">Режим XHTTP</string>
     <string name="server_lab_xhttp_extra">Необработанный JSON XHTTP Extra, формат: { XHTTPObject }</string>
     <string name="server_lab_final_mask">Необработанный JSON FinalMask, формат: { FinalMaskObject }</string>
-    <string name="final_mask_replace_title">Заменить finalMask?</string>
-    <string name="final_mask_replace_message">Текущий JSON не из списка и будет потерян. Заменить его на %1$s?</string>
-    <string name="final_mask_action_replace">Заменить</string>
-    <string name="acc_final_mask_presets">Выбрать готовый finalMask</string>
+    <string name="preset_replace_title">Заменить %1$s?</string>
+    <string name="preset_replace_message">Текущее значение %1$s не из списка и будет потеряно. Заменить его на %2$s?</string>
+    <string name="preset_action_replace">Заменить</string>
+    <string name="acc_choose_preset">Выбрать готовый %1$s</string>
     <string name="server_lab_dial_mode" translatable="false">dialMode</string>
     <string name="server_lab_ech_config_list" translatable="false">echConfigList</string>
     <string name="server_lab_ech_outbound">Необработанный JSON echOutbound, формат: { OutboundObject }</string>

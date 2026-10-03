@@ -361,5 +361,13 @@
         <item>"{\n  \"tcp\": [\n    {\"type\": \"fragment\", \"settings\": {\"packets\": \"tlshello\", \"lengths\": [\"6\", \"98\", \"1\"], \"delays\": [\"0\"], \"maxSplit\": \"0\"}},\n    {\"type\": \"fragment\", \"settings\": {\"packets\": \"1-1\", \"lengths\": [\"114\", \"1\"], \"delays\": [\"1\"], \"maxSplit\": \"11\"}}\n  ]\n}"</item>
         <item>"{\n  \"udp\": [\n    {\n      \"type\": \"noise\",\n      \"settings\": {\n        \"reset\": \"28\",\n        \"noise\": [\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"},\n          {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}, {\"rand\": \"1200-1230\", \"delay\": \"10\"}\n        ]\n      }\n    }\n  ]\n}"</item>
     </string-array>
+    <!-- The lists the cipherSuites field offers, by name, and at the same index the names a pick puts in the field,
+         joined by ':' as Xray reads them. -->
+    <string-array name="cipher_suites_preset_names" translatable="false">
+        <item>semi-python-cipherSuites</item>
+    </string-array>
+    <string-array name="cipher_suites_preset_values" translatable="false">
+        <item>TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256:TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256</item>
+    </string-array>
 
 </resources>

@@ -132,10 +132,10 @@
     <string name="server_lab_xhttp_mode">وضع XHTTP</string>
     <string name="server_lab_xhttp_extra">JSON خام لحقل XHTTP Extra، بالتنسيق: { XHTTPObject }</string>
     <string name="server_lab_final_mask">JSON خام لحقل finalMask، بالتنسيق: { FinalMaskObject }</string>
-    <string name="final_mask_replace_title">استبدال finalMask؟</string>
-    <string name="final_mask_replace_message">JSON الحالي ليس من القائمة وسيُفقد. هل تريد استبداله بـ %1$s؟</string>
-    <string name="final_mask_action_replace">استبدال</string>
-    <string name="acc_final_mask_presets">اختيار finalMask جاهز</string>
+    <string name="preset_replace_title">استبدال %1$s؟</string>
+    <string name="preset_replace_message">قيمة %1$s الحالية ليست من القائمة وستُفقد. هل تريد استبدالها بـ %2$s؟</string>
+    <string name="preset_action_replace">استبدال</string>
+    <string name="acc_choose_preset">اختيار %1$s جاهز</string>
     <string name="server_lab_dial_mode" translatable="false">dialMode</string>
     <string name="server_lab_ech_config_list" translatable="false">echConfigList</string>
     <string name="server_lab_ech_outbound">JSON خام لحقل echOutbound، بالتنسيق: { OutboundObject }</string>
