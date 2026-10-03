@@ -697,9 +697,10 @@ class AetherCoreManagerTest {
     fun theFingerprintShapesEveryMasqueTunnelAndNoOther() {
         for (protocol in listOf(AetherProtocol.MASQUE, AetherProtocol.MIM)) {
             for (transport in AetherTransport.entries) {
-                // Chrome's list is named too, so that the command says what is sent; Chrome sends GREASE.
+                // Chrome names no list: the core's own is Chrome's rule, which BoringSSL orders by the phone's AES
+                // instructions as it does the TLS 1.3 suites. Chrome sends GREASE.
                 val chrome = AetherCoreManager.buildArguments(profile(protocol, transport), 10819)
-                assertEquals(AetherFingerprint.CHROME.ciphers, valueAfter(chrome, "--tls-ciphers"))
+                assertFalse("--tls-ciphers" in chrome)
                 assertFalse("--disable-grease" in chrome)
                 for (fingerprint in listOf(AetherFingerprint.FIREFOX, AetherFingerprint.SEMI_PYTHON, AetherFingerprint.GO)) {
                     val arguments = AetherCoreManager.buildArguments(profile(protocol, transport).copy(aetherFingerprint = fingerprint.type), 10819)
@@ -710,7 +711,8 @@ class AetherCoreManagerTest {
         }
         // A profile from before the setting is Chrome's.
         val older = AetherCoreManager.buildArguments(profile().copy(aetherFingerprint = null), 10819)
-        assertEquals(AetherFingerprint.CHROME.ciphers, valueAfter(older, "--tls-ciphers"))
+        assertEquals(AetherCoreManager.buildArguments(profile().copy(aetherFingerprint = "chrome"), 10819), older)
+        assertFalse("--tls-ciphers" in older)
         // WireGuard has no TLS handshake of its own to shape.
         for (protocol in listOf(AetherProtocol.WIREGUARD, AetherProtocol.GOOL)) {
             val arguments = AetherCoreManager.buildArguments(profile(protocol, AetherTransport.HTTP2).copy(aetherFingerprint = "go"), 10819)

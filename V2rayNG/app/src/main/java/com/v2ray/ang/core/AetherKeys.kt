@@ -50,7 +50,8 @@ object AetherKeys {
     /**
      * The arguments [settings] give: the keys to register first, the address the calls to the WARP API go to unless
      * it is left blank, Encrypted Client Hello on those calls with the key of the ECH domain, asked of the ECH DNS,
-     * and the TLS 1.2 cipher suites of the fingerprint, with GREASE left out where the fingerprint has none.
+     * and the TLS 1.2 cipher suites of the fingerprint unless they are the core's own, Chrome's, with GREASE left out
+     * where the fingerprint has none.
      */
     fun arguments(settings: AetherKeysSettings): List<String> = buildList {
         addAll(listOf(REGISTER, settings.kind.type))

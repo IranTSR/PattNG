@@ -212,17 +212,21 @@ enum class AetherKeyKind(val type: String) {
 }
 
 /**
- * The cipher suites the TLS handshakes of a registration offer, after a client whose ClientHello was captured: its TLS
- * 1.2 suites as BoringSSL names them, in its order, and whether it sends GREASE values. BoringSSL writes its TLS 1.3
- * suites first, in an order of its own, so only the TLS 1.2 part follows the client.
+ * The cipher suites the TLS handshakes of the core offer, after a client whose ClientHello was captured: its TLS 1.2
+ * suites as BoringSSL names them, in its order, or none where they are the core's own, and whether it sends GREASE
+ * values. BoringSSL writes its TLS 1.3 suites first, in an order of its own, so only the TLS 1.2 part follows the
+ * client.
  */
-enum class AetherFingerprint(val type: String, val ciphers: String, val grease: Boolean) {
-    /** c02b c02f c02c c030 cca9 cca8 c013 c014 009c 009d 002f 0035, after a GREASE value. */
+enum class AetherFingerprint(val type: String, val ciphers: String?, val grease: Boolean) {
+    /**
+     * No list: the core's own is Chrome's rule, ALL:!aPSK:!ECDSA+SHA1:!3DES, which BoringSSL orders as it does for
+     * Chrome, by the phone's AES instructions as the TLS 1.3 suites: c02b c02f c02c c030 cca9 cca8 c013 c014 009c 009d
+     * 002f 0035 with them, ChaCha20 first without. A list of its own would keep AES-GCM first there while the TLS 1.3
+     * suites go ChaCha20 first, a ClientHello no Chrome sends. After a GREASE value.
+     */
     CHROME(
         "chrome",
-        "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:" +
-            "ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:" +
-            "AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA:AES256-SHA",
+        null,
         true,
     ),
 
@@ -258,9 +262,9 @@ enum class AetherFingerprint(val type: String, val ciphers: String, val grease: 
         false,
     );
 
-    /** The core's options for this fingerprint: its TLS 1.2 suites, and GREASE left out where it sends none. */
+    /** The core's options for this fingerprint: its TLS 1.2 suites where it names some, and GREASE left out where it sends none. */
     val arguments: List<String>
-        get() = listOf("--tls-ciphers", ciphers) + if (grease) emptyList() else listOf("--disable-grease")
+        get() = ciphers?.let { listOf("--tls-ciphers", it) }.orEmpty() + if (grease) emptyList() else listOf("--disable-grease")
 
     companion object {
         fun fromString(type: String?) = entries.find { it.type == type } ?: CHROME
