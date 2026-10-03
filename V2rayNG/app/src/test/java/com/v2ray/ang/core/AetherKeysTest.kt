@@ -34,6 +34,25 @@ class AetherKeysTest {
         "AES256-SHA" to 0x0035,
     )
 
+    /** The number of each TLS 1.2 suite by the name Xray's cipherSuites takes, Go's, for the ones its presets name. */
+    private val xraySuiteIds = mapOf(
+        "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256" to 0xc02b,
+        "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256" to 0xc02f,
+        "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384" to 0xc02c,
+        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384" to 0xc030,
+        "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256" to 0xcca9,
+        "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256" to 0xcca8,
+        "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA" to 0xc013,
+        "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA" to 0xc014,
+        "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA" to 0xc00a,
+        "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256" to 0xc023,
+        "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256" to 0xc027,
+        "TLS_RSA_WITH_AES_128_GCM_SHA256" to 0x009c,
+        "TLS_RSA_WITH_AES_256_GCM_SHA384" to 0x009d,
+        "TLS_RSA_WITH_AES_128_CBC_SHA" to 0x002f,
+        "TLS_RSA_WITH_AES_256_CBC_SHA" to 0x0035,
+    )
+
     /** The TLS 1.2 suites of a ClientHello's cipher_suites in hex, GREASE and the TLS 1.3 suites left out. */
     private fun tls12Of(captured: String): List<Int> =
         captured.chunked(4).map { it.toInt(16) }.filter { it and 0x0f0f != 0x0a0a && it !in 0x1301..0x1305 }
@@ -54,6 +73,17 @@ class AetherKeysTest {
         )
         // Go lists its TLS 1.3 suites last, which BoringSSL cannot do; its TLS 1.2 suites are all there.
         assertEquals(tls12Of("c02bc02fc02cc030cca9cca8c009c013c00ac014130113021303"), suitesOf(AetherFingerprint.GO))
+    }
+
+    @Test
+    fun eachCipherSuitesPresetOffersTheTls12SuitesOfTheAetherFingerprintOfTheSameClient() {
+        // The lists the cipherSuites field of the other protocols offers, as the app's resources give them.
+        val presets = AppResources.stringArray("cipher_suites_preset_names")
+            .zip(AppResources.stringArray("cipher_suites_preset_values")).toMap()
+        fun presetSuites(name: String) = presets.getValue(name).split(':').map(xraySuiteIds::getValue)
+        assertEquals(suitesOf(AetherFingerprint.FIREFOX), presetSuites("real-firefox-cipherSuites"))
+        assertEquals(tls12Of("130113031302c02bc02fcca9cca8c02cc030c013c014009c009d002f0035"), presetSuites("real-firefox-cipherSuites"))
+        assertEquals(suitesOf(AetherFingerprint.SEMI_PYTHON), presetSuites("semi-python-cipherSuites"))
     }
 
     @Test

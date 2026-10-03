@@ -104,11 +104,11 @@ class FieldPresetsTest {
     }
 
     @Test
-    fun theCipherSuitesFieldOffersTheGivenListUnderItsName() {
+    fun theCipherSuitesFieldOffersTheGivenListsUnderTheirNames() {
         val names = AppResources.stringArray("cipher_suites_preset_names")
         val values = AppResources.stringArray("cipher_suites_preset_values").map(::readPlain)
-        assertEquals(listOf("semi-python-cipherSuites"), names)
-        assertEquals(listOf(SEMI_PYTHON), values)
+        assertEquals(listOf("semi-python-cipherSuites", "real-firefox-cipherSuites"), names)
+        assertEquals(listOf(SEMI_PYTHON, REAL_FIREFOX), values)
         val listed = FieldPresets(values, Match.NAMES)
         values.forEachIndexed { index, value -> assertEquals(index, listed.indexOf(value)) }
     }
@@ -148,6 +148,8 @@ class FieldPresetsTest {
     }
 
     private companion object {
+        const val REAL_FIREFOX = "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA:TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:TLS_RSA_WITH_AES_128_GCM_SHA256:TLS_RSA_WITH_AES_256_GCM_SHA384:TLS_RSA_WITH_AES_128_CBC_SHA:TLS_RSA_WITH_AES_256_CBC_SHA"
+
         const val SEMI_PYTHON = "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256:TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"
 
         val TLSHELLO_0_LEN = """
