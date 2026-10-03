@@ -10,12 +10,12 @@ import com.v2ray.ang.enums.AetherProtocol
 import com.v2ray.ang.enums.AetherScanMode
 import com.v2ray.ang.enums.AetherTransport
 import com.v2ray.ang.enums.EConfigType
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 class AetherFmtTest {
 
@@ -261,9 +261,9 @@ class AetherFmtTest {
         val clashes = listOf("chain" to "chain", "reverse" to "reverse", "only" to "chain", "only" to "only", "chain" to "only", "reverse" to "only")
         for ((tor, psiphon) in clashes) {
             assertEquals(
-                "tor=$tor psiphon=$psiphon",
                 AetherFmt.Problem.TOR_PSIPHON_CONFLICT,
-                AetherFmt.normalize(profile { aetherTor = tor; aetherPsiphon = psiphon })
+                AetherFmt.normalize(profile { aetherTor = tor; aetherPsiphon = psiphon }),
+                "tor=$tor psiphon=$psiphon"
             )
         }
     }
@@ -299,7 +299,7 @@ class AetherFmtTest {
         for (fingerprint in listOf("firefox", "semi-python", "go")) {
             for (transport in AetherTransport.entries) {
                 val text = link(profile { aetherTransport = transport.type; aetherFingerprint = fingerprint })
-                assertTrue(text, text.contains("fingerprint=$fingerprint"))
+                assertTrue(text.contains("fingerprint=$fingerprint"), text)
                 assertEquals(fingerprint, AetherFmt.parse(text)?.aetherFingerprint)
             }
         }
@@ -348,7 +348,7 @@ class AetherFmtTest {
         assertFalse(off.contains("ech_domain="))
         val plain = link(profile {})
         val strayLink = plain.substringBefore('#') + "&ech_dns=tcp%3A%2F%2F1.1.1.1&ech_domain=ip.gs#" + plain.substringAfter('#')
-        assertTrue(strayLink, strayLink.substringBefore('#').contains("ech_dns="))
+        assertTrue(strayLink.substringBefore('#').contains("ech_dns="), strayLink)
         val stray = AetherFmt.parse(strayLink)
         assertNull(stray?.aetherEchDns)
         assertNull(stray?.aetherEchDomain)
@@ -375,7 +375,7 @@ class AetherFmtTest {
         )
         for (dns in good) {
             val config = profile { aetherEch = true; aetherEchDns = " $dns " }
-            assertNull(dns, AetherFmt.normalize(config))
+            assertNull(AetherFmt.normalize(config), dns)
             assertEquals(dns, config.aetherEchDns)
         }
         val bad = listOf(
@@ -411,7 +411,7 @@ class AetherFmtTest {
             "https://doq.dns4all.eu/dns-query@google.com",
         )
         for (dns in bad) {
-            assertEquals(dns, AetherFmt.Problem.INVALID_ECH_DNS, AetherFmt.normalize(profile { aetherEch = true; aetherEchDns = dns }))
+            assertEquals(AetherFmt.Problem.INVALID_ECH_DNS, AetherFmt.normalize(profile { aetherEch = true; aetherEchDns = dns }), dns)
         }
     }
 
@@ -419,11 +419,11 @@ class AetherFmtTest {
     fun theEchDomainIsADomainName() {
         for (domain in listOf("crypto.cloudflare.com", "ip.gs", "ip.gs.", "_ech.example.com")) {
             val config = profile { aetherEch = true; aetherEchDomain = domain }
-            assertNull(domain, AetherFmt.normalize(config))
+            assertNull(AetherFmt.normalize(config), domain)
             assertEquals(domain, config.aetherEchDomain)
         }
         for (domain in listOf("a..b", "with space.com", "https://ip.gs", "ip.gs/", "${"a".repeat(64)}.com", "--upstream", "-ip.gs", "ip-.gs")) {
-            assertEquals(domain, AetherFmt.Problem.INVALID_ECH_DOMAIN, AetherFmt.normalize(profile { aetherEch = true; aetherEchDomain = domain }))
+            assertEquals(AetherFmt.Problem.INVALID_ECH_DOMAIN, AetherFmt.normalize(profile { aetherEch = true; aetherEchDomain = domain }), domain)
         }
     }
 
@@ -446,7 +446,7 @@ class AetherFmtTest {
             assertEquals("--upstream", waiting.aetherEchDomain)
             // Out of use, neither reaches the core nor a link.
             val arguments = AetherCoreManager.buildArguments(waiting, 10819)
-            assertFalse(arguments.toString(), arguments.any { it.startsWith("--ech") || it == "--upstream" })
+            assertFalse(arguments.any { it.startsWith("--ech") || it == "--upstream" }, arguments.toString())
             assertFalse(link(waiting).contains("ech"))
 
             val kept = profile { aetherEch = true; aetherEchDns = "tcp://8.8.8.8"; aetherEchDomain = "ip.gs"; shape() }
@@ -466,7 +466,7 @@ class AetherFmtTest {
     fun aLinkGivesNoEchResolverOrDomainTheCoreWouldRefuse() {
         val plain = link(profile { aetherEch = true })
         val crafted = plain.substringBefore('#') + "&ech_dns=udp%3A%2F%2F%5B1.1.1.1%5D&ech_domain=--upstream#" + plain.substringAfter('#')
-        assertTrue(crafted, crafted.substringBefore('#').contains("ech_domain="))
+        assertTrue(crafted.substringBefore('#').contains("ech_domain="), crafted)
         val parsed = AetherFmt.parse(crafted)
         assertEquals(true, parsed?.aetherEch)
         assertNull(parsed?.aetherEchDns)
@@ -651,7 +651,7 @@ class AetherFmtTest {
     fun aNodeLeftToTheScannerCarriesNoEndpoint() {
         val uri = link(profile {})
 
-        assertTrue("uri should hold only a query: $uri", uri.startsWith("aether://?"))
+        assertTrue(uri.startsWith("aether://?"), "uri should hold only a query: $uri")
 
         val parsed = AetherFmt.parse(uri)
         assertNull(parsed?.server)
@@ -665,7 +665,7 @@ class AetherFmtTest {
             server = "2606:4700:d0::a29f:c001"
             serverPort = "443"
         })
-        assertTrue("uri should bracket the address: $uri", uri.startsWith("aether://[2606:4700:d0::a29f:c001]:443?"))
+        assertTrue(uri.startsWith("aether://[2606:4700:d0::a29f:c001]:443?"), "uri should bracket the address: $uri")
 
         val parsed = AetherFmt.parse(uri)
         assertEquals("2606:4700:d0::a29f:c001", parsed?.server)
@@ -713,7 +713,7 @@ class AetherFmtTest {
             serverPort = "443"
         })
 
-        assertTrue("uri should hold only a query: $uri", uri.startsWith("aether://?"))
+        assertTrue(uri.startsWith("aether://?"), "uri should hold only a query: $uri")
         assertNull(AetherFmt.parse("aether://162.159.198.1:443?protocol=gool#X")?.server)
     }
 

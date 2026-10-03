@@ -2,9 +2,9 @@ package com.v2ray.ang.fmt
 
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.AppResources
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 /**
  * The resolvers and the domains the ECH fields of the Aether editor and of the WARP keys page offer, read from the
@@ -28,7 +28,7 @@ class AetherEchOptionsTest {
             resolvers
         )
         assertEquals(AppConfig.AETHER_ECH_DNS, resolvers.first())
-        resolvers.forEach { assertTrue(it, AetherFmt.isEchDns(it)) }
+        resolvers.forEach { assertTrue(AetherFmt.isEchDns(it), it) }
     }
 
     @Test
@@ -46,6 +46,6 @@ class AetherEchOptionsTest {
             domains
         )
         assertEquals(AppConfig.AETHER_ECH_DOMAIN, domains.first())
-        domains.forEach { assertTrue(it, AetherFmt.isEchDomain(it)) }
+        domains.forEach { assertTrue(AetherFmt.isEchDomain(it), it) }
     }
 }

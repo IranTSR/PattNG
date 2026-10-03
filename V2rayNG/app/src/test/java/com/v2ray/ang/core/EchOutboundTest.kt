@@ -9,10 +9,10 @@ import com.v2ray.ang.dto.V2rayConfig.OutboundBean
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.util.JsonUtil
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 /**
  * Unit tests for EchOutbound: the checks made when a profile is saved, and how a configuration is
@@ -78,7 +78,7 @@ class EchOutboundTest {
     @Test
     fun validate_rejectsWhatIsNotAJsonObject() {
         for (json in listOf("freedom", "[{\"tag\": \"ech-out\"}]", "{\"tag\": \"ech-out\"", "{\"tag\": \"ech-out\"} x")) {
-            assertEquals(json, EchOutbound.Error.INVALID_JSON, EchOutbound.validate(profile(json)))
+            assertEquals(EchOutbound.Error.INVALID_JSON, EchOutbound.validate(profile(json)), json)
         }
     }
 
@@ -103,7 +103,7 @@ class EchOutboundTest {
             """{"tag": "proxy-ech"}""",
         )
         for (json in jsons) {
-            assertEquals(json, EchOutbound.Error.INVALID_TAG, EchOutbound.validate(profile(json)))
+            assertEquals(EchOutbound.Error.INVALID_TAG, EchOutbound.validate(profile(json)), json)
         }
     }
 
@@ -114,7 +114,7 @@ class EchOutboundTest {
         assertNull(EchOutbound.validate(profile(invalid, security = AppConfig.REALITY)))
         assertNull(EchOutbound.validate(profile(invalid, security = null)))
         for (configType in listOf(EConfigType.SOCKS, EConfigType.HTTP, EConfigType.WIREGUARD, EConfigType.AETHER)) {
-            assertNull(configType.name, EchOutbound.validate(profile(invalid, configType = configType)))
+            assertNull(EchOutbound.validate(profile(invalid, configType = configType)), configType.name)
         }
         // Trojan uses it under TLS, and Hysteria2 always runs over TLS: a blank security is saved as TLS.
         assertEquals(EchOutbound.Error.INVALID_TAG, EchOutbound.validate(profile(invalid, configType = EConfigType.TROJAN)))

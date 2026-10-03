@@ -5,10 +5,10 @@ import com.v2ray.ang.dto.V2rayConfig.OutboundBean
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.util.JsonUtil
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Test
 
 /**
  * Unit tests for CoreOutboundBuilder.applyDialMode: dialMode must land in
@@ -125,8 +125,8 @@ class CoreOutboundBuilderTest {
 
             CoreOutboundBuilder.populateTlsSettings(streamSettings, echProfile(AppConfig.TLS, " ").apply { this.alpn = alpn }, null)
 
-            assertEquals("$alpn", protocols, streamSettings.tlsSettings?.alpn)
-            assertEquals("$alpn", protocols.orEmpty(), CoreOutboundBuilder.alpnProtocols(alpn))
+            assertEquals(protocols, streamSettings.tlsSettings?.alpn, "$alpn")
+            assertEquals(protocols.orEmpty(), CoreOutboundBuilder.alpnProtocols(alpn), "$alpn")
         }
     }
 

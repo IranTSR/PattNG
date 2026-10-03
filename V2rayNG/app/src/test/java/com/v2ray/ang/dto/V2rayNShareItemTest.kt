@@ -2,8 +2,8 @@ package com.v2ray.ang.dto
 
 import com.google.gson.Gson
 import com.v2ray.ang.enums.EConfigType
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 /** Unit tests for V2rayNShareItem, the profile JSON that v2rayN and PattN share. */
 class V2rayNShareItemTest {

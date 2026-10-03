@@ -3,10 +3,10 @@ package com.v2ray.ang.ui.server
 import com.v2ray.ang.AppResources
 import com.v2ray.ang.core.AetherExit
 import com.v2ray.ang.ui.server.FieldPresets.Match
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 /**
  * The ready-made values the finalMask and cipherSuites fields offer: which one a field holds, whether a pick asks before
@@ -98,7 +98,7 @@ class FieldPresetsTest {
         // Each is one an exit-node takes, as an outbound does, and the list tells each apart from the others.
         val listed = FieldPresets(values, Match.JSON)
         values.forEachIndexed { index, value ->
-            assertTrue(value, AetherExit.takesFinalMask(value))
+            assertTrue(AetherExit.takesFinalMask(value), value)
             assertEquals(index, listed.indexOf(value))
         }
     }
@@ -118,7 +118,7 @@ class FieldPresetsTest {
      * undone. A quote left unescaped would end the string early, so it fails here.
      */
     private fun readAsAapt(raw: String): String {
-        assertTrue(raw, raw.length >= 2 && raw.startsWith('"') && raw.endsWith('"'))
+        assertTrue(raw.length >= 2 && raw.startsWith('"') && raw.endsWith('"'), raw)
         val text = StringBuilder()
         var escaped = false
         for (c in raw.substring(1, raw.length - 1)) {
@@ -129,12 +129,12 @@ class FieldPresetsTest {
                 }
                 c == '\\' -> escaped = true
                 else -> {
-                    assertFalse("an unescaped quote in $raw", c == '"')
+                    assertFalse(c == '"', "an unescaped quote in $raw")
                     text.append(c)
                 }
             }
         }
-        assertFalse(raw, escaped)
+        assertFalse(escaped, raw)
         return text.toString()
     }
 
@@ -143,7 +143,7 @@ class FieldPresetsTest {
      * apostrophe or backslash, and starts with neither @ nor ?.
      */
     private fun readPlain(raw: String): String {
-        assertTrue(raw, raw.isNotEmpty() && raw.none { it.isWhitespace() || it in "\"'\\" } && raw.first() !in "@?")
+        assertTrue(raw.isNotEmpty() && raw.none { it.isWhitespace() || it in "\"'\\" } && raw.first() !in "@?", raw)
         return raw
     }
 

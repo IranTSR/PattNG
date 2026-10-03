@@ -3,11 +3,11 @@ package com.v2ray.ang.core
 import com.v2ray.ang.AppResources
 import com.v2ray.ang.enums.AetherFingerprint
 import com.v2ray.ang.enums.AetherKeyKind
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 class AetherKeysTest {
 
@@ -178,7 +178,7 @@ class AetherKeysTest {
             "api.cloudflareclient.com", "api.cloudflareclient.com:443", "api.cloudflareclient.com.", "188.114.97.6",
             "188.114.97.6:2053", "2606:4700::1", "[2606:4700::1]", "[2606:4700::1]:8443", "[188.114.97.6]:443",
         )) {
-            assertTrue(address, AetherKeys.isEnrollAddress(address))
+            assertTrue(AetherKeys.isEnrollAddress(address), address)
         }
         for (address in listOf(
             "", "-x", "--upstream", "a b", "188.114.97.6:0", "188.114.97.6:65536", "188.114.97.6:", ":443",
@@ -187,7 +187,7 @@ class AetherKeysTest {
             // An IPv6 address takes brackets before a port.
             "1:2:3:4:5:6:7:8:443",
         )) {
-            assertFalse(address, AetherKeys.isEnrollAddress(address))
+            assertFalse(AetherKeys.isEnrollAddress(address), address)
         }
     }
 

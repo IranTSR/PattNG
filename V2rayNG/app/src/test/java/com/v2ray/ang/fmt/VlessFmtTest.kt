@@ -2,12 +2,12 @@ package com.v2ray.ang.fmt
 
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.EConfigType
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 /**
  * Unit tests for VlessFmt, covering the dialMode share-link parameter.
@@ -29,7 +29,7 @@ class VlessFmtTest {
     fun test_toUri_includesDialModeQueryParameter() {
         val uri = VlessFmt.toUri(createConfig("code-1"))
 
-        assertTrue("uri should carry dialMode: $uri", uri.contains("dialMode=code-1"))
+        assertTrue(uri.contains("dialMode=code-1"), "uri should carry dialMode: $uri")
     }
 
     @Test
@@ -64,7 +64,7 @@ class VlessFmtTest {
         }
 
         val uri = VlessFmt.toUri(config)
-        assertTrue("uri should carry echOutbound: $uri", uri.contains("echOutbound="))
+        assertTrue(uri.contains("echOutbound="), "uri should carry echOutbound: $uri")
 
         val reparsed = VlessFmt.parse("vless://$uri")
 

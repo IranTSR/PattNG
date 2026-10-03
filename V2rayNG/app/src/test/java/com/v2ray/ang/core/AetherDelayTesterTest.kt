@@ -11,10 +11,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import java.io.DataInputStream
 import java.io.IOException
 import java.net.InetAddress
@@ -208,7 +208,7 @@ class AetherDelayTesterTest {
         HttpStub("204 No Content").use { http ->
             SocksStub().use { socks ->
                 val delay = AetherDelayTester.requestDelay(socks.port, "http://127.0.0.1:${http.port}/generate_204")
-                assertTrue("delay was $delay", delay >= 0)
+                assertTrue(delay >= 0, "delay was $delay")
             }
         }
     }
@@ -247,7 +247,7 @@ class AetherDelayTesterTest {
             val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started)
             assertEquals(-1L, delay)
             // One attempt within the budget, no second one, and nothing left to OkHttp's own 10-second connect timeout.
-            assertTrue("gave up after $elapsedMs ms", elapsedMs < 6_000)
+            assertTrue(elapsedMs < 6_000, "gave up after $elapsedMs ms")
         }
     }
 
@@ -259,12 +259,12 @@ class AetherDelayTesterTest {
                 val probe = launch(Dispatchers.Default) {
                     AetherDelayTester.cancellableRequestDelay(socks.port, "http://127.0.0.1:1/generate_204", deadline)
                 }
-                assertTrue("the probe did not connect", socks.awaitClient(5_000))
+                assertTrue(socks.awaitClient(5_000), "the probe did not connect")
                 val started = System.nanoTime()
                 probe.cancelAndJoin()
                 val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started)
                 // Its request would otherwise wait for the rest of the 12-second budget, and keep the tunnel up.
-                assertTrue("ended after $elapsedMs ms", elapsedMs < 2_000)
+                assertTrue(elapsedMs < 2_000, "ended after $elapsedMs ms")
             }
         }
     }

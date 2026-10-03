@@ -4,9 +4,9 @@ import com.v2ray.ang.AppConfig
 import com.v2ray.ang.core.TlsSettingsCheck.Error
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.EConfigType
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Test
 
 /** The TLS settings the editor refuses to save, as the Xray-core fork would not apply them or would not connect. */
 class TlsSettingsCheckTest {
@@ -50,14 +50,14 @@ class TlsSettingsCheckTest {
             for (fingerprint in listOf("unsafe", "chrome", "", "firefox", null)) {
                 for (alpn in listOf("h2", "h2,http/1.1", "h3,h2,http/1.1", "h3,h2", "h3", "http/1.1,h2", " h2 , http/1.1 ", "http/1.1,h3")) {
                     assertEquals(
-                        "$network $fingerprint $alpn",
                         Error.WEBSOCKET_ALPN_NOT_HTTP1,
-                        TlsSettingsCheck.validate(profile(fingerprint = fingerprint, network = network, alpn = alpn))
+                        TlsSettingsCheck.validate(profile(fingerprint = fingerprint, network = network, alpn = alpn)),
+                        "$network $fingerprint $alpn"
                     )
                 }
                 // Read as CoreOutboundBuilder reads it: names trimmed, empty ones skipped.
                 for (alpn in listOf(null, "", " ", "http/1.1", " http/1.1 ", "http/1.1,")) {
-                    assertNull("$network $fingerprint $alpn", TlsSettingsCheck.validate(profile(fingerprint = fingerprint, network = network, alpn = alpn)))
+                    assertNull(TlsSettingsCheck.validate(profile(fingerprint = fingerprint, network = network, alpn = alpn)), "$network $fingerprint $alpn")
                 }
             }
         }
@@ -67,7 +67,7 @@ class TlsSettingsCheckTest {
     fun theAlpnRuleKeepsToWebSocketAndHttpUpgrade() {
         for (network in listOf("tcp", "grpc", "xhttp", null)) {
             for (alpn in listOf("h2,http/1.1", "h3", "h2")) {
-                assertNull("$network $alpn", TlsSettingsCheck.validate(profile(fingerprint = "chrome", network = network, alpn = alpn)))
+                assertNull(TlsSettingsCheck.validate(profile(fingerprint = "chrome", network = network, alpn = alpn)), "$network $alpn")
             }
         }
         // cipherSuites with the unsafe fingerprint still meet the alpn rule, and without it they are refused first.
@@ -78,7 +78,7 @@ class TlsSettingsCheckTest {
     @Test
     fun theCheckKeepsToTheEditorsThatShowTheseSettingsUnderTls() {
         for (type in listOf(EConfigType.VMESS, EConfigType.VLESS, EConfigType.SHADOWSOCKS, EConfigType.TROJAN)) {
-            assertEquals("$type", Error.CIPHER_SUITES_NEED_UNSAFE, TlsSettingsCheck.validate(profile(fingerprint = "chrome", cipherSuites = suites, type = type)))
+            assertEquals(Error.CIPHER_SUITES_NEED_UNSAFE, TlsSettingsCheck.validate(profile(fingerprint = "chrome", cipherSuites = suites, type = type)), "$type")
         }
         // Hysteria2's editor shows neither cipherSuites nor alpn, so a value an imported link left there is not refused.
         assertNull(TlsSettingsCheck.validate(profile(fingerprint = "chrome", cipherSuites = suites, type = EConfigType.HYSTERIA2)))
@@ -96,7 +96,7 @@ class TlsSettingsCheckTest {
                 for (alpn in listOf("h2,http/1.1", "h2", "h3", "h3,h2,http/1.1", "h3,h2", "http/1.1,h2")) {
                     val imported = profile(fingerprint = fingerprint, network = network, alpn = alpn)
                     TlsSettingsCheck.fixImportedAlpn(imported)
-                    assertEquals("$network $fingerprint $alpn", "http/1.1", imported.alpn)
+                    assertEquals("http/1.1", imported.alpn, "$network $fingerprint $alpn")
                     assertNull(TlsSettingsCheck.validate(imported))
                 }
             }
@@ -104,7 +104,7 @@ class TlsSettingsCheckTest {
             for (alpn in listOf(null, "", " ", "http/1.1", " http/1.1 ", "http/1.1,")) {
                 val imported = profile(fingerprint = "chrome", network = network, alpn = alpn)
                 TlsSettingsCheck.fixImportedAlpn(imported)
-                assertEquals("$network $alpn", alpn, imported.alpn)
+                assertEquals(alpn, imported.alpn, "$network $alpn")
             }
         }
     }
@@ -123,7 +123,7 @@ class TlsSettingsCheckTest {
         for (imported in kept) {
             val alpn = imported.alpn
             TlsSettingsCheck.fixImportedAlpn(imported)
-            assertEquals("${imported.configType} ${imported.network} ${imported.security}", alpn, imported.alpn)
+            assertEquals(alpn, imported.alpn, "${imported.configType} ${imported.network} ${imported.security}")
         }
     }
 }

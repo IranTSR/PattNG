@@ -2,10 +2,10 @@ package com.v2ray.ang.fmt
 
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.EConfigType
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 /**
  * Unit tests for Hysteria2Fmt, covering the ECH and finalMask share-link parameters.
@@ -31,8 +31,8 @@ class Hysteria2FmtTest {
         }
 
         val uri = Hysteria2Fmt.toUri(config)
-        assertTrue("uri should carry ech: $uri", uri.contains("ech="))
-        assertTrue("uri should carry echOutbound: $uri", uri.contains("echOutbound="))
+        assertTrue(uri.contains("ech="), "uri should carry ech: $uri")
+        assertTrue(uri.contains("echOutbound="), "uri should carry echOutbound: $uri")
 
         val reparsed = Hysteria2Fmt.parse("hysteria2://$uri")
 
@@ -55,7 +55,7 @@ class Hysteria2FmtTest {
         val config = createConfig().apply { finalMask = json }
 
         val uri = Hysteria2Fmt.toUri(config)
-        assertTrue("uri should carry fm: $uri", uri.contains("fm="))
+        assertTrue(uri.contains("fm="), "uri should carry fm: $uri")
 
         assertEquals(json, Hysteria2Fmt.parse("hysteria2://$uri").finalMask)
         assertFalse(Hysteria2Fmt.toUri(createConfig()).contains("fm="))

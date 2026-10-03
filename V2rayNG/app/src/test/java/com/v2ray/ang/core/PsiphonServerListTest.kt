@@ -2,14 +2,13 @@ package com.v2ray.ang.core
 
 import com.google.gson.Gson
 import com.v2ray.ang.AppConfig
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -22,8 +21,10 @@ import kotlin.io.encoding.Base64
 
 class PsiphonServerListTest {
 
-    @get:Rule
-    val folder = TemporaryFolder()
+    @TempDir
+    lateinit var folder: File
+
+    private fun newFolder(name: String): File = File(folder, name).apply { check(mkdir()) { "could not create $this" } }
 
     private val pair = KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair()
     private val keyText = Base64.encode(pair.public.encoded)
@@ -80,7 +81,7 @@ class PsiphonServerListTest {
 
     @Test
     fun theBundledListGoesOverACopyOnlyWhenItWasPublishedLater() {
-        val copy = File(folder.newFolder("assets"), AppConfig.PSIPHON_SERVERS_DAT)
+        val copy = File(newFolder("assets"), AppConfig.PSIPHON_SERVERS_DAT)
         assertTrue(PsiphonServerList.bundledListGoesOver(copy, 0L, keptByUser = false))
         assertTrue(PsiphonServerList.bundledListGoesOver(copy, 0L, keptByUser = true))
 
@@ -109,8 +110,8 @@ class PsiphonServerListTest {
 
     @Test
     fun theEntriesAreWrittenOncePerVersionOfTheListAndKeptWhenTheNextOneIsBroken() {
-        val assets = folder.newFolder("assets")
-        val work = folder.newFolder("work")
+        val assets = newFolder("assets")
+        val work = newFolder("work")
         assertNull(PsiphonServerList.entriesFile(assets, work, keyText))
 
         val source = File(assets, AppConfig.PSIPHON_SERVERS_DAT).apply { writeBytes(pack()) }

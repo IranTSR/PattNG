@@ -10,10 +10,10 @@ import com.v2ray.ang.enums.AetherPsiphonCdnSet
 import com.v2ray.ang.enums.AetherScanMode
 import com.v2ray.ang.enums.AetherTransport
 import com.v2ray.ang.enums.EConfigType
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 class ServerUiStateTest {
 
@@ -294,7 +294,7 @@ class ServerUiStateTest {
         val profile = ProfileItem.create(EConfigType.AETHER)
         val state = ServerUiState.from(profile)
         val built = com.v2ray.ang.core.AetherCore.of(state.toProfileItem(profile, 20808), 20808).command
-        assertTrue(built, "127.0.0.1:20808" in built)
+        assertTrue("127.0.0.1:20808" in built, built)
         state.aetherCommand = built
         assertNull(state.toProfileItem(profile, 20808).aetherCommand)
         // On another port the same words say something else than the settings do.

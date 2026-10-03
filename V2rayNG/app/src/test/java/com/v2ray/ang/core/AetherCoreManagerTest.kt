@@ -22,13 +22,13 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -743,7 +743,7 @@ class AetherCoreManagerTest {
             aetherEchDomain = "--bind",
         )
         val arguments = AetherCoreManager.buildArguments(crafted, 10819)
-        assertFalse(arguments.toString(), "--upstream" in arguments)
+        assertFalse("--upstream" in arguments, arguments.toString())
         assertNull(valueAfter(arguments, "--dns"))
         assertNull(valueAfter(arguments, "--exit-loc"))
         assertEquals("udp://1.1.1.1", valueAfter(arguments, "--ech-dns"))
@@ -761,7 +761,7 @@ class AetherCoreManagerTest {
             aetherPsiphonRegion = "--upstream",
         )
         val carried = AetherCoreManager.buildArguments(psiphon, 10819)
-        assertFalse(carried.toString(), "--upstream" in carried)
+        assertFalse("--upstream" in carried, carried.toString())
         assertNull(valueAfter(carried, "--psiphon-cdn-ips"))
         assertNull(valueAfter(carried, "--psiphon-cdn-sni"))
         assertNull(valueAfter(carried, "--psiphon-region"))
@@ -772,7 +772,7 @@ class AetherCoreManagerTest {
             aetherTorBridgeLines = "--upstream\nobfs4 192.0.2.1:443 FP cert=x iat-mode=0",
         )
         val bridged = AetherCoreManager.buildArguments(tor, 10819)
-        assertFalse(bridged.toString(), "--upstream" in bridged)
+        assertFalse("--upstream" in bridged, bridged.toString())
         assertEquals(listOf("obfs4 192.0.2.1:443 FP cert=x iat-mode=0"), valuesAfter(bridged, "--tor-bridge"))
     }
 
@@ -1137,7 +1137,7 @@ class AetherCoreManagerTest {
         assertEquals(1024, AetherCoreManager.listenPortOf("1024"))
         assertEquals(65532, AetherCoreManager.listenPortOf("65532"))
         for (text in listOf(null, "", "socks", "0", "80", "1023", "65533", "70000", "-1", "10819.5")) {
-            assertEquals(text.toString(), 10819, AetherCoreManager.listenPortOf(text))
+            assertEquals(10819, AetherCoreManager.listenPortOf(text), text.toString())
         }
     }
 
@@ -1148,10 +1148,10 @@ class AetherCoreManagerTest {
         assertNull(AetherCoreManager.listenPortProblem(" 10810 ", local))
         assertNull(AetherCoreManager.listenPortProblem("10804", local))
         for (text in listOf("10805", "10806", "10808", "10809")) {
-            assertEquals(text, AetherCoreManager.ListenPortProblem.LOCAL_PROXY, AetherCoreManager.listenPortProblem(text, local))
+            assertEquals(AetherCoreManager.ListenPortProblem.LOCAL_PROXY, AetherCoreManager.listenPortProblem(text, local), text)
         }
         for (text in listOf("", "socks", "1023", "65533")) {
-            assertEquals(text, AetherCoreManager.ListenPortProblem.NOT_A_PORT, AetherCoreManager.listenPortProblem(text, local))
+            assertEquals(AetherCoreManager.ListenPortProblem.NOT_A_PORT, AetherCoreManager.listenPortProblem(text, local), text)
         }
         // A local proxy on a port picked anew at every start is no matter here.
         assertNull(AetherCoreManager.listenPortProblem("10808", emptySet()))

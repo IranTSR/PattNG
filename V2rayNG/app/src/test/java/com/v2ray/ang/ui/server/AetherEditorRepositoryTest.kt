@@ -2,11 +2,11 @@ package com.v2ray.ang.ui.server
 
 import com.v2ray.ang.enums.AetherKeyKind
 import com.v2ray.ang.enums.AetherProtocol
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 class AetherEditorRepositoryTest {
 
@@ -49,6 +49,6 @@ class AetherEditorRepositoryTest {
 
         // Only the listener was seen, so the session may use any key.
         val unknown = AetherSession(protocol = null)
-        AetherKeyKind.entries.forEach { assertTrue(it.type, unknown.usesKeysOf(it)) }
+        AetherKeyKind.entries.forEach { assertTrue(unknown.usesKeysOf(it), it.type) }
     }
 }
