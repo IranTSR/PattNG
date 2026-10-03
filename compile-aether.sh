@@ -112,7 +112,7 @@ for abi in $ABIS; do
     "CFLAGS_${under_triple}=--target=$clang_target" \
     "CXXFLAGS_${under_triple}=--target=$clang_target" \
     "AR_${under_triple}=$TOOLCHAIN/llvm-ar" \
-    "BINDGEN_EXTRA_CLANG_ARGS_${under_triple}=--target=$triple --sysroot=$SYSROOT" \
+    "BINDGEN_EXTRA_CLANG_ARGS_${under_triple}=--target=$clang_target --sysroot=$SYSROOT" \
     cargo build --release --locked --features tor --manifest-path "$CORE_DIR/Cargo.toml" --target "$triple" --bin aether
 
   produced="$CORE_DIR/target/$triple/release/aether"
