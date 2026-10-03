@@ -121,7 +121,7 @@ class AetherKeysViewModelTest {
         viewModel.setEch(true)
         viewModel.setEchDns("https://1.1.1.1/dns-query")
         viewModel.setEchDomain("example.com")
-        viewModel.setFingerprint(AetherFingerprint.PYTHON)
+        viewModel.setFingerprint(AetherFingerprint.SEMI_PYTHON)
         viewModel.setFinalMask("""{"tcp": []}""")
         viewModel.setDialMode("ForceIP")
 
@@ -131,7 +131,7 @@ class AetherKeysViewModelTest {
             ech = true,
             echDns = "https://1.1.1.1/dns-query",
             echDomain = "example.com",
-            fingerprint = AetherFingerprint.PYTHON,
+            fingerprint = AetherFingerprint.SEMI_PYTHON,
             finalMask = """{"tcp": []}""",
             dialMode = "ForceIP",
         )

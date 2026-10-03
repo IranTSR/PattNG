@@ -296,7 +296,7 @@ class AetherFmtTest {
 
     @Test
     fun theFingerprintRidesWithMasqueAndChromesStaysOutOfALink() {
-        for (fingerprint in listOf("firefox", "python", "go")) {
+        for (fingerprint in listOf("firefox", "semi-python", "go")) {
             for (transport in AetherTransport.entries) {
                 val text = link(profile { aetherTransport = transport.type; aetherFingerprint = fingerprint })
                 assertTrue(text, text.contains("fingerprint=$fingerprint"))

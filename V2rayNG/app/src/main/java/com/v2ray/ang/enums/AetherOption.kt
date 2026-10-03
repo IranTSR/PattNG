@@ -236,14 +236,16 @@ enum class AetherFingerprint(val type: String, val ciphers: String, val grease: 
     ),
 
     /**
-     * c02c c030 c02b c02f cca9 cca8 c027: the suites of Python's list that BoringSSL has. Python offers c024 c028 c023
-     * after cca8 and 009f 009e 006b 0067 after c027 as well; BoringSSL has no DHE suite and no CBC suite with SHA-384,
-     * nor ECDSA with SHA-256, and refuses a cipher list that names one.
+     * c02c c030 c02b c02f cca9 cca8 c00a c014 c023 c027: Python's first ten TLS 1.2 suites, with c00a and c014
+     * (AES-256-CBC with SHA-1) in place of c024 and c028 (with SHA-384), the nearest ones BoringSSL has; Python's
+     * four DHE suites after them are left out, as BoringSSL has none. Hence semi-python: not Python's list as it is,
+     * but every suite of it a core on boring 5.2 or newer takes; an older one refuses c023.
      */
-    PYTHON(
-        "python",
+    SEMI_PYTHON(
+        "semi-python",
         "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:" +
-            "ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-SHA256",
+            "ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:" +
+            "ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256",
         false,
     ),
 

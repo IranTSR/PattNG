@@ -701,7 +701,7 @@ class AetherCoreManagerTest {
                 val chrome = AetherCoreManager.buildArguments(profile(protocol, transport), 10819)
                 assertEquals(AetherFingerprint.CHROME.ciphers, valueAfter(chrome, "--tls-ciphers"))
                 assertFalse("--disable-grease" in chrome)
-                for (fingerprint in listOf(AetherFingerprint.FIREFOX, AetherFingerprint.PYTHON, AetherFingerprint.GO)) {
+                for (fingerprint in listOf(AetherFingerprint.FIREFOX, AetherFingerprint.SEMI_PYTHON, AetherFingerprint.GO)) {
                     val arguments = AetherCoreManager.buildArguments(profile(protocol, transport).copy(aetherFingerprint = fingerprint.type), 10819)
                     assertEquals(fingerprint.ciphers, valueAfter(arguments, "--tls-ciphers"))
                     assertTrue("--disable-grease" in arguments)

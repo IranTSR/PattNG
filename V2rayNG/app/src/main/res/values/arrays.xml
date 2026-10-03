@@ -237,7 +237,7 @@
     <string-array name="aether_fingerprint_entries" translatable="false">
         <item>Chrome</item>
         <item>Firefox</item>
-        <item>Python</item>
+        <item>Semi-Python</item>
         <item>Go</item>
     </string-array>
     <!-- The resolvers and the domains the ECH fields offer, the default first; either field takes any other value the core does. -->
@@ -260,7 +260,7 @@
     <string-array name="aether_fingerprint_values" translatable="false">
         <item>chrome</item>
         <item>firefox</item>
-        <item>python</item>
+        <item>semi-python</item>
         <item>go</item>
     </string-array>
     <string-array name="aether_transport_entries" translatable="false">

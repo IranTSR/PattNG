@@ -7,6 +7,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
 
 class AetherKeysTest {
 
@@ -25,6 +27,7 @@ class AetherKeysTest {
         "ECDHE-RSA-AES256-SHA" to 0xc014,
         "ECDHE-ECDSA-AES128-SHA" to 0xc009,
         "ECDHE-ECDSA-AES256-SHA" to 0xc00a,
+        "ECDHE-ECDSA-AES128-SHA256" to 0xc023,
         "ECDHE-RSA-AES128-SHA256" to 0xc027,
         "AES128-GCM-SHA256" to 0x009c,
         "AES256-GCM-SHA384" to 0x009d,
@@ -43,11 +46,12 @@ class AetherKeysTest {
         // The ClientHellos captured with Wireshark.
         assertEquals(tls12Of("eaea130113021303c02bc02fc02cc030cca9cca8c013c014009c009d002f0035"), suitesOf(AetherFingerprint.CHROME))
         assertEquals(tls12Of("130113031302c02bc02fcca9cca8c02cc030c013c014009c009d002f0035"), suitesOf(AetherFingerprint.FIREFOX))
-        // Python's, without the suites BoringSSL does not have: no DHE, no CBC with SHA-384, no ECDSA CBC with SHA-256.
-        val missing = listOf(0xc024, 0xc028, 0xc023, 0x009f, 0x009e, 0x006b, 0x0067)
+        // Python's first ten, with c00a and c014 (AES-256-CBC with SHA-1) in place of c024 and c028 (with SHA-384),
+        // which BoringSSL does not have; its four DHE suites after them are left out.
+        val nearest = mapOf(0xc024 to 0xc00a, 0xc028 to 0xc014)
         assertEquals(
-            tls12Of("130213031301c02cc030c02bc02fcca9cca8c024c028c023c027009f009e006b0067") - missing.toSet(),
-            suitesOf(AetherFingerprint.PYTHON)
+            tls12Of("130213031301c02cc030c02bc02fcca9cca8c024c028c023c027009f009e006b0067").take(10).map { nearest[it] ?: it },
+            suitesOf(AetherFingerprint.SEMI_PYTHON)
         )
         // Go lists its TLS 1.3 suites last, which BoringSSL cannot do; its TLS 1.2 suites are all there.
         assertEquals(tls12Of("c02bc02fc02cc030cca9cca8c009c013c00ac014130113021303"), suitesOf(AetherFingerprint.GO))
@@ -57,7 +61,7 @@ class AetherKeysTest {
     fun onlyChromeSendsGrease() {
         assertTrue(AetherFingerprint.CHROME.grease)
         assertFalse(AetherFingerprint.FIREFOX.grease)
-        assertFalse(AetherFingerprint.PYTHON.grease)
+        assertFalse(AetherFingerprint.SEMI_PYTHON.grease)
         assertFalse(AetherFingerprint.GO.grease)
 
         for (fingerprint in AetherFingerprint.entries) {
@@ -65,6 +69,22 @@ class AetherKeysTest {
             assertEquals(fingerprint.ciphers, valueAfter(arguments, "--tls-ciphers"))
             assertEquals(!fingerprint.grease, "--disable-grease" in arguments)
         }
+    }
+
+    @Test
+    fun theFingerprintListNamesEveryFingerprintInItsOrder() {
+        // The dropdowns of the Aether editor and of the WARP keys page, read from the app's resources as the unit tests
+        // run in the module's folder.
+        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(File("src/main/res/values/arrays.xml"))
+        val arrays = document.getElementsByTagName("string-array")
+        fun array(name: String): List<String> {
+            val array = (0 until arrays.length).map { arrays.item(it) }.single { it.attributes.getNamedItem("name").nodeValue == name }
+            val items = array.childNodes
+            return (0 until items.length).map { items.item(it) }.filter { it.nodeName == "item" }.map { it.textContent.trim() }
+        }
+        assertEquals(AetherFingerprint.entries.map { it.type }, array("aether_fingerprint_values"))
+        assertEquals(listOf("Chrome", "Firefox", "Semi-Python", "Go"), array("aether_fingerprint_entries"))
+        assertEquals(AetherFingerprint.SEMI_PYTHON, AetherFingerprint.fromString("semi-python"))
     }
 
     @Test
