@@ -86,7 +86,7 @@
     <string name="server_lab_stream_alpn" translatable="false">ALPN</string>
     <string name="server_lab_cipher_suites">Наборы шифров (Cipher Suites)</string>
     <string name="toast_cipher_suites_need_unsafe">cipherSuites применяются только с отпечатком unsafe. Выберите unsafe или очистите cipherSuites.</string>
-    <string name="toast_alpn_h2_before_http1">WebSocket и HTTPUpgrade с отпечатком unsafe не подключаются, если в alpn h2 стоит перед http/1.1. Выберите http/1.1 или оставьте alpn пустым.</string>
+    <string name="toast_alpn_h2_before_http1">WebSocket и HTTPUpgrade не подключаются, если в alpn h2 стоит перед http/1.1. Выберите http/1.1 или оставьте alpn пустым.</string>
     <string name="server_lab_allow_insecure">Не проверять сертификат (allowInsecure)</string>
     <string name="server_lab_sni" translatable="false">SNI</string>
     <string name="server_lab_address3">Адрес</string>
