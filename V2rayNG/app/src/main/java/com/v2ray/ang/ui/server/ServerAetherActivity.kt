@@ -166,7 +166,7 @@ class ServerAetherActivity : BaseServerActivity() {
         LaunchedEffect(keysCheck) {
             if (keysCheck == AetherKeysCheck.SaveReady) {
                 viewModel.onKeysCheckHandled()
-                saveServer(uiState)
+                saveChecked(uiState)
             }
         }
 
@@ -575,7 +575,7 @@ class ServerAetherActivity : BaseServerActivity() {
                 },
                 onAnyway = {
                     viewModel.onKeysCheckHandled()
-                    if (missing.scan) viewModel.scan(uiState.toProfileItem(initialConfig, listenPort), anyway = true) else saveServer(uiState)
+                    if (missing.scan) viewModel.scan(uiState.toProfileItem(initialConfig, listenPort), anyway = true) else saveChecked(uiState)
                 },
                 onDismiss = viewModel::onKeysCheckHandled
             )
@@ -584,14 +584,25 @@ class ServerAetherActivity : BaseServerActivity() {
 
     /**
      * Saves the profile once it passes the editor's checks and the WARP keys it needs are there: the screen saves on
-     * [AetherKeysCheck.SaveReady], and asks first when a key is missing.
+     * [AetherKeysCheck.SaveReady], and asks first when a key is missing. Once a save has closed the editor, a tap on
+     * Save it still takes does nothing.
      */
     private fun requestSave(state: ServerUiState, listenPort: Int) {
+        if (isFinishing) return
         if (!validateBasicConfig(state)) return
         val config = state.toProfileItem(initialConfig, listenPort)
         if (!validateCommonConfig(state, config)) return
         if (!validateProtocolConfig(config)) return
         viewModel.checkKeysBeforeSave(config)
+    }
+
+    /**
+     * Saves the profile after the check of its keys, unless a save has closed the editor already: the check of a
+     * second tap on Save, made while the first one was checked, can end after that save, and would save a new
+     * profile twice.
+     */
+    private fun saveChecked(state: ServerUiState) {
+        if (!isFinishing) saveServer(state)
     }
 
     override fun validateBasicConfig(state: ServerUiState): Boolean {

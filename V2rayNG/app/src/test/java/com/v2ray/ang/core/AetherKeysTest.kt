@@ -1,5 +1,6 @@
 package com.v2ray.ang.core
 
+import com.v2ray.ang.AppResources
 import com.v2ray.ang.enums.AetherFingerprint
 import com.v2ray.ang.enums.AetherKeyKind
 import org.junit.Assert.assertEquals
@@ -7,8 +8,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
-import javax.xml.parsers.DocumentBuilderFactory
 
 class AetherKeysTest {
 
@@ -75,15 +74,8 @@ class AetherKeysTest {
     fun theFingerprintListNamesEveryFingerprintInItsOrder() {
         // The dropdowns of the Aether editor and of the WARP keys page, read from the app's resources as the unit tests
         // run in the module's folder.
-        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(File("src/main/res/values/arrays.xml"))
-        val arrays = document.getElementsByTagName("string-array")
-        fun array(name: String): List<String> {
-            val array = (0 until arrays.length).map { arrays.item(it) }.single { it.attributes.getNamedItem("name").nodeValue == name }
-            val items = array.childNodes
-            return (0 until items.length).map { items.item(it) }.filter { it.nodeName == "item" }.map { it.textContent.trim() }
-        }
-        assertEquals(AetherFingerprint.entries.map { it.type }, array("aether_fingerprint_values"))
-        assertEquals(listOf("Chrome", "Firefox", "Semi-Python", "Go"), array("aether_fingerprint_entries"))
+        assertEquals(AetherFingerprint.entries.map { it.type }, AppResources.stringArray("aether_fingerprint_values"))
+        assertEquals(listOf("Chrome", "Firefox", "Semi-Python", "Go"), AppResources.stringArray("aether_fingerprint_entries"))
         assertEquals(AetherFingerprint.SEMI_PYTHON, AetherFingerprint.fromString("semi-python"))
     }
 

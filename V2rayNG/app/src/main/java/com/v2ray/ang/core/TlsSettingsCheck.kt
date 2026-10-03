@@ -67,9 +67,7 @@ object TlsSettingsCheck {
     private fun isUpgrade(profile: ProfileItem): Boolean =
         profile.network == NetworkType.WS.type || profile.network == NetworkType.HTTP_UPGRADE.type
 
-    /** Whether [alpn], read as CoreOutboundBuilder reads it, is http/1.1 alone or nothing at all. */
-    private fun isHttp1OrNone(alpn: String?): Boolean {
-        val protocols = alpn?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
-        return protocols.isEmpty() || protocols == listOf(HTTP1)
-    }
+    /** Whether [alpn], read as the outbound offers it, is http/1.1 alone or nothing at all. */
+    private fun isHttp1OrNone(alpn: String?): Boolean =
+        CoreOutboundBuilder.alpnProtocols(alpn).let { it.isEmpty() || it == listOf(HTTP1) }
 }

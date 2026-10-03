@@ -1,13 +1,12 @@
 package com.v2ray.ang.ui.server
 
+import com.v2ray.ang.AppResources
 import com.v2ray.ang.core.AetherExit
 import com.v2ray.ang.ui.server.FieldPresets.Match
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
-import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * The ready-made values the finalMask and cipherSuites fields offer: which one a field holds, whether a pick asks before
@@ -67,23 +66,33 @@ class FieldPresetsTest {
 
     @Test
     fun aPickAsksFirstOnlyWhenItWouldTakeThePlaceOfAValueOfTheUsersOwn() {
-        assertFalse(masks.asksBeforeReplacing(""))
-        assertFalse(masks.asksBeforeReplacing("  "))
-        assertFalse(masks.asksBeforeReplacing(noise))
-        assertFalse(masks.asksBeforeReplacing(noise.replace(" ", "")))
-        assertTrue(masks.asksBeforeReplacing(noise.replace("10-20", "30-40")))
-        assertTrue(masks.asksBeforeReplacing("""{"tcp": ["""))
-        assertFalse(suites.asksBeforeReplacing(""))
-        assertFalse(suites.asksBeforeReplacing(chacha))
-        assertFalse(suites.asksBeforeReplacing("$ecdsa : $rsa"))
-        assertTrue(suites.asksBeforeReplacing("$rsa:$ecdsa"))
-        assertTrue(suites.asksBeforeReplacing(" : "))
+        fun asks(presets: FieldPresets, text: String) = FieldPresets.asksBeforeReplacing(text, presets.indexOf(text))
+        assertFalse(asks(masks, ""))
+        assertFalse(asks(masks, "  "))
+        assertFalse(asks(masks, noise))
+        assertFalse(asks(masks, noise.replace(" ", "")))
+        assertTrue(asks(masks, noise.replace("10-20", "30-40")))
+        assertTrue(asks(masks, """{"tcp": ["""))
+        assertFalse(asks(suites, ""))
+        assertFalse(asks(suites, chacha))
+        assertFalse(asks(suites, "$ecdsa : $rsa"))
+        assertTrue(asks(suites, "$rsa:$ecdsa"))
+        assertTrue(asks(suites, " : "))
+    }
+
+    @Test
+    fun aPickAsksFirstWhileWhatTheFieldHoldsIsNotKnownYetUnlessItIsBlank() {
+        // The fields match off the main thread, so a pick can come before the text the field holds now is matched.
+        assertTrue(FieldPresets.asksBeforeReplacing(noise, null))
+        assertTrue(FieldPresets.asksBeforeReplacing("$rsa:$ecdsa", null))
+        assertFalse(FieldPresets.asksBeforeReplacing("", null))
+        assertFalse(FieldPresets.asksBeforeReplacing(" \n ", null))
     }
 
     @Test
     fun theFinalMaskFieldsOfferTheGivenFinalMasksEachLaidOutAsWrittenUnderItsName() {
-        val names = array("final_mask_preset_names")
-        val values = array("final_mask_preset_values").map(::readAsAapt)
+        val names = AppResources.stringArray("final_mask_preset_names")
+        val values = AppResources.stringArray("final_mask_preset_values").map(::readAsAapt)
         assertEquals(listOf("tlshello-0-len (0-104-1-0-0-114-1-1-11)", "tlshello (6-98-1-0-0-114-1-1-11)", "udp-noise (rnd-24-1200-1230)"), names)
         assertEquals(listOf(TLSHELLO_0_LEN, TLSHELLO, UDP_NOISE), values)
         // Each is one an exit-node takes, as an outbound does, and the list tells each apart from the others.
@@ -96,22 +105,12 @@ class FieldPresetsTest {
 
     @Test
     fun theCipherSuitesFieldOffersTheGivenListUnderItsName() {
-        val names = array("cipher_suites_preset_names")
-        val values = array("cipher_suites_preset_values").map(::readPlain)
+        val names = AppResources.stringArray("cipher_suites_preset_names")
+        val values = AppResources.stringArray("cipher_suites_preset_values").map(::readPlain)
         assertEquals(listOf("semi-python-cipherSuites"), names)
         assertEquals(listOf(SEMI_PYTHON), values)
         val listed = FieldPresets(values, Match.NAMES)
         values.forEachIndexed { index, value -> assertEquals(index, listed.indexOf(value)) }
-    }
-
-    private fun array(name: String): List<String> {
-        val arrays = File("src/main/res/values/arrays.xml")
-        assertTrue("${arrays.absolutePath} is where the unit tests run from", arrays.isFile)
-        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(arrays)
-        val nodes = document.getElementsByTagName("string-array")
-        val array = (0 until nodes.length).map { nodes.item(it) }.single { it.attributes.getNamedItem("name").nodeValue == name }
-        val items = array.childNodes
-        return (0 until items.length).map { items.item(it) }.filter { it.nodeName == "item" }.map { it.textContent.trim() }
     }
 
     /**

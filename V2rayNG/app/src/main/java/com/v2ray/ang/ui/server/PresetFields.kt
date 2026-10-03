@@ -9,6 +9,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import com.v2ray.ang.R
 import com.v2ray.ang.ui.compose.ConfirmDialog
 import com.v2ray.ang.ui.compose.FormTextField
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * The finalMask field of the server editors and of the exit-node on the Aether pages: JSON written by hand, or one of
@@ -91,7 +94,13 @@ private fun PresetField(
     val names = stringArrayResource(presetNames).toList()
     val values = stringArrayResource(presetValues).toList()
     val presets = remember(values, match) { FieldPresets(values, match) }
-    val held = remember(presets, value) { presets.indexOf(value) }
+    // The text matched and the index of the preset it is, -1 for none: matched on Dispatchers.Default, as the JSON of
+    // a finalMask is parsed for it, so it can trail the text by a keystroke. Null until the first match is in.
+    var held by remember { mutableStateOf<Pair<String, Int>?>(null) }
+    LaunchedEffect(presets, value) {
+        val text = value
+        held = text to withContext(Dispatchers.Default) { presets.indexOf(text) }
+    }
     var expanded by rememberSaveable { mutableStateOf(false) }
     // The name of a pick that waits to be let take the place of a value of the user's own.
     var replacing by rememberSaveable { mutableStateOf<String?>(null) }
@@ -103,7 +112,7 @@ private fun PresetField(
             onValueChange = onValueChange,
             enabled = enabled,
             maxLines = 8,
-            supportingText = names.getOrNull(held),
+            supportingText = held?.let { names.getOrNull(it.second) },
             trailingIcon = {
                 IconButton(onClick = { expanded = !expanded }, enabled = enabled) {
                     Icon(
@@ -126,7 +135,8 @@ private fun PresetField(
                     text = { Text(name) },
                     onClick = {
                         expanded = false
-                        if (presets.asksBeforeReplacing(value)) {
+                        // Until the text the field holds now is matched, a pick asks rather than lose a value of the user's own.
+                        if (FieldPresets.asksBeforeReplacing(value, held?.takeIf { it.first == value }?.second)) {
                             replacing = name
                         } else {
                             values.getOrNull(index)?.let(onValueChange)

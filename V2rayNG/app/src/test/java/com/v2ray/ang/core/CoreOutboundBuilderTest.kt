@@ -108,6 +108,29 @@ class CoreOutboundBuilderTest {
     }
 
     @Test
+    fun test_populateTlsSettings_offersTheAlpnAsWrittenCommaSeparated() {
+        // TlsSettingsCheck reads alpn with alpnProtocols as well, to refuse what WebSocket and HTTPUpgrade cannot use.
+        val offered = mapOf(
+            " h2 , http/1.1," to listOf("h2", "http/1.1"),
+            "http/1.1" to listOf("http/1.1"),
+            "h3,,h2" to listOf("h3", "h2"),
+            // Only a comma parts two; Xray is offered what is between as one name.
+            "h2 http/1.1" to listOf("h2 http/1.1"),
+            " , " to null,
+            "" to null,
+            null to null,
+        )
+        for ((alpn, protocols) in offered) {
+            val streamSettings = OutboundBean.StreamSettingsBean()
+
+            CoreOutboundBuilder.populateTlsSettings(streamSettings, echProfile(AppConfig.TLS, " ").apply { this.alpn = alpn }, null)
+
+            assertEquals("$alpn", protocols, streamSettings.tlsSettings?.alpn)
+            assertEquals("$alpn", protocols.orEmpty(), CoreOutboundBuilder.alpnProtocols(alpn))
+        }
+    }
+
+    @Test
     fun test_applyTargetStrategy_setsOutboundTargetStrategy() {
         val outbound = OutboundBean(protocol = "vless")
 

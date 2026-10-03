@@ -589,6 +589,10 @@ object CoreOutboundBuilder {
         return sni
     }
 
+    /** PattNG: the protocols [alpn] names, comma-separated, as the TLS settings of an outbound offer them; empty for none. */
+    internal fun alpnProtocols(alpn: String?): List<String> =
+        alpn?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
+
     /**
      * Configures TLS or REALITY security settings for an outbound connection.
      *
@@ -617,7 +621,7 @@ object CoreOutboundBuilder {
             allowInsecure = allowInsecure,
             serverName = sni.nullIfBlank(),
             fingerprint = profileItem.fingerPrint.nullIfBlank(),
-            alpn = profileItem.alpn?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }.takeIf { !it.isNullOrEmpty() },
+            alpn = alpnProtocols(profileItem.alpn).takeIf { it.isNotEmpty() },
             cipherSuites = profileItem.cipherSuites.nullIfBlank(),
             echConfigList = profileItem.echConfigList.nullIfBlank(),
             verifyPeerCertByName = profileItem.verifyPeerCertByName.nullIfBlank(),
