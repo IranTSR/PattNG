@@ -88,4 +88,42 @@ class TlsSettingsCheckTest {
         assertNull(TlsSettingsCheck.validate(profile(fingerprint = "unsafe", alpn = "h2", security = "")))
         assertNull(TlsSettingsCheck.validate(profile(fingerprint = "chrome", cipherSuites = suites, security = null)))
     }
+
+    @Test
+    fun anImportedWebSocketOrHttpUpgradeLinkGetsHttp1InPlaceOfAnyOtherAlpn() {
+        for (network in listOf("ws", "httpupgrade")) {
+            for (fingerprint in listOf("chrome", "unsafe", null)) {
+                for (alpn in listOf("h2,http/1.1", "h2", "h3", "h3,h2,http/1.1", "h3,h2", "http/1.1,h2")) {
+                    val imported = profile(fingerprint = fingerprint, network = network, alpn = alpn)
+                    TlsSettingsCheck.fixImportedAlpn(imported)
+                    assertEquals("$network $fingerprint $alpn", "http/1.1", imported.alpn)
+                    assertNull(TlsSettingsCheck.validate(imported))
+                }
+            }
+            // A link without alpn, or with http/1.1 alone, stays as it came.
+            for (alpn in listOf(null, "", " ", "http/1.1", " http/1.1 ", "http/1.1,")) {
+                val imported = profile(fingerprint = "chrome", network = network, alpn = alpn)
+                TlsSettingsCheck.fixImportedAlpn(imported)
+                assertEquals("$network $alpn", alpn, imported.alpn)
+            }
+        }
+    }
+
+    @Test
+    fun anImportedLinkOfAnotherTransportOrOutsideTlsKeepsItsAlpn() {
+        val kept = listOf(
+            profile(network = "tcp", alpn = "h2,http/1.1"),
+            profile(network = "grpc", alpn = "h2"),
+            profile(network = "xhttp", alpn = "h3"),
+            profile(network = "ws", alpn = "h2,http/1.1", security = AppConfig.REALITY),
+            profile(network = "ws", alpn = "h2,http/1.1", security = ""),
+            profile(network = "ws", alpn = "h2,http/1.1", security = null),
+            profile(network = "ws", alpn = "h2,http/1.1", type = EConfigType.HYSTERIA2),
+        )
+        for (imported in kept) {
+            val alpn = imported.alpn
+            TlsSettingsCheck.fixImportedAlpn(imported)
+            assertEquals("${imported.configType} ${imported.network} ${imported.security}", alpn, imported.alpn)
+        }
+    }
 }

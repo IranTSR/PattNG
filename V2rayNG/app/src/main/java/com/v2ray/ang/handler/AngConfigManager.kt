@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.text.TextUtils
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.core.CoreConfigManager
+import com.v2ray.ang.core.TlsSettingsCheck
 import com.v2ray.ang.dto.SubscriptionUpdateResult
 import com.v2ray.ang.dto.UrlContentRequest
 import com.v2ray.ang.dto.entities.ProfileItem
@@ -269,6 +270,8 @@ object AngConfigManager {
 
             val v2raynConfigs = V2rayNFmt.parse(v2raynLines, subid)
             val allConfigs = v2raynConfigs + configs
+            // PattNG: WebSocket and HTTPUpgrade connect only with alpn http/1.1 or none, which shared links often lack
+            allConfigs.forEach(TlsSettingsCheck::fixImportedAlpn)
 
             if (allConfigs.isNotEmpty()) {
                 commitProfiles(

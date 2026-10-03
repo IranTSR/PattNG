@@ -16,6 +16,9 @@ object TlsSettingsCheck {
     /** The fingerprint with which the fork builds the ClientHello with Go's crypto/tls rather than with uTLS. */
     const val UNSAFE_FINGERPRINT = "unsafe"
 
+    /** The one alpn WebSocket and HTTPUpgrade connect with, and the one the fork offers for them when there is none. */
+    private const val HTTP1 = "http/1.1"
+
     enum class Error {
         /**
          * cipherSuites with a fingerprint other than unsafe: uTLS then builds the ClientHello, and the fork passes it no
@@ -48,14 +51,25 @@ object TlsSettingsCheck {
         // The fork lowercases the fingerprint before it looks it up.
         val unsafe = profile.fingerPrint?.lowercase(Locale.ROOT) == UNSAFE_FINGERPRINT
         if (!profile.cipherSuites.isNullOrBlank() && !unsafe) return Error.CIPHER_SUITES_NEED_UNSAFE
-        val upgrade = profile.network == NetworkType.WS.type || profile.network == NetworkType.HTTP_UPGRADE.type
-        if (upgrade && !isHttp1OrNone(profile.alpn)) return Error.WEBSOCKET_ALPN_NOT_HTTP1
+        if (isUpgrade(profile) && !isHttp1OrNone(profile.alpn)) return Error.WEBSOCKET_ALPN_NOT_HTTP1
         return null
     }
+
+    /**
+     * Gives an imported [profile] the alpn its WebSocket or HTTPUpgrade transport connects with, as shared links often
+     * carry h2,http/1.1: http/1.1 in place of any alpn [validate] refuses for them. No alpn is kept as it is, since the
+     * fork offers http/1.1 for it as well. The profiles of share links and subscriptions pass here before they are stored.
+     */
+    fun fixImportedAlpn(profile: ProfileItem) {
+        if (appliesTo(profile) && isUpgrade(profile) && !isHttp1OrNone(profile.alpn)) profile.alpn = HTTP1
+    }
+
+    private fun isUpgrade(profile: ProfileItem): Boolean =
+        profile.network == NetworkType.WS.type || profile.network == NetworkType.HTTP_UPGRADE.type
 
     /** Whether [alpn], read as CoreOutboundBuilder reads it, is http/1.1 alone or nothing at all. */
     private fun isHttp1OrNone(alpn: String?): Boolean {
         val protocols = alpn?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
-        return protocols.isEmpty() || protocols == listOf("http/1.1")
+        return protocols.isEmpty() || protocols == listOf(HTTP1)
     }
 }
