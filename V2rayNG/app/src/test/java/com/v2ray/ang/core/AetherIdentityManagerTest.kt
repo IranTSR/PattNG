@@ -271,6 +271,36 @@ class AetherIdentityManagerTest {
     }
 
     @Test
+    fun theKeysARenewalOfAnOlderVersionLeftGoAndTheKeysInUseStay() {
+        // That renewal moved the whole identity folder aside to aether-previous while it registered new keys; an app
+        // killed meanwhile left it there, which nothing reads.
+        val dir = keysInUse()
+        File(dir, "aether-wg-lastconn.toml").writeText("peer = \"162.159.192.1:2408\"")
+        val previous = folder.newFolder("aether-previous")
+        register(previous, deviceId = "older")
+        File(previous, AetherIdentityManager.BASE_FILE).writeText("older")
+
+        assertTrue(AetherIdentityManager.settleIn(folder.root))
+
+        assertFalse(previous.exists())
+        assertEquals(every("old"), devices(dir))
+        assertEquals("peer = \"162.159.192.1:2408\"", File(dir, "aether-wg-lastconn.toml").readText())
+    }
+
+    @Test
+    fun settlingTheFilesFolderFinishesARenewalWhoseKeysWereAllReady() {
+        val dir = keysInUse()
+        val renewal = folder.newFolder("aether-renewal")
+        register(renewal)
+        File(renewal, AetherIdentityManager.READY_MARK).createNewFile()
+
+        assertTrue(AetherIdentityManager.settleIn(folder.root))
+
+        assertEquals(every("new"), devices(dir))
+        assertEquals(listOf("aether"), folder.root.list()?.toList())
+    }
+
+    @Test
     fun newKeysNotMarkedReadyAreNeverMovedIntoPlace() {
         val dir = keysInUse()
         val renewal = folder.newFolder("aether-renewal")

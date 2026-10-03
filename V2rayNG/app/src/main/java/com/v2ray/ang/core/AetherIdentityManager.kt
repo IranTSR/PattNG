@@ -63,8 +63,8 @@ object AetherIdentityManager {
 
     /**
      * Where the renewal before [RENEWAL_DIR] moved the keys in use while it registered new ones.
-     * An app killed during such a renewal left it behind, holding keys nothing uses any more; it
-     * goes once a renewal has replaced every key.
+     * An app killed during such a renewal left it behind, holding keys nothing uses any more;
+     * [settleIn] removes it the first time the app uses Aether.
      */
     private const val PREVIOUS_DIR = "aether-previous"
 
@@ -127,13 +127,25 @@ object AetherIdentityManager {
             if (!settle(workDir, renewalDir)) {
                 LogUtil.w(AppConfig.TAG, "AetherIdentity: the new keys are ready but not all in place yet; the next core start moves the rest")
             }
-            if (files == KEY_FILES) File(context.filesDir, PREVIOUS_DIR).deleteRecursively()
             keys(workDir, files)
         }
     }
 
-    /** [settle] on the app's own folders; whatever reads the keys calls it first. */
-    fun settle(context: Context): Boolean = settle(workDir(context), renewalDir(context))
+    /** [settleIn] the app's files folder; whatever reads the keys calls it first. */
+    fun settle(context: Context): Boolean = settleIn(context.filesDir)
+
+    /**
+     * Removes [PREVIOUS_DIR] from [filesDir], the app's files folder, with the keys an interrupted
+     * renewal of an older version left there, and then does what [settle] does on the identity
+     * folder and the renewal folder in it; the keys in use stay as they are. A folder that cannot
+     * all go now is tried again at the next use.
+     */
+    internal fun settleIn(filesDir: File): Boolean {
+        if (!File(filesDir, PREVIOUS_DIR).deleteRecursively()) {
+            LogUtil.w(AppConfig.TAG, "AetherIdentity: the keys an interrupted renewal of an older version left could not all be removed; the next use tries again")
+        }
+        return settle(File(filesDir, WORK_DIR), File(filesDir, RENEWAL_DIR))
+    }
 
     /**
      * Runs the core once on [arguments] to register the keys they ask for into [renewalDir]: it
