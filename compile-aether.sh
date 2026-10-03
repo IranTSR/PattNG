@@ -101,6 +101,13 @@ for abi in $ABIS; do
 
   # The tor feature embeds arti, which is what lets a profile put Tor inside or around the tunnel;
   # aether's own Android release is built with it as well.
+  #
+  # The C++ runtime BoringSSL needs is linked statically. boring-sys 5 links it as "c++" on Android, which the
+  # NDK resolves to libc++_shared.so, a library Android does not ship: the core, run as a program from the
+  # app's library folder, then cannot start ("library "libc++_shared.so" not found"). As a static library,
+  # "c++" is the NDK's libc++.a, which takes in libc++_static and libc++abi. Drop the setting once boring-sys
+  # links the runtime statically on Android itself, or once the app ships libc++_shared.so where the core
+  # finds it.
   echo "[aether] building the core for $abi ($triple)"
   env \
     ANDROID_NDK_HOME="$NDK_HOME" \
@@ -113,11 +120,20 @@ for abi in $ABIS; do
     "CXXFLAGS_${under_triple}=--target=$clang_target" \
     "AR_${under_triple}=$TOOLCHAIN/llvm-ar" \
     "BINDGEN_EXTRA_CLANG_ARGS_${under_triple}=--target=$clang_target --sysroot=$SYSROOT" \
+    "BORING_BSSL_RUST_CPPLIB_${under_triple}=static:-bundle=c++" \
     cargo build --release --locked --features tor --manifest-path "$CORE_DIR/Cargo.toml" --target "$triple" --bin aether
 
   produced="$CORE_DIR/target/$triple/release/aether"
   if [[ ! -f "$produced" ]]; then
     echo "aether binary missing for $abi: $produced"
+    exit 1
+  fi
+
+  # Only Android's own libraries are found when the core starts; the NDK's C++ runtime is not one of them.
+  needed="$("$TOOLCHAIN/llvm-readelf" --dynamic-table "$produced" | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p')"
+  echo "[aether] the core for $abi needs:" $needed
+  if grep -qx 'libc++_shared.so' <<< "$needed"; then
+    echo "the core for $abi needs libc++_shared.so, which Android does not ship"
     exit 1
   fi
 
