@@ -9,8 +9,9 @@
         <item name="android:windowBackground">@color/window_background_light</item>
     </style>
 
-    <!-- API 27+ adds navigation bar icon appearance in the versioned base theme. -->
-    <style name="AppThemeBase" parent="AppThemeBaseCommon" />
+    <style name="AppThemeBase" parent="AppThemeBaseCommon">
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
 
     <style name="AppThemeDayNight" parent="AppThemeBase" />
 

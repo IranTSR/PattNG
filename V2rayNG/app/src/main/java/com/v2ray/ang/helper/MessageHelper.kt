@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.core.content.ContextCompat
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.SubscriptionUpdateMessage
@@ -85,11 +84,7 @@ object MessageHelper {
             requestId?.let { intent.putExtra(EXTRA_REQUEST_ID, it) }
             when (message.key) {
                 AppConfig.MSG_MEASURE_CONFIG_START -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        ContextCompat.startForegroundService(ctx, intent)
-                    } else {
-                        ctx.startService(intent)
-                    }
+                    ContextCompat.startForegroundService(ctx, intent)
                 }
 
                 AppConfig.MSG_MEASURE_CONFIG_CANCEL -> {
@@ -122,11 +117,7 @@ object MessageHelper {
             intent.putExtra("content", message)
             when (message.key) {
                 AppConfig.MSG_SUB_UPDATE_START -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        ContextCompat.startForegroundService(ctx, intent)
-                    } else {
-                        ctx.startService(intent)
-                    }
+                    ContextCompat.startForegroundService(ctx, intent)
                 }
 
                 AppConfig.MSG_SUB_UPDATE_CANCEL -> {
