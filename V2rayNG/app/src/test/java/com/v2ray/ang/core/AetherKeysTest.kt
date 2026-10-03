@@ -57,15 +57,16 @@ class AetherKeysTest {
     private fun tls12Of(captured: String): List<Int> =
         captured.chunked(4).map { it.toInt(16) }.filter { it and 0x0f0f != 0x0a0a && it !in 0x1301..0x1305 }
 
-    private fun suitesOf(fingerprint: AetherFingerprint): List<Int> = checkNotNull(fingerprint.ciphers).split(':').map(suiteIds::getValue)
+    private fun suitesOf(fingerprint: AetherFingerprint): List<Int> = fingerprint.ciphers.split(':').map(suiteIds::getValue)
 
     @Test
     fun eachFingerprintOffersTheTls12SuitesOfItsCapturedClientHello() {
         // The ClientHellos captured with Wireshark. Chrome's, eaea130113021303c02bc02fc02cc030cca9cca8c013c014009c009d002f0035,
-        // are the core's own suites, Chrome's rule, which BoringSSL orders by the phone's AES instructions as it does the
-        // TLS 1.3 ones: so Chrome names none, and passes nothing but GREASE, which is on unless it is left out.
-        assertNull(AetherFingerprint.CHROME.ciphers)
-        assertEquals(emptyList<String>(), AetherFingerprint.CHROME.arguments)
+        // comes from Chrome's own rule, which BoringSSL orders by the phone's AES instructions as it does the TLS 1.3
+        // suites: these twelve with them, ChaCha20 first without (both seen on boring 5.2.0). So Chrome names its rule,
+        // as Chromium sets it, and keeps GREASE.
+        assertEquals("ALL:!aPSK:!ECDSA+SHA1:!3DES", AetherFingerprint.CHROME.ciphers)
+        assertEquals(listOf("--tls-ciphers", "ALL:!aPSK:!ECDSA+SHA1:!3DES"), AetherFingerprint.CHROME.arguments)
         assertEquals(tls12Of("130113031302c02bc02fcca9cca8c02cc030c013c014009c009d002f0035"), suitesOf(AetherFingerprint.FIREFOX))
         // Python's first ten, with c00a and c014 (AES-256-CBC with SHA-1) in place of c024 and c028 (with SHA-384),
         // which BoringSSL does not have; its four DHE suites after them are left out.
@@ -113,15 +114,16 @@ class AetherKeysTest {
     }
 
     @Test
-    fun theDefaultsGetEveryKeyFromTheApisOwnAddressWithTheCoresOwnChromeSuites() {
+    fun theDefaultsGetEveryKeyFromTheApisOwnAddressWithChromesRule() {
         assertEquals(
             listOf(
                 "--register", "all",
                 "--enroll-address", "api.cloudflareclient.com",
+                "--tls-ciphers", "ALL:!aPSK:!ECDSA+SHA1:!3DES",
             ),
             AetherKeys.arguments(AetherKeysSettings())
         )
-        assertEquals("aether --register all --enroll-address api.cloudflareclient.com", AetherKeys.builtCommand(AetherKeysSettings()))
+        assertEquals("aether --register all --enroll-address api.cloudflareclient.com --tls-ciphers ALL:!aPSK:!ECDSA+SHA1:!3DES", AetherKeys.builtCommand(AetherKeysSettings()))
         // A plain exit-node.
         assertEquals(AetherExit(), AetherKeysSettings().exit)
     }
