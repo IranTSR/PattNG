@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.net.Network
 import android.net.ProxyInfo
 import android.net.VpnService
-import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.os.StrictMode
 import com.v2ray.ang.AppConfig
@@ -263,17 +262,14 @@ class CoreVpnService : VpnService(), ServiceControl {
     }
 
     /**
-     * Configures platform-specific VPN features for different Android versions.
+     * Configures the VPN's metering and HTTP proxy.
      *
      * @param builder The VPN Builder to configure
      */
     private fun configurePlatformFeatures(builder: Builder) {
-        // Android Q (API 29) and above: Configure metering and HTTP proxy
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            builder.setMetered(false)
-            if (MmkvManager.decodeSettingsBool(AppConfig.PREF_APPEND_HTTP_PROXY)) {
-                builder.setHttpProxy(ProxyInfo.buildDirectProxy(LOOPBACK, SettingsManager.getHttpPort()))
-            }
+        builder.setMetered(false)
+        if (MmkvManager.decodeSettingsBool(AppConfig.PREF_APPEND_HTTP_PROXY)) {
+            builder.setHttpProxy(ProxyInfo.buildDirectProxy(LOOPBACK, SettingsManager.getHttpPort()))
         }
     }
 

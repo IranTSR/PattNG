@@ -2,7 +2,6 @@ package com.v2ray.ang.handler
 
 import android.content.Context
 import android.content.res.AssetManager
-import android.os.Build
 import android.text.TextUtils
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.AppConfig.ANG_PACKAGE
@@ -466,11 +465,6 @@ object SettingsManager {
      *  Check if process routing can be used.
      */
     fun canUseProcessRouting(): Boolean {
-        // Android 10+
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            return false
-        }
-
         // Must xray tun
         if (isUsingHevTun()) {
             return false

@@ -86,7 +86,7 @@ object CoreServiceManager {
             field = value
             val service = value?.get()?.getService()
             CoreNativeManager.initCoreEnv(service)
-            if (service != null && processFinder == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (service != null && processFinder == null) {
                 processFinder = XrayProcessFinder(service)
                 coreController.registerProcessFinder(processFinder)
             }
@@ -666,7 +666,6 @@ object CoreServiceManager {
         private val cm: ConnectivityManager? = context.getSystemService(ConnectivityManager::class.java)
 
         override fun findProcessByConnection(network: String, srcIP: String, srcPort: Long, destIP: String, destPort: Long): Long {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return -1L
             if (cm == null) return -1L
             val proto = when (network) {
                 "tcp" -> OsConstants.IPPROTO_TCP
