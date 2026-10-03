@@ -286,7 +286,7 @@
 
         <receiver
             android:name=".receiver.WidgetProvider"
-            android:exported="true"
+            android:exported="false"
             android:process=":daemon">
             <meta-data
                 android:name="android.appwidget.provider"
