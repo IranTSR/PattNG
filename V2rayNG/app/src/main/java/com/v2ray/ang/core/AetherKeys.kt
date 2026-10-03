@@ -1,6 +1,5 @@
 package com.v2ray.ang.core
 
-import com.google.gson.JsonParser
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.AetherEndpoint
 import com.v2ray.ang.enums.AetherFingerprint
@@ -85,7 +84,7 @@ object AetherKeys {
      * finalMask counts either way, since the run dials out through it.
      */
     fun problem(settings: AetherKeysSettings): Problem? {
-        if (settings.finalMask.isNotBlank() && !isJsonObject(settings.finalMask)) return Problem.INVALID_FINAL_MASK
+        if (!AetherExit.takesFinalMask(settings.finalMask)) return Problem.INVALID_FINAL_MASK
         if (isCustom(settings)) return Problem.INVALID_COMMAND.takeIf { kindOf(runArguments(settings)) == null }
         val address = settings.enrollAddress.trim()
         if (address.isNotEmpty() && !isEnrollAddress(address)) return Problem.INVALID_ENROLL_ADDRESS
@@ -111,16 +110,6 @@ object AetherKeys {
         if (':' in host && !(host.startsWith('[') && host.endsWith(']'))) return false
         val port = value.substring(separator + 1)
         return port.length in 1..5 && port.all { it in '0'..'9' } && port.toInt() in 1..65535 && isEnrollHost(host)
-    }
-
-    /**
-     * Whether [text] is a JSON object, as the exit-node takes a finalMask, read by the parser JsonUtil uses but
-     * without the error JsonUtil logs for text that is not one: a typing mistake is no failure.
-     */
-    private fun isJsonObject(text: String): Boolean = try {
-        JsonParser.parseString(text).isJsonObject
-    } catch (_: RuntimeException) {
-        false
     }
 
     /** An IP address, an IPv6 one with or without brackets, or a domain name. */

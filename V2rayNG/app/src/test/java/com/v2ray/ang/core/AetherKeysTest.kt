@@ -179,6 +179,16 @@ class AetherKeysTest {
     }
 
     @Test
+    fun anExitNodeTakesABlankFinalMaskOrAJsonObject() {
+        assertTrue(AetherExit.takesFinalMask(null))
+        assertTrue(AetherExit.takesFinalMask(" "))
+        assertTrue(AetherExit.takesFinalMask("""{"tcp": []}"""))
+        assertFalse(AetherExit.takesFinalMask("[]"))
+        assertFalse(AetherExit.takesFinalMask("{not json"))
+        assertFalse(AetherExit.takesFinalMask("ForceIP"))
+    }
+
+    @Test
     fun theExitNodeTakesTheFinalMaskAndTheDialMode() {
         val settings = AetherKeysSettings(finalMask = """{"tcp": []}""", dialMode = "ForceIP")
         assertEquals(AetherExit("""{"tcp": []}""", "ForceIP"), settings.exit)

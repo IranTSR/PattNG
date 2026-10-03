@@ -409,27 +409,38 @@ class AetherFmtTest {
     }
 
     @Test
-    fun echFieldsTheEditorDoesNotShowNeitherBlockSavingNorKeepAValueTheCoreWouldRefuse() {
+    fun echFieldsOutOfUseNeitherBlockSavingNorLoseWhatWasWritten() {
         val masque = profile { aetherEch = true; aetherEchDns = "udp://dns.google"; aetherEchDomain = "--upstream" }
         assertEquals(AetherFmt.Problem.INVALID_ECH_DNS, AetherFmt.normalize(masque))
 
         val shapes = listOf<ProfileItem.() -> Unit>(
+            { aetherEch = false },
             { aetherProtocol = AetherProtocol.WIREGUARD.type },
             { aetherPsiphon = "only" },
             { aetherTor = "only" },
         )
         for (shape in shapes) {
-            val hidden = profile { aetherEch = true; aetherEchDns = "udp://dns.google"; aetherEchDomain = "--upstream"; shape() }
-            assertNull(AetherFmt.normalize(hidden))
-            assertNull(hidden.aetherEchDns)
-            assertNull(hidden.aetherEchDomain)
+            // Kept as written, as the WARP keys page keeps its own, to be put right when ECH is next in use.
+            val waiting = profile { aetherEch = true; aetherEchDns = " udp://dns.google "; aetherEchDomain = "--upstream"; shape() }
+            assertNull(AetherFmt.normalize(waiting))
+            assertEquals("udp://dns.google", waiting.aetherEchDns)
+            assertEquals("--upstream", waiting.aetherEchDomain)
+            // Out of use, neither reaches the core nor a link.
+            val arguments = AetherCoreManager.buildArguments(waiting, 10819)
+            assertFalse(arguments.toString(), arguments.any { it.startsWith("--ech") || it == "--upstream" })
+            assertFalse(link(waiting).contains("ech"))
 
-            // A value the core would take stays, for when the profile is back over MASQUE.
             val kept = profile { aetherEch = true; aetherEchDns = "tcp://8.8.8.8"; aetherEchDomain = "ip.gs"; shape() }
             assertNull(AetherFmt.normalize(kept))
             assertEquals("tcp://8.8.8.8", kept.aetherEchDns)
             assertEquals("ip.gs", kept.aetherEchDomain)
         }
+
+        // In use, a link carries ECH, but never a value the core would refuse.
+        val unchecked = link(profile { aetherEch = true; aetherEchDns = "udp://dns.google"; aetherEchDomain = "ip.gs" })
+        assertTrue(unchecked.contains("ech=1"))
+        assertFalse(unchecked.contains("ech_dns="))
+        assertTrue(unchecked.contains("ech_domain=ip.gs"))
     }
 
     @Test
@@ -449,11 +460,11 @@ class AetherFmtTest {
         assertNull(AetherFmt.normalize(config))
         assertNull(config.aetherEchDns)
         assertNull(config.aetherEchDomain)
-        // Nor are others kept once ECH is off.
+        // Others are kept with ECH off as well.
         val off = profile { aetherEchDns = "tcp://1.1.1.1"; aetherEchDomain = "ip.gs" }
         assertNull(AetherFmt.normalize(off))
-        assertNull(off.aetherEchDns)
-        assertNull(off.aetherEchDomain)
+        assertEquals("tcp://1.1.1.1", off.aetherEchDns)
+        assertEquals("ip.gs", off.aetherEchDomain)
     }
 
     @Test

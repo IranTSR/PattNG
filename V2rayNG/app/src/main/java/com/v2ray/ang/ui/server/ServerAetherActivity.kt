@@ -57,6 +57,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.v2ray.ang.R
 import com.v2ray.ang.core.AetherCore
 import com.v2ray.ang.core.AetherCoreManager
+import com.v2ray.ang.core.AetherExit
 import com.v2ray.ang.core.AetherScanResult
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.AetherProtocol
@@ -78,7 +79,6 @@ import com.v2ray.ang.ui.compose.FormDropdownField
 import com.v2ray.ang.ui.compose.FormTextField
 import com.v2ray.ang.ui.compose.SettingsSwitchItem
 import com.v2ray.ang.ui.compose.verticalScrollbar
-import com.v2ray.ang.util.JsonUtil
 import com.v2ray.ang.util.Utils
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -597,11 +597,17 @@ class ServerAetherActivity : BaseServerActivity() {
         return true
     }
 
-    override fun validateProtocolConfig(config: ProfileItem): Boolean {
-        if (!config.finalMask.isNullOrBlank() && JsonUtil.parseString(config.finalMask) == null) {
+    // The finalMask of an Aether profile is that of its exit-node: a bad one is named by its own label and checked as
+    // on the WARP keys page, before the check every profile has would name it the outbound's.
+    override fun validateCommonConfig(state: ServerUiState, config: ProfileItem): Boolean {
+        if (!AetherExit.takesFinalMask(config.finalMask)) {
             toast(R.string.aether_lab_exit_final_mask)
             return false
         }
+        return super.validateCommonConfig(state, config)
+    }
+
+    override fun validateProtocolConfig(config: ProfileItem): Boolean {
         // The core cannot listen where the local proxy of the app does, nor where the inbound it dials out
         // through does; Xray would get the port first.
         val takenPorts = SettingsManager.getLocalProxyPorts() + AetherCoreManager.secondarySocksPort

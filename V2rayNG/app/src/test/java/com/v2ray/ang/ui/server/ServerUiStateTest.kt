@@ -245,7 +245,7 @@ class ServerUiStateTest {
     }
 
     @Test
-    fun theEchResolverAndDomainStartAtTheirDefaultsAndAreStoredOnlyWhileEchIsOn() {
+    fun theEchResolverAndDomainStartAtTheirDefaultsAndAreKeptWhetherEchIsOnOrOff() {
         val profile = ProfileItem.create(EConfigType.AETHER)
         val state = ServerUiState.from(profile)
         assertEquals(AppConfig.AETHER_ECH_DNS, state.aetherEchDns)
@@ -253,16 +253,16 @@ class ServerUiStateTest {
 
         state.aetherEchDns = "https://doq.dns4all.eu/dns-query"
         state.aetherEchDomain = "ip.gs"
-        assertNull(state.toProfileItem(profile).aetherEchDns)
-        assertNull(state.toProfileItem(profile).aetherEchDomain)
-
-        state.aetherEch = true
-        val stored = state.toProfileItem(profile)
-        assertEquals("https://doq.dns4all.eu/dns-query", stored.aetherEchDns)
-        assertEquals("ip.gs", stored.aetherEchDomain)
-        val reloaded = ServerUiState.from(stored)
-        assertEquals("https://doq.dns4all.eu/dns-query", reloaded.aetherEchDns)
-        assertEquals("ip.gs", reloaded.aetherEchDomain)
+        for (ech in listOf(true, false)) {
+            state.aetherEch = ech
+            val stored = state.toProfileItem(profile)
+            assertEquals("https://doq.dns4all.eu/dns-query", stored.aetherEchDns)
+            assertEquals("ip.gs", stored.aetherEchDomain)
+            val reloaded = ServerUiState.from(stored)
+            assertEquals(ech, reloaded.aetherEch)
+            assertEquals("https://doq.dns4all.eu/dns-query", reloaded.aetherEchDns)
+            assertEquals("ip.gs", reloaded.aetherEchDomain)
+        }
 
         // A field left empty is the default again.
         state.aetherEchDns = " "

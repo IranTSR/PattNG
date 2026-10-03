@@ -309,8 +309,9 @@ class ServerUiState(
             aetherFragmentSize = if (isAether) aetherFragmentSize.nullIfBlank() else null,
             aetherFragmentDelay = if (isAether) aetherFragmentDelay.nullIfBlank() else null,
             aetherEch = if (isAether) aetherEch else null,
-            aetherEchDns = if (isAether && aetherEch) aetherEchDns.nullIfBlank() else null,
-            aetherEchDomain = if (isAether && aetherEch) aetherEchDomain.nullIfBlank() else null,
+            // Kept while ECH is off as well, as the WARP keys page keeps its own.
+            aetherEchDns = if (isAether) aetherEchDns.nullIfBlank() else null,
+            aetherEchDomain = if (isAether) aetherEchDomain.nullIfBlank() else null,
             aetherDns = if (isAether) aetherDns.nullIfBlank() else null,
             aetherExitLoc = if (isAether) aetherExitLoc.nullIfBlank() else null,
             aetherPsiphon = if (isPsiphon) aetherPsiphon else null,

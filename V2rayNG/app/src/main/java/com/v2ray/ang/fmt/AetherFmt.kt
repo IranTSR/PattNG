@@ -125,10 +125,14 @@ object AetherFmt : FmtBase() {
                 AetherRange.parse(config.aetherFragmentDelay, AetherRange.FRAGMENT_DELAY)
                     ?.let { query["fragment_delay"] = it.toString() }
             }
-            if (config.aetherEch == true) {
+            // Only while ECH is in use, with a WARP tunnel, and only what the core would take: the resolver and the
+            // domain are kept while ECH is off, as written, and a link carries what runs.
+            val warpUsed = AetherPsiphon.fromString(config.aetherPsiphon) != AetherPsiphon.ONLY &&
+                AetherTor.fromString(config.aetherTor) != AetherTor.ONLY
+            if (config.aetherEch == true && warpUsed) {
                 query["ech"] = "1"
-                config.aetherEchDns?.takeIf { it.isNotBlank() }?.let { query["ech_dns"] = it }
-                config.aetherEchDomain?.takeIf { it.isNotBlank() }?.let { query["ech_domain"] = it }
+                config.aetherEchDns?.trim()?.takeIf { it.isNotEmpty() && isEchDns(it) }?.let { query["ech_dns"] = it }
+                config.aetherEchDomain?.trim()?.takeIf { it.isNotEmpty() && isEchDomain(it) }?.let { query["ech_domain"] = it }
             }
             // Chrome's is the default and needs no word.
             AetherFingerprint.fromString(config.aetherFingerprint).takeUnless { it == AetherFingerprint.CHROME }
@@ -223,10 +227,11 @@ object AetherFmt : FmtBase() {
     private val exitRule = Regex("!?[A-Z]{2}(,[A-Z]{2})*")
 
     /**
-     * Where the ECH key comes from, as the core reads it: the resolver and the domain, kept while ECH is on and
-     * left out when they are the defaults, so that a profile follows the defaults. They are refused only where the
-     * editor shows them, over MASQUE with a WARP tunnel; elsewhere one the core would not take is dropped, as
-     * nothing on screen could put it right.
+     * Where the ECH key comes from, as the core reads it: the resolver and the domain, kept as written whether ECH is
+     * on or off, as the WARP keys page keeps its own, and left out when they are the defaults, so that a profile
+     * follows the defaults. They are refused only while ECH is in use, over MASQUE with a WARP tunnel; one the core
+     * would not take waits there, out of use, to be put right when ECH is next turned on. None reaches the core
+     * then, nor a link, which carries them only while ECH is on.
      */
     private fun normalizeEch(config: ProfileItem): Problem? {
         val dns = config.aetherEchDns?.trim().orEmpty()
@@ -238,8 +243,8 @@ object AetherFmt : FmtBase() {
             AetherTor.fromString(config.aetherTor) != AetherTor.ONLY
         if (inUse && dns.isNotEmpty() && !isEchDns(dns)) return Problem.INVALID_ECH_DNS
         if (inUse && domain.isNotEmpty() && !isEchDomain(domain)) return Problem.INVALID_ECH_DOMAIN
-        config.aetherEchDns = dns.takeIf { ech && it != AppConfig.AETHER_ECH_DNS && isEchDns(it) }
-        config.aetherEchDomain = domain.takeIf { ech && it != AppConfig.AETHER_ECH_DOMAIN && isEchDomain(it) }
+        config.aetherEchDns = dns.takeUnless { it.isEmpty() || it == AppConfig.AETHER_ECH_DNS }
+        config.aetherEchDomain = domain.takeUnless { it.isEmpty() || it == AppConfig.AETHER_ECH_DOMAIN }
         return null
     }
 

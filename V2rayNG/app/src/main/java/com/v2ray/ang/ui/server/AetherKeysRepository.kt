@@ -72,8 +72,8 @@ class AetherKeysRepository(private val context: Context) : AetherKeysSource {
             MmkvManager.encodeSettings(AppConfig.PREF_AETHER_KEYS_KIND, settings.kind.type),
             MmkvManager.encodeSettings(AppConfig.PREF_AETHER_KEYS_ENROLL_ADDRESS, settings.enrollAddress),
             MmkvManager.encodeSettings(AppConfig.PREF_AETHER_KEYS_ECH, settings.ech),
-            MmkvManager.encodeSettings(AppConfig.PREF_AETHER_KEYS_ECH_DNS, settings.echDns),
-            MmkvManager.encodeSettings(AppConfig.PREF_AETHER_KEYS_ECH_DOMAIN, settings.echDomain),
+            MmkvManager.encodeSettings(AppConfig.PREF_AETHER_KEYS_ECH_DNS, unlessDefault(settings.echDns, AppConfig.AETHER_ECH_DNS)),
+            MmkvManager.encodeSettings(AppConfig.PREF_AETHER_KEYS_ECH_DOMAIN, unlessDefault(settings.echDomain, AppConfig.AETHER_ECH_DOMAIN)),
             MmkvManager.encodeSettings(AppConfig.PREF_AETHER_KEYS_FINGERPRINT, settings.fingerprint.type),
             MmkvManager.encodeSettings(AppConfig.PREF_AETHER_KEYS_FINAL_MASK, settings.finalMask),
             MmkvManager.encodeSettings(AppConfig.PREF_AETHER_KEYS_DIAL_MODE, settings.dialMode),
@@ -86,4 +86,10 @@ class AetherKeysRepository(private val context: Context) : AetherKeysSource {
         AetherIdentityManager.renew(context, kind, arguments, exit, onOutput)
 
     private fun text(key: String, default: String): String = MmkvManager.decodeSettingsString(key, default) ?: default
+
+    /**
+     * [value] trimmed as it is stored, or null, which stores nothing, when it is blank or [default]: it then reads as the
+     * default, whatever that comes to be, as a profile's ECH resolver and domain do.
+     */
+    private fun unlessDefault(value: String, default: String): String? = value.trim().takeUnless { it.isEmpty() || it == default }
 }
