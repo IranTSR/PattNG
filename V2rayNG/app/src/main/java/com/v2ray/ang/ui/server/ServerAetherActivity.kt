@@ -485,6 +485,31 @@ class ServerAetherActivity : BaseServerActivity() {
                     values = R.array.aether_ip_values,
                     onValueChange = { uiState.aetherIpVersion = it }
                 )
+            }
+            CollapsiblePreferenceGroupHeader(
+                title = stringResource(R.string.aether_lab_other_settings),
+                expanded = showOther,
+                onExpandedChange = { showOther = it }
+            )
+            if (showOther) {
+                if (warpUsed) {
+                    FormTextField(
+                        stringResource(R.string.aether_lab_dns),
+                        uiState.aetherDns,
+                        { uiState.aetherDns = it },
+                        placeholder = stringResource(R.string.aether_hint_dns)
+                    )
+                    FormTextField(
+                        stringResource(R.string.aether_lab_exit_loc),
+                        uiState.aetherExitLoc,
+                        { uiState.aetherExitLoc = it },
+                        placeholder = stringResource(R.string.aether_hint_exit_loc)
+                    )
+                }
+                CommonTargetStrategyField(uiState)
+            }
+            // After every setting it runs on, the DNS and the exit rule of Other settings included.
+            if (warpUsed) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -513,28 +538,6 @@ class ServerAetherActivity : BaseServerActivity() {
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
-            }
-            CollapsiblePreferenceGroupHeader(
-                title = stringResource(R.string.aether_lab_other_settings),
-                expanded = showOther,
-                onExpandedChange = { showOther = it }
-            )
-            if (showOther) {
-                if (warpUsed) {
-                    FormTextField(
-                        stringResource(R.string.aether_lab_dns),
-                        uiState.aetherDns,
-                        { uiState.aetherDns = it },
-                        placeholder = stringResource(R.string.aether_hint_dns)
-                    )
-                    FormTextField(
-                        stringResource(R.string.aether_lab_exit_loc),
-                        uiState.aetherExitLoc,
-                        { uiState.aetherExitLoc = it },
-                        placeholder = stringResource(R.string.aether_hint_exit_loc)
-                    )
-                }
-                CommonTargetStrategyField(uiState)
             }
             if (!isCoreAvailable) {
                 Text(
