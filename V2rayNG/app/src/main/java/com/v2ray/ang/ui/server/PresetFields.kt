@@ -4,6 +4,7 @@ import androidx.annotation.ArrayRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -78,7 +79,8 @@ internal fun CipherSuitesField(
  * A pick puts its value in the field, which stays free to edit, so what is saved is the pick as edited, and the name of
  * the value the field holds shows under it. Only the arrow opens the list, so that a tap in the text only moves the
  * cursor, and a pick asks first before it takes the place of a value of the user's own. [setting] names what the field
- * sets, on the arrow and in that question.
+ * sets, on the arrow and in that question. The first pick, default, blanks the field, which leaves the setting at its
+ * default; a blank field shows it as its pick.
  */
 @Composable
 private fun PresetField(
@@ -94,16 +96,29 @@ private fun PresetField(
     val names = stringArrayResource(presetNames).toList()
     val values = stringArrayResource(presetValues).toList()
     val presets = remember(values, match) { FieldPresets(values, match) }
-    // The text matched and the index of the preset it is, -1 for none: matched on Dispatchers.Default, as the JSON of
-    // a finalMask is parsed for it, so it can trail the text by a keystroke. Null until the first match is in.
+    // The text matched and the pick it holds, as FieldPresets.heldOf gives it: matched on Dispatchers.Default, as the
+    // JSON of a finalMask is parsed for it, so it can trail the text by a keystroke. Null until the first match is in.
     var held by remember { mutableStateOf<Pair<String, Int>?>(null) }
     LaunchedEffect(presets, value) {
         val text = value
-        held = text to withContext(Dispatchers.Default) { presets.indexOf(text) }
+        held = text to withContext(Dispatchers.Default) { presets.heldOf(text) }
     }
     var expanded by rememberSaveable { mutableStateOf(false) }
-    // The name of a pick that waits to be let take the place of a value of the user's own.
-    var replacing by rememberSaveable { mutableStateOf<String?>(null) }
+    // A pick, by index or FieldPresets.DEFAULT, that waits to be let take the place of a value of the user's own.
+    var replacing by rememberSaveable { mutableStateOf<Int?>(null) }
+    val defaultName = stringResource(R.string.preset_default)
+
+    fun nameOf(pick: Int): String = if (pick == FieldPresets.DEFAULT) defaultName else names.getOrNull(pick).orEmpty()
+
+    fun choose(pick: Int) {
+        expanded = false
+        // Until the text the field holds now is matched, a pick asks rather than lose a value of the user's own.
+        if (FieldPresets.asksBeforeReplacing(value, held?.takeIf { it.first == value }?.second)) {
+            replacing = pick
+        } else {
+            presets.textOf(pick)?.let(onValueChange)
+        }
+    }
 
     Box {
         FormTextField(
@@ -112,7 +127,10 @@ private fun PresetField(
             onValueChange = onValueChange,
             enabled = enabled,
             maxLines = 8,
-            supportingText = held?.let { names.getOrNull(it.second) },
+            // A blank field holds the default pick at once, with nothing to parse.
+            supportingText = (if (value.isBlank()) FieldPresets.DEFAULT else held?.second)
+                ?.takeIf { it != FieldPresets.NONE }
+                ?.let(::nameOf),
             trailingIcon = {
                 IconButton(onClick = { expanded = !expanded }, enabled = enabled) {
                     Icon(
@@ -130,28 +148,25 @@ private fun PresetField(
             offset = DpOffset(16.dp, 0.dp),
             containerColor = MaterialTheme.colorScheme.surface
         ) {
+            DropdownMenuItem(
+                text = { Text(defaultName) },
+                onClick = { choose(FieldPresets.DEFAULT) }
+            )
+            HorizontalDivider()
             names.forEachIndexed { index, name ->
                 DropdownMenuItem(
                     text = { Text(name) },
-                    onClick = {
-                        expanded = false
-                        // Until the text the field holds now is matched, a pick asks rather than lose a value of the user's own.
-                        if (FieldPresets.asksBeforeReplacing(value, held?.takeIf { it.first == value }?.second)) {
-                            replacing = name
-                        } else {
-                            values.getOrNull(index)?.let(onValueChange)
-                        }
-                    }
+                    onClick = { choose(index) }
                 )
             }
         }
     }
-    replacing?.let { name ->
+    replacing?.let { pick ->
         ConfirmDialog(
             title = stringResource(R.string.preset_replace_title, setting),
-            message = stringResource(R.string.preset_replace_message, setting, name),
+            message = stringResource(R.string.preset_replace_message, setting, nameOf(pick)),
             confirmText = stringResource(R.string.preset_action_replace),
-            onConfirm = { values.getOrNull(names.indexOf(name))?.let(onValueChange) },
+            onConfirm = { presets.textOf(pick)?.let(onValueChange) },
             onDismiss = { replacing = null }
         )
     }

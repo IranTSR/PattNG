@@ -5,6 +5,8 @@ import com.v2ray.ang.core.AetherExit
 import com.v2ray.ang.ui.server.FieldPresets.Match
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -66,7 +68,7 @@ class FieldPresetsTest {
 
     @Test
     fun aPickAsksFirstOnlyWhenItWouldTakeThePlaceOfAValueOfTheUsersOwn() {
-        fun asks(presets: FieldPresets, text: String) = FieldPresets.asksBeforeReplacing(text, presets.indexOf(text))
+        fun asks(presets: FieldPresets, text: String) = FieldPresets.asksBeforeReplacing(text, presets.heldOf(text))
         assertFalse(asks(masks, ""))
         assertFalse(asks(masks, "  "))
         assertFalse(asks(masks, noise))
@@ -87,6 +89,36 @@ class FieldPresetsTest {
         assertTrue(FieldPresets.asksBeforeReplacing("$rsa:$ecdsa", null))
         assertFalse(FieldPresets.asksBeforeReplacing("", null))
         assertFalse(FieldPresets.asksBeforeReplacing(" \n ", null))
+    }
+
+    @Test
+    fun theDefaultPickBlanksTheFieldAndEveryOtherPickPutsItsValue() {
+        // A blank field leaves the setting at its default: no finalMask, Xray's own cipher suites.
+        assertEquals("", masks.textOf(FieldPresets.DEFAULT))
+        assertEquals("", suites.textOf(FieldPresets.DEFAULT))
+        assertEquals(fragment, masks.textOf(0))
+        assertEquals(chacha, suites.textOf(1))
+        assertNull(masks.textOf(2))
+    }
+
+    @Test
+    fun aBlankFieldHoldsTheDefaultPickAPresetItsIndexAndAnyOtherTextNone() {
+        // The default is chosen until another pick is, so a new profile's field shows it. Neither it nor NONE can be an
+        // index, and they differ, or a blank field and one of the user's own would show alike.
+        assertTrue(FieldPresets.DEFAULT < 0 && FieldPresets.NONE < 0)
+        assertNotEquals(FieldPresets.NONE, FieldPresets.DEFAULT)
+        assertEquals(FieldPresets.DEFAULT, masks.heldOf(""))
+        assertEquals(FieldPresets.DEFAULT, masks.heldOf(" \n "))
+        assertEquals(FieldPresets.DEFAULT, suites.heldOf(""))
+        assertEquals(1, masks.heldOf(noise.replace(" ", "")))
+        assertEquals(0, suites.heldOf("$ecdsa : $rsa"))
+        assertEquals(FieldPresets.NONE, masks.heldOf(noise.replace("10-20", "30-40")))
+        assertEquals(FieldPresets.NONE, suites.heldOf(" : "))
+        assertEquals(FieldPresets.NONE, masks.heldOf("""{"tcp": ["""))
+        // Nothing of the user's own is lost when the field holds the default or a preset.
+        assertFalse(FieldPresets.asksBeforeReplacing("", masks.heldOf("")))
+        assertFalse(FieldPresets.asksBeforeReplacing(noise, masks.heldOf(noise)))
+        assertTrue(FieldPresets.asksBeforeReplacing("$rsa:$ecdsa", suites.heldOf("$rsa:$ecdsa")))
     }
 
     @Test

@@ -24,8 +24,14 @@ internal class FieldPresets(private val values: List<String>, private val match:
     /** Read on the first match, on the thread that matches. */
     private val keys: List<Any?> by lazy { values.map(::keyOf) }
 
-    /** The index of the value [text] is, or -1 when it is none of them, blank, or for JSON not JSON at all. */
-    fun indexOf(text: String): Int = keyOf(text)?.let { keys.indexOf(it) } ?: -1
+    /** The index of the value [text] is, or [NONE] when it is none of them, blank, or for JSON not JSON at all. */
+    fun indexOf(text: String): Int = keyOf(text)?.let { keys.indexOf(it) } ?: NONE
+
+    /** The pick a field holding [text] shows: [DEFAULT] when it is blank, else the index of its value, or [NONE]. */
+    fun heldOf(text: String): Int = if (text.isBlank()) DEFAULT else indexOf(text)
+
+    /** The text [pick] puts in the field: the value at that index, or a blank one for [DEFAULT]; null for no such pick. */
+    fun textOf(pick: Int): String? = if (pick == DEFAULT) "" else values.getOrNull(pick)
 
     /** What [text] is compared by. JSON is read without the error JsonUtil logs: what is being typed is often not JSON yet. */
     private fun keyOf(text: String): Any? = when (match) {
@@ -38,11 +44,20 @@ internal class FieldPresets(private val values: List<String>, private val match:
     }
 
     companion object {
+        /** What a field holds that is none of the presets: a value of the user's own. */
+        const val NONE = -1
+
         /**
-         * Whether a pick asks before it takes the place of [text], which holds the value at [held], -1 for none of
-         * them, or null while that is not known yet: only when the field holds a value of the user's own, or may hold
-         * one, which is anything but blank or one of the list, since that would be lost.
+         * The pick, chosen until another is, that leaves the setting at its default: a blank field, which is no
+         * finalMask, and for cipherSuites Xray's own suites.
          */
-        fun asksBeforeReplacing(text: String, held: Int?): Boolean = text.isNotBlank() && (held == null || held < 0)
+        const val DEFAULT = -2
+
+        /**
+         * Whether a pick asks before it takes the place of [text], which holds [held], as [heldOf] gives it, or
+         * null while that is not known yet: only when the field holds a value of the user's own, or may hold one,
+         * which is anything but blank or one of the list, since that would be lost.
+         */
+        fun asksBeforeReplacing(text: String, held: Int?): Boolean = text.isNotBlank() && (held == null || held == NONE)
     }
 }

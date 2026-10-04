@@ -137,6 +137,7 @@
     <string name="preset_replace_title">Replace the %1$s?</string>
     <string name="preset_replace_message">The current %1$s is not on the list and will be lost. Replace it with %2$s?</string>
     <string name="preset_action_replace">Replace</string>
+    <string name="preset_default">default</string>
     <string name="acc_choose_preset">Choose a ready-made %1$s</string>
     <string name="preset_setting_final_mask" translatable="false">finalMask</string>
     <string name="preset_setting_cipher_suites" translatable="false">cipherSuites</string>

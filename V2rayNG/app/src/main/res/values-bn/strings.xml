@@ -137,6 +137,7 @@
     <string name="preset_replace_title">%1$s বদলাবেন?</string>
     <string name="preset_replace_message">বর্তমান %1$s তালিকায় নেই এবং হারিয়ে যাবে। এর বদলে %2$s বসাবেন?</string>
     <string name="preset_action_replace">বদলান</string>
+    <string name="preset_default">ডিফল্ট</string>
     <string name="acc_choose_preset">একটি তৈরি %1$s বেছে নিন</string>
     <string name="server_lab_dial_mode" translatable="false">dialMode</string>
     <string name="server_lab_ech_config_list" translatable="false">echConfigList</string>
