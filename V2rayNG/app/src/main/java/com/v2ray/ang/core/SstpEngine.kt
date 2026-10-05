@@ -50,35 +50,40 @@ object SstpEngine {
         val port = profile.serverPort?.toIntOrNull()?.takeIf { it in 1..65535 } ?: 443
         LogUtil.i(AppConfig.TAG, "SstpEngine: starting session to $host:$port")
 
-        val bridge = SharedBridge(
+        // Declared before construction: the events object references the bridge,
+        // which does not exist yet while its own constructor arguments are evaluated.
+        var bridge: SharedBridge? = null
+        val events = object : SstpEvents {
+            override fun onError(header: String, detail: String?) {
+                LogUtil.e(AppConfig.TAG, "SstpEngine: $header${detail?.let { " $it" } ?: ""}")
+                onError(header)
+            }
+
+            override fun onConnected() {
+                tunFd = bridge?.ipTerminal?.parcelFd()
+                LogUtil.i(AppConfig.TAG, "SstpEngine: tunnel connected")
+                onConnected()
+            }
+
+            override fun onDisconnected() {
+                LogUtil.i(AppConfig.TAG, "SstpEngine: disconnected")
+            }
+        }
+        val sharedBridge = SharedBridge(
             vpnService = vpnService,
             scope = engineScope,
             host = host,
             port = port,
             username = profile.username ?: "vpn",
             password = profile.password ?: "vpn",
-            events = object : SstpEvents {
-                override fun onError(header: String, detail: String?) {
-                    LogUtil.e(AppConfig.TAG, "SstpEngine: $header${detail?.let { " $it" } ?: ""}")
-                    onError(header)
-                }
-
-                override fun onConnected() {
-                    tunFd = bridge.ipTerminal?.parcelFd()
-                    LogUtil.i(AppConfig.TAG, "SstpEngine: tunnel connected")
-                    onConnected()
-                }
-
-                override fun onDisconnected() {
-                    LogUtil.i(AppConfig.TAG, "SstpEngine: disconnected")
-                }
-            }
+            events = events,
         )
-        bridge.handler = CoroutineExceptionHandler { _, throwable ->
+        bridge = sharedBridge
+        sharedBridge.handler = CoroutineExceptionHandler { _, throwable ->
             LogUtil.e(AppConfig.TAG, "SstpEngine: unexpected error", throwable)
             engineScope.launch { onError("unexpected") }
         }
-        controller = Controller(bridge).also { it.launchJobMain() }
+        controller = Controller(sharedBridge).also { it.launchJobMain() }
     }
 
     fun stop() {
