@@ -5,6 +5,7 @@ import com.v2ray.ang.core.AetherDelayTester
 import com.v2ray.ang.core.CoreConfigContextBuilder
 import com.v2ray.ang.core.CoreConfigManager
 import com.v2ray.ang.core.CoreNativeManager
+import com.v2ray.ang.core.SstpDelayTester
 import com.v2ray.ang.dto.RealPingEvent
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.extension.isComplexType
@@ -122,6 +123,10 @@ class RealPingWorkerService(
         // other hops: then it is measured as the chain it runs in, as every chained profile is.
         if (config.configType == EConfigType.AETHER && !CoreConfigContextBuilder.isChained(config)) {
             return AetherDelayTester.measure(context, guid, config, SettingsManager.getDelayTestUrl())
+        }
+        // SSTP has no Xray configuration: the tunnel negotiation itself is the test.
+        if (config.configType == EConfigType.SSTP) {
+            return SstpDelayTester.measure(context, config)
         }
 
         val configResult = CoreConfigManager.getV2rayConfig4Speedtest(context, guid)

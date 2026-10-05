@@ -206,6 +206,7 @@ object AppConfig {
     const val PORT_LOCAL_DNS = "10853"
     const val PORT_SOCKS = "10808"
     const val PORT_AETHER_SOCKS = "10819"
+    const val PORT_SSTP_SOCKS = "10820"
 
     /** PattNG: where the Aether core asks for the ECH key, and the domain whose key it takes, unless a profile names others. */
     const val AETHER_ECH_DNS = "udp://1.1.1.1"
@@ -286,6 +287,7 @@ object AppConfig {
     const val HY2 = "hy2://"
     const val V2RAYNFMTS = "v2rayn://"
     const val AETHER = "aether://"
+    const val SSTP = "sstp://"
 
     /** Give a good name to this, IDK*/
     const val VPN = "VPN"

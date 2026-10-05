@@ -216,6 +216,7 @@ class MainActivity : HelperBaseComponentActivity() {
             EConfigType.WIREGUARD.value -> Intent(this, ServerWireguardActivity::class.java)
             EConfigType.HYSTERIA2.value -> Intent(this, ServerHysteria2Activity::class.java)
             EConfigType.AETHER.value -> Intent(this, ServerAetherActivity::class.java)
+            EConfigType.SSTP.value -> Intent(this, ServerSstpActivity::class.java)
             else -> Intent(this, ServerHttpActivity::class.java).apply {
                 putExtra("createConfigType", createConfigType)
             }
@@ -269,6 +270,7 @@ class MainActivity : HelperBaseComponentActivity() {
             EConfigType.WIREGUARD -> ServerWireguardActivity::class.java
             EConfigType.HYSTERIA2 -> ServerHysteria2Activity::class.java
             EConfigType.AETHER -> ServerAetherActivity::class.java
+            EConfigType.SSTP -> ServerSstpActivity::class.java
             else -> ServerHttpActivity::class.java
         }
         val intent = Intent(this, activityClass).apply {

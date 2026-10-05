@@ -366,6 +366,9 @@
     <string name="toast_invalid_update_interval">Invalid update interval. Minimum is 15 minutes.</string>
     <string name="toast_invalid_override_port">Invalid override port. Use a value from 1 to 65535.</string>
     <string name="title_sub_update">Update subscription</string>
+    <string name="menu_item_import_vpngate">Import VPNGate SSTP servers</string>
+    <string name="vpngate_import_success">Imported %1$d VPNGate SSTP servers</string>
+    <string name="vpngate_import_failed">VPNGate import failed</string>
     <string name="title_ping_all_server">Test TCP delays (TCPing)</string>
     <string name="title_real_ping_all_server">Test real delays</string>
     <string name="title_user_asset_setting">Asset files</string>
@@ -663,7 +666,11 @@
     <string name="aether_core_stopped">The Aether core stopped running</string>
     <string name="aether_core_stopped_no_ech_key">The Aether core stopped: ECH is on, but no usable ECH key was found. Without one, the server name would have gone out in the clear.</string>
     <string name="aether_core_connecting">The Aether core is still connecting</string>
+    <string name="sstp_connecting">Connecting SSTP…</string>
     <string name="menu_item_import_config_manually_aether">Add Aether config manually</string>
+    <string name="menu_item_import_config_manually_sstp">Add [SSTP]</string>
+    <string name="server_lab_sstp_username">Username</string>
+    <string name="server_lab_sstp_password">Password</string>
     <string name="aether_action_renew_key">Get new WARP keys…</string>
     <string name="aether_action_renewing_key">Getting new WARP keys…</string>
     <string name="aether_log_title">Log</string>

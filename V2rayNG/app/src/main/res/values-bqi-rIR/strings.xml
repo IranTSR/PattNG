@@ -363,6 +363,9 @@
     <string name="toast_invalid_update_interval">فاسله ورۊ کردن نا موئتبر هڌ. حداقل مقدار 15 دؽقه هڌ.</string>
     <string name="toast_invalid_override_port">پورت جایگزین نامعتبر است. عددی بین 1 تا 65535 وارد کنید.</string>
     <string name="title_sub_update">ورۊ کردن اشتراک بونکۊ سکویی</string>
+    <string name="menu_item_import_vpngate">دریافت سرورهای SSTP از VPNGate</string>
+    <string name="vpngate_import_success">%1$d سرور SSTP از VPNGate اضافه شد</string>
+    <string name="vpngate_import_failed">دریافت از VPNGate ناموفق بود</string>
     <string name="title_ping_all_server">آزمایش تئخیر TCP (TCPing)</string>
     <string name="title_real_ping_all_server">آزمایش تئخیر واقعی</string>
     <string name="title_user_asset_setting">فایلا بونچک جوقرافیایی</string>
@@ -650,7 +653,11 @@
     <string name="aether_core_stopped">هسته Aether وستاده</string>
     <string name="aether_core_stopped_no_ech_key">هسته Aether وستاده: ECH روشن هئ ولی کلید ECH قابل استفاده‌ای پیدا نبی؛ بی او، نوم سرور بی رمزنگاری فرستاده ابی</string>
     <string name="aether_core_connecting">هسته Aether هونی وصل ابۊ</string>
+    <string name="sstp_connecting">در حال اتصال SSTP…</string>
     <string name="menu_item_import_config_manually_aether">افزودن دستی کانفیگ Aether</string>
+    <string name="menu_item_import_config_manually_sstp">افزودن دستی کانفیگ SSTP</string>
+    <string name="server_lab_sstp_username">نام کاربری</string>
+    <string name="server_lab_sstp_password">رمز عبور</string>
     <string name="aether_action_renew_key">گرفتن کلیدا تازه WARP…</string>
     <string name="aether_action_renewing_key">د حال گرفتن کلیدا تازه WARP…</string>
     <string name="aether_log_title">لاگ</string>

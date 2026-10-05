@@ -363,6 +363,9 @@
     <string name="toast_invalid_update_interval">আপডেটের বিরতি সঠিক নয়। সর্বনিম্ন ১৫ মিনিট।</string>
     <string name="toast_invalid_override_port">ওভাররাইড পোর্ট অবৈধ। 1 থেকে 65535 এর মধ্যে একটি মান দিন।</string>
     <string name="title_sub_update">সাবস্ক্রিপশন আপডেট</string>
+    <string name="menu_item_import_vpngate">VPNGate থেকে SSTP সার্ভার আমদানি করুন</string>
+    <string name="vpngate_import_success">%1$dটি VPNGate SSTP সার্ভার আমদানি করা হয়েছে</string>
+    <string name="vpngate_import_failed">VPNGate আমদানি ব্যর্থ হয়েছে</string>
     <string name="title_ping_all_server">TCP বিলম্ব পরীক্ষা করুন (TCPing)</string>
     <string name="title_real_ping_all_server">প্রকৃত বিলম্ব পরীক্ষা করুন</string>
     <string name="title_user_asset_setting">অ্যাসেট ফাইল</string>
@@ -650,7 +653,11 @@
     <string name="aether_core_stopped">Aether কোর চলা বন্ধ হয়ে গেছে</string>
     <string name="aether_core_stopped_no_ech_key">Aether কোর বন্ধ হয়ে গেছে: ECH চালু আছে, কিন্তু কোনো ব্যবহারযোগ্য ECH কী পাওয়া যায়নি। কী ছাড়া সার্ভারের নাম খোলাখুলি পাঠানো হতো।</string>
     <string name="aether_core_connecting">Aether কোর এখনও সংযোগ করছে</string>
+    <string name="sstp_connecting">SSTP সংযোগ করা হচ্ছে…</string>
     <string name="menu_item_import_config_manually_aether">ম্যানুয়ালি Aether কনফিগ যোগ করুন</string>
+    <string name="menu_item_import_config_manually_sstp">ম্যানুয়ালি SSTP কনফিগ যোগ করুন</string>
+    <string name="server_lab_sstp_username">ব্যবহারকারীর নাম</string>
+    <string name="server_lab_sstp_password">পাসওয়ার্ড</string>
     <string name="aether_action_renew_key">নতুন WARP কী নিন…</string>
     <string name="aether_action_renewing_key">নতুন WARP কী নেওয়া হচ্ছে…</string>
     <string name="aether_log_title">লগ</string>

@@ -18,6 +18,7 @@ import com.v2ray.ang.extension.delay
 import com.v2ray.ang.extension.isComplexType
 import com.v2ray.ang.extension.matchesPattern
 import com.v2ray.ang.extension.moveItem
+import com.v2ray.ang.handler.VpnGateImporter
 import com.v2ray.ang.ui.base.BaseViewModel
 import com.v2ray.ang.util.LogUtil
 import kotlinx.coroutines.CancellationException
@@ -296,6 +297,7 @@ class MainViewModel(
             MainAction.RemoveInvalidServers -> removeInvalidServerAsync()
             MainAction.SortByTestResults -> sortByTestResultsAsync()
             MainAction.UpdateSubscriptions -> importConfigViaSub()
+            MainAction.ImportVpnGate -> importVpnGate()
             MainAction.ExportAll -> exportAllAsync()
             is MainAction.SelectGroup -> subscriptionIdChanged(action.groupId)
             is MainAction.SelectServer -> updateSelectedGuid(action.guid)
@@ -581,6 +583,19 @@ class MainViewModel(
                     LogUtil.e(AppConfig.TAG, "Subscription update failed", e)
                     toastError(R.string.toast_failure)
                 }
+            }
+        }
+    }
+
+    private fun importVpnGate() {
+        launchLoading {
+            val result = VpnGateImporter.import()
+            if (result.error == null && result.added > 0) {
+                setupGroupTab(forceRefresh = true)
+                toast(dataSource.getString(R.string.vpngate_import_success, result.added))
+            } else {
+                LogUtil.e(AppConfig.TAG, "VPNGate import failed: ${result.error}")
+                toast(R.string.vpngate_import_failed)
             }
         }
     }

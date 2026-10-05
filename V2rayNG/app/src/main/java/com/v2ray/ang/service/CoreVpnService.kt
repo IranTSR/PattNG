@@ -16,6 +16,8 @@ import com.v2ray.ang.BuildConfig
 import com.v2ray.ang.contracts.ServiceControl
 import com.v2ray.ang.contracts.Tun2SocksControl
 import com.v2ray.ang.core.CoreServiceManager
+import com.v2ray.ang.core.SstpEngine
+import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.handler.AppLocaleManager
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.NotificationManager
@@ -109,6 +111,17 @@ class CoreVpnService : VpnService(), ServiceControl {
     }
 
     override fun startService() {
+        if (isSstpProfile()) {
+            // The SSTP engine owns its TUN and packet pump; the Xray core loop
+            // is not used. setupVpnService() already started the session.
+            if (!SstpEngine.isRunning()) {
+                LogUtil.e(AppConfig.TAG, "StartCore-VPN: SSTP engine did not start")
+                stopAllService()
+                return
+            }
+            RootLanSharing.startClientSharing(this)
+            return
+        }
         if (!::mInterface.isInitialized) {
             LogUtil.e(AppConfig.TAG, "StartCore-VPN: Interface not initialized")
             return
@@ -157,6 +170,10 @@ class CoreVpnService : VpnService(), ServiceControl {
             return false
         }
 
+        if (isSstpProfile()) {
+            return setupSstpService()
+        }
+
         if (configureVpnService() != true) {
             LogUtil.e(AppConfig.TAG, "StartCore-VPN: Configuration failed")
             return false
@@ -167,6 +184,46 @@ class CoreVpnService : VpnService(), ServiceControl {
             return false
         }
         return true
+    }
+
+    /**
+     * Starts an SSTP profile: the SSTP engine negotiates the tunnel and owns the
+     * TUN interface for the session. No Xray core or tun2socks is started.
+     * The negotiation is asynchronous; success/failure is announced to the UI.
+     */
+    private fun setupSstpService(): Boolean {
+        val guid = MmkvManager.getSelectServer()
+        val profile = guid?.let { MmkvManager.decodeServerConfig(it) }
+        if (profile == null || profile.configType != EConfigType.SSTP) {
+            LogUtil.e(AppConfig.TAG, "StartCore-VPN: SSTP profile not found")
+            return false
+        }
+        MessageHelper.sendMsg2UI(this, AppConfig.MSG_STATE_RUNNING, "")
+        MessageHelper.sendMsg2UI(this, AppConfig.MSG_STATE_CONNECTING, getString(R.string.sstp_connecting))
+        NotificationManager.setStatusLine(getString(R.string.sstp_connecting))
+        SstpEngine.start(
+            vpnService = this,
+            profile = profile,
+            onConnected = {
+                isRunning = true
+                NotificationManager.setStatusLine(null)
+                MessageHelper.sendMsg2UI(this, AppConfig.MSG_STATE_START_SUCCESS, "")
+                NotificationManager.startSpeedNotification()
+                LogUtil.i(AppConfig.TAG, "StartCore-VPN: SSTP connected")
+            },
+            onError = { reason ->
+                LogUtil.e(AppConfig.TAG, "StartCore-VPN: SSTP failed: $reason, guid=$guid")
+                NotificationManager.setStatusLine(null)
+                MessageHelper.sendMsg2UI(this, AppConfig.MSG_STATE_START_FAILURE, "")
+                stopAllService()
+            }
+        )
+        return true
+    }
+
+    private fun isSstpProfile(): Boolean {
+        val guid = MmkvManager.getSelectServer() ?: return false
+        return MmkvManager.decodeServerConfig(guid)?.configType == EConfigType.SSTP
     }
 
     /**
@@ -350,6 +407,10 @@ class CoreVpnService : VpnService(), ServiceControl {
 //        saveVpnNetworkInfo(configName, info)
         unlockStart()
         isRunning = false
+
+        if (SstpEngine.isRunning()) {
+            SstpEngine.stop()
+        }
 
         tun2SocksService?.stopTun2Socks()
         tun2SocksService = null

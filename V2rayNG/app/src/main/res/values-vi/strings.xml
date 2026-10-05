@@ -363,6 +363,9 @@
     <string name="toast_invalid_update_interval">Khoảng thời gian cập nhật không hợp lệ. Giá trị tối thiểu là 15 phút.</string>
     <string name="toast_invalid_override_port">Cổng ghi đè không hợp lệ. Hãy dùng giá trị từ 1 đến 65535.</string>
     <string name="title_sub_update">Cập nhật gói đăng ký</string>
+    <string name="menu_item_import_vpngate">Nhập máy chủ SSTP từ VPNGate</string>
+    <string name="vpngate_import_success">Đã nhập %1$d máy chủ SSTP từ VPNGate</string>
+    <string name="vpngate_import_failed">Nhập VPNGate thất bại</string>
     <string name="title_ping_all_server">Kiểm tra độ trễ TCP (TCPing)</string>
     <string name="title_real_ping_all_server">Kiểm tra độ trễ thực</string>
     <string name="title_user_asset_setting">Tệp tài nguyên</string>
@@ -648,7 +651,11 @@
     <string name="aether_core_stopped">Lõi Aether đã dừng chạy</string>
     <string name="aether_core_stopped_no_ech_key">Lõi Aether đã dừng: ECH đang bật nhưng không tìm thấy khóa ECH dùng được. Không có khóa, tên máy chủ sẽ bị gửi đi ở dạng rõ.</string>
     <string name="aether_core_connecting">Lõi Aether vẫn đang kết nối</string>
+    <string name="sstp_connecting">Đang kết nối SSTP…</string>
     <string name="menu_item_import_config_manually_aether">Thêm cấu hình Aether thủ công</string>
+    <string name="menu_item_import_config_manually_sstp">Thêm cấu hình SSTP thủ công</string>
+    <string name="server_lab_sstp_username">Tên người dùng</string>
+    <string name="server_lab_sstp_password">Mật khẩu</string>
     <string name="aether_action_renew_key">Lấy khóa WARP mới…</string>
     <string name="aether_action_renewing_key">Đang lấy khóa WARP mới…</string>
     <string name="aether_log_title">Nhật ký</string>

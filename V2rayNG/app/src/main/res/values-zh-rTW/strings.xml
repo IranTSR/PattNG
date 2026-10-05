@@ -363,6 +363,9 @@
     <string name="toast_invalid_update_interval">更新間隔無效，最小值為 15 分鐘。</string>
     <string name="toast_invalid_override_port">覆蓋埠無效，請輸入 1 到 65535 之間的數字。</string>
     <string name="title_sub_update">更新訂閱</string>
+    <string name="menu_item_import_vpngate">匯入 VPNGate SSTP 伺服器</string>
+    <string name="vpngate_import_success">已匯入 %1$d 個 VPNGate SSTP 伺服器</string>
+    <string name="vpngate_import_failed">VPNGate 匯入失敗</string>
     <string name="title_ping_all_server">測試 TCP 延遲（TCPing）</string>
     <string name="title_real_ping_all_server">測試真連接延遲</string>
     <string name="title_user_asset_setting">資源檔案</string>
@@ -648,7 +651,11 @@
     <string name="aether_core_stopped">Aether 核心已停止執行</string>
     <string name="aether_core_stopped_no_ech_key">Aether 核心已停止：ECH 已開啟，但找不到可用的 ECH 金鑰。沒有金鑰，伺服器名稱就會以明文傳送。</string>
     <string name="aether_core_connecting">Aether 核心仍在連線中</string>
+    <string name="sstp_connecting">正在連接 SSTP…</string>
     <string name="menu_item_import_config_manually_aether">手動新增 Aether 設定</string>
+    <string name="menu_item_import_config_manually_sstp">手動新增 SSTP 設定</string>
+    <string name="server_lab_sstp_username">使用者名稱</string>
+    <string name="server_lab_sstp_password">密碼</string>
     <string name="aether_action_renew_key">取得新的 WARP 金鑰…</string>
     <string name="aether_action_renewing_key">正在取得新的 WARP 金鑰…</string>
     <string name="aether_log_title">記錄</string>
