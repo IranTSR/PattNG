@@ -244,7 +244,7 @@ object CoreServiceManager {
         } else {
             ""
         }
-        if (SettingsManager.isUsingHevTun()) {
+        if (SettingsManager.isUsingTun2Socks()) {
             tunFd = 0
         }
 

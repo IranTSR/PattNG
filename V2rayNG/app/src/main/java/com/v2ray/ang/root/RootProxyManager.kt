@@ -9,6 +9,7 @@ import com.v2ray.ang.handler.SettingsManager
 import com.v2ray.ang.root.RootProxyManager.TABLE
 import com.v2ray.ang.root.RootProxyManager.TUN
 import com.v2ray.ang.root.RootProxyManager.teardown
+import com.v2ray.ang.service.ZeptunConfig
 import com.v2ray.ang.util.LogUtil
 import com.v2ray.ang.util.PackageUidResolver
 import com.v2ray.ang.util.Utils
@@ -90,6 +91,98 @@ object RootProxyManager {
         RootShell.runScript(context, "teardown_rules.sh", buildTeardown(context))
     }
 
+    // --------------------------------------------------------------- ZEPTUN ROOT
+
+    /**
+     * Root-mode setup for the zeptun engine. The zeptun CLI creates the TUN interface
+     * and installs its own policy routing on Android, so this script only launches the
+     * binary, waits for the interface, and applies the engine-independent pieces
+     * (OOM guard, IPv6 blackhole). Per-app routing is passed as package flags;
+     * zeptun resolves them to UIDs itself via /data/system/packages.list.
+     */
+    private fun buildZeptunSetup(context: Context): String? {
+        val bin = File(context.applicationInfo.nativeLibraryDir, AppConfig.ROOT_ZEPTUN_BIN)
+        if (!bin.exists()) {
+            LogUtil.e(AppConfig.TAG, "RootProxyManager: zeptun binary missing at ${bin.absolutePath}")
+            return null
+        }
+        val runDir = File(context.filesDir, AppConfig.ROOT_RUNTIME_DIR)
+        if (!runDir.isDirectory && !runDir.mkdirs()) {
+            LogUtil.e(AppConfig.TAG, "RootProxyManager: failed to create runtime directory at ${runDir.absolutePath}")
+            return null
+        }
+        val pidFile = File(runDir, "tun2socks.pid").absolutePath
+        val logFile = File(runDir, "tun2socks.log").absolutePath
+        val cfgFile = File(runDir, "zeptun.json")
+        val oomGuardPid = File(runDir, "oomguard.pid").absolutePath
+        val corePid = Process.myPid()
+        val tun = AppConfig.ROOT_ZEPTUN_TUN
+
+        val config = ZeptunConfig.buildRootJson(
+            ZeptunConfig.RootParams(
+                socksPort = SettingsManager.getSocksPort(),
+                socksUsername = SettingsManager.getSocksUsername(),
+                socksPassword = SettingsManager.getSocksPassword(),
+                mtu = SettingsManager.getVpnMtu(),
+                logLevel = MmkvManager.decodeSettingsString(
+                    AppConfig.PREF_HEV_TUNNEL_LOGLEVEL, AppConfig.DEFAULT_HEV_TUNNEL_LOGLEVEL
+                ) ?: AppConfig.DEFAULT_HEV_TUNNEL_LOGLEVEL,
+                tunName = tun,
+                tunAddressV4 = AppConfig.ROOT_TUN_ADDR_V4,
+            )
+        )
+        try {
+            cfgFile.writeText(config)
+        } catch (e: Exception) {
+            LogUtil.e(AppConfig.TAG, "RootProxyManager: failed to write zeptun config", e)
+            return null
+        }
+
+        // Per-app routing. Empty set = all device traffic through the tunnel.
+        val appPkgs = MmkvManager.decodeSettingsStringSet(AppConfig.PREF_ZEPTUN_ROOT_APP_SET)
+            ?.toList().orEmpty()
+        val bypassMode = MmkvManager.decodeSettingsBool(AppConfig.PREF_ZEPTUN_ROOT_BYPASS_MODE, false)
+        val selfPkg = context.packageName
+        val pkgArgs = buildString {
+            // The core's own traffic (the real outbound) must never loop into the tunnel.
+            append(" --exclude-package '").append(selfPkg).append("'")
+            if (appPkgs.isNotEmpty()) {
+                val flag = if (bypassMode) "--exclude-package" else "--include-package"
+                for (pkg in appPkgs.sorted()) {
+                    if (pkg != selfPkg) append(" ").append(flag).append(" '").append(pkg).append("'")
+                }
+            }
+        }
+        val selectedUids = if (appPkgs.isNotEmpty()) {
+            PackageUidResolver.packageNamesToUids(context, appPkgs)
+        } else {
+            emptyList()
+        }
+        val ipv6 = MmkvManager.decodeSettingsBool(AppConfig.PREF_IPV6_ENABLED)
+        val appUid = context.applicationInfo.uid
+
+        return buildString {
+            appendLine("set -e")
+            appendLine("BIN='${bin.absolutePath}'")
+            // Protect the core (this app process) from the Android low-memory killer.
+            appendLine("nohup sh -c 'while true; do echo ${AppConfig.ROOT_OOM_SCORE} > /proc/$corePid/oom_score_adj 2>/dev/null; sleep 5; done' >/dev/null 2>&1 &")
+            appendLine("echo \$! > '$oomGuardPid'")
+            // tun device node
+            appendLine("if [ ! -e /dev/net/tun ]; then mkdir -p /dev/net; mknod /dev/net/tun c 10 200; chmod 666 /dev/net/tun; fi")
+            appendLine("nohup \"\$BIN\" -c '${cfgFile.absolutePath}'$pkgArgs >'$logFile' 2>&1 &")
+            appendLine("T2S_PID=\$!")
+            appendLine("echo \$T2S_PID > '$pidFile'")
+            appendLine("echo ${AppConfig.ROOT_OOM_SCORE} > /proc/\$T2S_PID/oom_score_adj 2>/dev/null || true")
+            // wait for the interface zeptun creates to appear
+            appendLine("i=0; while [ \$i -lt 20 ]; do ip link show $tun >/dev/null 2>&1 && break; sleep 0.3; i=\$((i+1)); done")
+            appendLine("ip link show $tun >/dev/null 2>&1 || { echo 'tun device did not come up'; cat '$logFile' 2>/dev/null; exit 1; }")
+            if (!ipv6) {
+                // v6 disabled: blackhole native v6 egress so apps fall back to v4-through-tunnel.
+                append(buildV6Blackhole(appUid, appPkgs.isNotEmpty(), bypassMode, selectedUids))
+            }
+        }
+    }
+
     // --------------------------------------------------------------- TUN2SOCKS
 
     /**
@@ -104,6 +197,11 @@ object RootProxyManager {
         captureDeviceTraffic: Boolean = true,
         forceLanShare: Boolean = false,
     ): String? {
+        // Zeptun owns its TUN device and policy routing in root mode; the LAN-sharing
+        // helper path always stays on hev.
+        if (captureDeviceTraffic && SettingsManager.isUsingZeptunTun()) {
+            return buildZeptunSetup(context)
+        }
         val bin = File(context.applicationInfo.nativeLibraryDir, AppConfig.ROOT_TUN2SOCKS_BIN)
         if (!bin.exists()) {
             LogUtil.e(AppConfig.TAG, "RootProxyManager: hev-socks5-tunnel binary missing at ${bin.absolutePath}")
@@ -469,6 +567,20 @@ object RootProxyManager {
             appendLine("ip -6 rule del fwmark $MARK table $TABLE priority $PRIORITY 2>/dev/null || true")
             appendLine("ip route flush table $TABLE 2>/dev/null || true")
             appendLine("ip -6 route flush table $TABLE 2>/dev/null || true")
+            // zeptun installs its own policy rules on Android (priorities
+            // ZEPTUN_ANDROID_RULE_PRIORITY..+SPAN, table ZEPTUN_ANDROID_TABLE)
+            // and removes them on normal stop; these cover the orphan path
+            // where the CLI died without cleaning up. A while-loop is used
+            // instead of seq: toybox seq exists on most devices but is not
+            // guaranteed on every root shell.
+            appendLine("p=${AppConfig.ZEPTUN_ANDROID_RULE_PRIORITY}; pend=$((${AppConfig.ZEPTUN_ANDROID_RULE_PRIORITY} + ${AppConfig.ZEPTUN_ANDROID_RULE_SPAN})); while [ \$p -lt \$pend ]; do")
+            appendLine("  ip rule del priority \$p 2>/dev/null || true")
+            appendLine("  ip -6 rule del priority \$p 2>/dev/null || true")
+            appendLine("  p=\$((p+1))")
+            appendLine("done")
+            appendLine("ip route flush table ${AppConfig.ZEPTUN_ANDROID_TABLE} 2>/dev/null || true")
+            appendLine("ip -6 route flush table ${AppConfig.ZEPTUN_ANDROID_TABLE} 2>/dev/null || true")
+            appendLine("pkill -f '${AppConfig.ROOT_ZEPTUN_BIN}' 2>/dev/null || true")
             // LAN / tethering sharing (always cleaned, harmless if it was never set up)
             appendLine("iptables -D FORWARD -j ${AppConfig.ROOT_FWD_CHAIN} 2>/dev/null || true")
             appendLine("iptables -F ${AppConfig.ROOT_FWD_CHAIN} 2>/dev/null || true")
@@ -489,6 +601,7 @@ object RootProxyManager {
             }
             // tun device down + helper process
             appendLine("ip link set dev $TUN down 2>/dev/null || true")
+            appendLine("ip link set dev ${AppConfig.ROOT_ZEPTUN_TUN} down 2>/dev/null || true")
             appendLine("[ -f '$pidFile' ] && kill \$(cat '$pidFile') 2>/dev/null || true")
             appendLine("rm -f '$pidFile'")
             // stop the OOM re-pin loop and restore the core process's LMK priority

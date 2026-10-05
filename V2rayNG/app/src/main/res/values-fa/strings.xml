@@ -323,6 +323,7 @@
     <string name="title_pref_dynamic_color">فعال‌سازی رنگ پویا</string>
     <string name="summary_pref_dynamic_color">فقط روی اندروید ۱۲+ کار می‌کند</string>
     <string name="title_pref_use_hev_tunnel">استفاده از Hev TUN</string>
+    <string name="title_pref_tun_engine">موتور TUN</string>
     <string name="summary_pref_use_hev_tunnel">اگر فعال باشد، تونل VPN از hev-socks5-tunnel استفاده می‌کند؛ در غیر این صورت از xray-core استفاده خواهد شد.</string>
     <string name="title_pref_hev_tunnel_loglevel">سطح گزارش‌های Hev TUN</string>
     <string name="title_pref_hev_tunnel_rw_timeout">مهلت خواندن/نوشتن Hev TUN (ثانیه؛ پیش‌فرض TCP/UDP: 300/60)</string>

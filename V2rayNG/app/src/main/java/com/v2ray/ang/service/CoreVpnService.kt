@@ -323,15 +323,18 @@ class CoreVpnService : VpnService(), ServiceControl {
      * Starts the tun2socks process with the appropriate parameters.
      */
     private fun runTun2socks(): Boolean {
-        if (SettingsManager.isUsingHevTun()) {
-            tun2SocksService = TProxyService(
+        tun2SocksService = when (SettingsManager.getTunEngine()) {
+            AppConfig.TUN_ENGINE_ZEPTUN -> ZeptunTunService(
+                vpnService = this,
+                vpnInterface = mInterface,
+            )
+            AppConfig.TUN_ENGINE_HEV -> TProxyService(
                 context = applicationContext,
                 vpnInterface = mInterface,
                 isRunningProvider = { isRunning },
                 restartCallback = { runTun2socks() }
             )
-        } else {
-            tun2SocksService = null
+            else -> null
         }
 
         return Tun2SocksControl.startMayGoOn(tun2SocksService) { it.startTun2Socks() }

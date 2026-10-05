@@ -438,11 +438,52 @@ object SettingsManager {
     }
 
     /**
+     * The selected TUN engine: [AppConfig.TUN_ENGINE_HEV], [AppConfig.TUN_ENGINE_ZEPTUN]
+     * or [AppConfig.TUN_ENGINE_XRAY]. The legacy [AppConfig.PREF_USE_HEV_TUNNEL] switch
+     * is migrated once in [ensureDefaultSettings].
+     */
+    fun getTunEngine(): String {
+        return when (val stored = MmkvManager.decodeSettingsString(AppConfig.PREF_TUN_ENGINE)) {
+            AppConfig.TUN_ENGINE_HEV,
+            AppConfig.TUN_ENGINE_ZEPTUN,
+            AppConfig.TUN_ENGINE_XRAY -> stored
+
+            else -> AppConfig.TUN_ENGINE_HEV
+        }
+    }
+
+    fun setTunEngine(engine: String) {
+        MmkvManager.encodeSettings(AppConfig.PREF_TUN_ENGINE, engine)
+    }
+
+    /**
      * Check if HEV TUN is being used.
      * @return True if HEV TUN is used, false otherwise.
      */
     fun isUsingHevTun(): Boolean {
-        return MmkvManager.decodeSettingsBool(AppConfig.PREF_USE_HEV_TUNNEL, true)
+        return getTunEngine() == AppConfig.TUN_ENGINE_HEV
+    }
+
+    /**
+     * Check if the Zeptun TUN engine is being used.
+     */
+    fun isUsingZeptunTun(): Boolean {
+        return getTunEngine() == AppConfig.TUN_ENGINE_ZEPTUN
+    }
+
+    /**
+     * Check if Xray itself reads the TUN interface (no tun2socks engine).
+     */
+    fun isUsingXrayTun(): Boolean {
+        return getTunEngine() == AppConfig.TUN_ENGINE_XRAY
+    }
+
+    /**
+     * Check if a tun2socks engine (hev or zeptun) owns the TUN file descriptor,
+     * i.e. Xray must not be given the fd and the local SOCKS proxy must be up.
+     */
+    fun isUsingTun2Socks(): Boolean {
+        return getTunEngine() != AppConfig.TUN_ENGINE_XRAY
     }
 
     /**
@@ -466,7 +507,7 @@ object SettingsManager {
      */
     fun canUseProcessRouting(): Boolean {
         // Must xray tun
-        if (isUsingHevTun()) {
+        if (!isUsingXrayTun()) {
             return false
         }
 
@@ -484,6 +525,15 @@ object SettingsManager {
     private fun ensureDefaultSettings() {
         // Write defaults in the exact order requested by the user
         ensureDefaultValue(AppConfig.PREF_MODE, VPN)
+        // One-time migration: the old hev on/off switch becomes the TUN engine selector.
+        if (MmkvManager.decodeSettingsString(AppConfig.PREF_TUN_ENGINE) == null) {
+            val engine = if (MmkvManager.decodeSettingsBool(AppConfig.PREF_USE_HEV_TUNNEL, true)) {
+                AppConfig.TUN_ENGINE_HEV
+            } else {
+                AppConfig.TUN_ENGINE_XRAY
+            }
+            MmkvManager.encodeSettings(AppConfig.PREF_TUN_ENGINE, engine)
+        }
         ensureDefaultValue(AppConfig.PREF_VPN_DNS, AppConfig.DNS_VPN)
         ensureDefaultValue(AppConfig.PREF_VPN_MTU, AppConfig.VPN_MTU.toString())
         ensureDefaultValue(AppConfig.PREF_SOCKS_PORT, AppConfig.PORT_SOCKS)

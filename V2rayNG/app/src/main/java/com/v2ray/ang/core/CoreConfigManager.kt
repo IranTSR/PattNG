@@ -714,7 +714,7 @@ object CoreConfigManager {
     //region some sub function
 
     private fun needTun(): Boolean {
-        return SettingsManager.isVpnMode() && !SettingsManager.isUsingHevTun()
+        return SettingsManager.isVpnMode() && SettingsManager.isUsingXrayTun()
     }
 
     /**
@@ -722,12 +722,12 @@ object CoreConfigManager {
      */
     private fun configureInbounds(v2rayConfig: V2rayConfig) {
         val vpn = SettingsManager.isVpnMode()
-        val useHev = SettingsManager.isUsingHevTun()
-        val forcedByHev = vpn && useHev
+        val useTun2Socks = SettingsManager.isUsingTun2Socks()
+        val forcedByTun2Socks = vpn && useTun2Socks
         val forcedBySocksRoot = SettingsManager.isRootMode()
                 || MmkvManager.decodeSettingsBool(AppConfig.PREF_ROOT_LAN_SHARING)
 
-        val enableLocalProxy = forcedByHev || forcedBySocksRoot || MmkvManager.decodeSettingsBool(AppConfig.PREF_ENABLE_LOCAL_PROXY, true)
+        val enableLocalProxy = forcedByTun2Socks || forcedBySocksRoot || MmkvManager.decodeSettingsBool(AppConfig.PREF_ENABLE_LOCAL_PROXY, true)
 
         val socksPort = SettingsManager.getSocksPort()
         val socksUsername = SettingsManager.getSocksUsername()
@@ -856,8 +856,8 @@ object CoreConfigManager {
         }
 
         if (SettingsManager.isVpnMode()) {
-            if (SettingsManager.isUsingHevTun()) {
-                //hev-socks5-tunnel dns routing
+            if (SettingsManager.isUsingTun2Socks()) {
+                //tun2socks (hev or zeptun) dns routing
                 v2rayConfig.routing.rules.add(
                     0, V2rayConfig.RoutingBean.RulesBean(
                         inboundTag = arrayListOf("socks"),

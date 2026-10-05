@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -145,7 +146,7 @@ fun SettingsScreen(
 
     var hevTunLogLevel by rememberMmkvString(AppConfig.PREF_HEV_TUNNEL_LOGLEVEL, AppConfig.DEFAULT_HEV_TUNNEL_LOGLEVEL)
     var hevTunRwTimeout by rememberMmkvString(AppConfig.PREF_HEV_TUNNEL_RW_TIMEOUT, "")
-    var useHevTun by rememberMmkvBool(AppConfig.PREF_USE_HEV_TUNNEL, true)
+    var tunEngine by rememberMmkvString(AppConfig.PREF_TUN_ENGINE, AppConfig.TUN_ENGINE_HEV)
 
     var enableLocalProxy by rememberMmkvBool(AppConfig.PREF_ENABLE_LOCAL_PROXY, true)
     var socksPort by rememberMmkvString(AppConfig.PREF_SOCKS_PORT, "")
@@ -183,8 +184,9 @@ fun SettingsScreen(
     var ipApiUrl by rememberMmkvString(AppConfig.PREF_IP_API_URL, "")
 
     val isVpn = mode == VPN
-    val hevTunEnabled = isVpn && useHevTun
-    val localProxyForced = hevTunEnabled
+    val hevTunEnabled = isVpn && tunEngine == AppConfig.TUN_ENGINE_HEV
+    val tun2SocksEnabled = isVpn && tunEngine != AppConfig.TUN_ENGINE_XRAY
+    val localProxyForced = tun2SocksEnabled
     val effectiveLocalProxy = enableLocalProxy || localProxyForced
     val muxXudpConcurrencyInt = muxXudpConcurrency.toIntOrNull() ?: AppConfig.DEFAULT_MUX_XUDP_CONCURRENCY.toInt()
 
@@ -206,6 +208,8 @@ fun SettingsScreen(
     val interfaceAddrValues = stringArrayResource(R.array.vpn_interface_address_value).toList()
     val hevLogEntries = stringArrayResource(R.array.hev_tunnel_loglevel).toList()
     val hevLogValues = stringArrayResource(R.array.hev_tunnel_loglevel).toList()
+    val tunEngineEntries = stringArrayResource(R.array.tun_engine_select).toList()
+    val tunEngineValues = listOf(AppConfig.TUN_ENGINE_HEV, AppConfig.TUN_ENGINE_ZEPTUN, AppConfig.TUN_ENGINE_XRAY)
     val coreLogLevelEntries = stringArrayResource(R.array.core_loglevel).toList()
     val coreLogLevelValues = stringArrayResource(R.array.core_loglevel).toList()
     val outboundResolveEntries = stringArrayResource(R.array.outbound_domain_resolve_method).toList()
@@ -372,14 +376,15 @@ fun SettingsScreen(
                     keyboardNumber = true,
                     onValueChanged = { vpnMtu = it }
                 )
-                SettingsSwitchItem(
-                    title = stringResource(R.string.title_pref_use_hev_tunnel),
-                    summary = stringResource(R.string.summary_pref_use_hev_tunnel),
-                    checked = useHevTun,
+                SettingsListItem(
+                    title = stringResource(R.string.title_pref_tun_engine),
+                    entries = tunEngineEntries,
+                    values = tunEngineValues,
+                    selectedValue = tunEngine,
                     enabled = isVpn,
-                    onCheckedChange = {
-                        useHevTun = it
-                        if (it && !enableLocalProxy) {
+                    onSelected = {
+                        tunEngine = it
+                        if (it != AppConfig.TUN_ENGINE_XRAY && !enableLocalProxy) {
                             enableLocalProxy = true
                         }
                     }

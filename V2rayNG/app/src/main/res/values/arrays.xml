@@ -132,6 +132,12 @@
         <item>debug</item>
     </string-array>
 
+    <string-array name="tun_engine_select" translatable="false">
+        <item>hev-socks5-tunnel</item>
+        <item>Zeptun</item>
+        <item>Xray core</item>
+    </string-array>
+
     <string-array name="flows" translatable="false">
         <item />
         <item>xtls-rprx-vision</item>

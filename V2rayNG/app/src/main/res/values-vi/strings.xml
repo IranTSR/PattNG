@@ -323,6 +323,7 @@
     <string name="title_pref_dynamic_color">Bật màu động</string>
     <string name="summary_pref_dynamic_color">Chỉ hoạt động trên Android 12+</string>
     <string name="title_pref_use_hev_tunnel">Dùng Hev TUN</string>
+    <string name="title_pref_tun_engine">Engine TUN</string>
     <string name="summary_pref_use_hev_tunnel">Khi bật, TUN sẽ dùng hev-socks5-tunnel; nếu không, TUN sẽ dùng xray-core.</string>
     <string name="title_pref_hev_tunnel_loglevel">Mức nhật ký Hev TUN</string>
     <string name="title_pref_hev_tunnel_rw_timeout">Thời gian chờ đọc/ghi của Hev TUN (giây; mặc định TCP/UDP: 300/60)</string>
