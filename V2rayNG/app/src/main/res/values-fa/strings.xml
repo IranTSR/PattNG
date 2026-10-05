@@ -436,6 +436,13 @@
     <string name="title_pref_fragment_interval">فاصلهٔ قطعه‌ها (حداقل-حداکثر)</string>
     <string name="title_pref_fragment_enabled">فعال کردن Fragment</string>
     <string name="title_pref_fragment_maxsplit">حداکثر تعداد قطعه‌ها</string>
+    <string name="title_smart_fragment">فرگمنت هوشمند</string>
+    <string name="summary_smart_fragment">تست و تنظیم خودکار فرگمنت هنگام افت کیفیت یا تغییر اینترنت</string>
+    <string name="title_test_fragment_now">تست الآن</string>
+    <string name="summary_test_fragment_now">تست ترکیب‌های فرگمنت و اعمال بهترین</string>
+    <string name="msg_fragment_test_running">در حال تست ترکیب‌های فرگمنت…</string>
+    <string name="msg_fragment_test_done">بهترین فرگمنت اعمال شد: %1$s</string>
+    <string name="msg_fragment_test_failed">تست فرگمنت ناموفق بود</string>
     <string name="title_observatory_settings">تنظیمات پایش اتصال (Observatory)</string>
     <string name="title_pref_observatory_least_ping_interval">فاصله leastPing</string>
     <string name="title_pref_observatory_least_load_interval">فاصله leastLoad</string>

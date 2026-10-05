@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -35,12 +36,15 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.AppConfig.VPN
 import com.v2ray.ang.R
+import com.v2ray.ang.core.CoreServiceManager
+import com.v2ray.ang.extension.toast
 import com.v2ray.ang.extension.toastError
 import com.v2ray.ang.handler.AppLocaleManager
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.MmkvManager.rememberMmkvBool
 import com.v2ray.ang.handler.MmkvManager.rememberMmkvString
 import com.v2ray.ang.handler.SettingsChangeManager
+import com.v2ray.ang.handler.SmartFragmentManager
 import com.v2ray.ang.root.RootManager
 import com.v2ray.ang.ui.base.BaseComponentActivity
 import com.v2ray.ang.ui.compose.AppTopBar
@@ -103,6 +107,8 @@ fun SettingsScreen(
     onModeHelpClicked: () -> Unit,
     onSystemVpnSettingsClicked: () -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val systemVpnSettingsAvailable by viewModel.systemVpnSettingsAvailable.collectAsStateWithLifecycle()
@@ -134,6 +140,8 @@ fun SettingsScreen(
     var fragmentLength by rememberMmkvString(AppConfig.PREF_FRAGMENT_LENGTH, "50-100")
     var fragmentInterval by rememberMmkvString(AppConfig.PREF_FRAGMENT_INTERVAL, "10-20")
     var fragmentMaxSplit by rememberMmkvString(AppConfig.PREF_FRAGMENT_MAXSPLIT, "10")
+    var smartFragment by rememberMmkvBool(AppConfig.PREF_SMART_FRAGMENT, false)
+    var fragmentTestRunning by rememberSaveable { mutableStateOf(false) }
     var observatoryLeastPingInterval by rememberMmkvString(AppConfig.PREF_OBSERVATORY_LEAST_PING_INTERVAL, AppConfig.OBSERVATORY_LEAST_PING_INTERVAL)
     var observatoryLeastLoadInterval by rememberMmkvString(AppConfig.PREF_OBSERVATORY_LEAST_LOAD_INTERVAL, AppConfig.OBSERVATORY_LEAST_LOAD_INTERVAL)
     var observatoryLeastLoadMethod by rememberMmkvString(AppConfig.PREF_OBSERVATORY_LEAST_LOAD_METHOD, AppConfig.OBSERVATORY_LEAST_LOAD_METHOD)
@@ -590,6 +598,44 @@ fun SettingsScreen(
                     enabled = fragment,
                     keyboardNumber = true,
                     onValueChanged = { fragmentMaxSplit = it }
+                )
+                SettingsSwitchItem(
+                    title = stringResource(R.string.title_smart_fragment),
+                    summary = stringResource(R.string.summary_smart_fragment),
+                    checked = smartFragment,
+                    enabled = fragment,
+                    onCheckedChange = {
+                        smartFragment = it
+                        if (it && CoreServiceManager.isRunning()) {
+                            SmartFragmentManager.startMonitoring()
+                        } else if (!it) {
+                            SmartFragmentManager.stopMonitoring()
+                        }
+                    }
+                )
+                SettingsMenuItem(
+                    title = stringResource(R.string.title_test_fragment_now),
+                    subtitle = if (fragmentTestRunning) {
+                        stringResource(R.string.msg_fragment_test_running)
+                    } else {
+                        stringResource(R.string.summary_test_fragment_now)
+                    },
+                    onClick = testFragmentClick@{
+                        if (fragmentTestRunning) return@testFragmentClick
+                        fragmentTestRunning = true
+                        scope.launch {
+                            try {
+                                val winner = SmartFragmentManager.testNow(context)
+                                if (winner != null) {
+                                    context.toast(context.getString(R.string.msg_fragment_test_done, winner.label()))
+                                } else {
+                                    context.toastError(R.string.msg_fragment_test_failed)
+                                }
+                            } finally {
+                                fragmentTestRunning = false
+                            }
+                        }
+                    }
                 )
             }
 

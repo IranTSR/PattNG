@@ -439,6 +439,13 @@
     <string name="title_pref_fragment_interval">Fragment Interval (min-max)</string>
     <string name="title_pref_fragment_enabled">Enable Fragment</string>
     <string name="title_pref_fragment_maxsplit">Fragment Max Split</string>
+    <string name="title_smart_fragment">Smart Fragment</string>
+    <string name="summary_smart_fragment">Auto re-tests and adjusts fragment when connection degrades or network changes</string>
+    <string name="title_test_fragment_now">Test Now</string>
+    <string name="summary_test_fragment_now">Test fragment presets now and apply the best</string>
+    <string name="msg_fragment_test_running">Testing fragment presets…</string>
+    <string name="msg_fragment_test_done">Best fragment applied: %1$s</string>
+    <string name="msg_fragment_test_failed">Fragment test failed</string>
     <string name="title_observatory_settings">Observatory Settings</string>
     <string name="title_pref_observatory_least_ping_interval">leastPing Interval</string>
     <string name="title_pref_observatory_least_load_interval">leastLoad Interval</string>
