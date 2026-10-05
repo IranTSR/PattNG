@@ -2,12 +2,12 @@ package com.v2ray.ang.handler
 
 import com.tencent.mmkv.MMKV
 import com.v2ray.ang.AppConfig
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.whenever
@@ -21,7 +21,7 @@ class SettingsManagerTunEngineTest {
 
     private val strings = mutableMapOf<String, String>()
 
-    @Before
+    @BeforeEach
     fun prepareStorage() {
         strings.clear()
         reset(settings)
@@ -88,7 +88,7 @@ class SettingsManagerTunEngineTest {
         // per test JVM, so all test classes must use the same instance.
         private val settings: MMKV = MmkvTestFixtures.settings
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun initializeHandles() {
             MmkvTestFixtures.installSettingsMock()
