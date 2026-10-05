@@ -57,8 +57,9 @@ class SstpFmtTest {
             password = "vpn"
         }
         val uri = SstpFmt.toUri(config)
-        assertTrue(uri.startsWith("sstp://"))
-        val parsed = SstpFmt.parse("sstp://$uri")
+        val link = "sstp://$uri"
+        assertTrue(link.startsWith("sstp://"))
+        val parsed = SstpFmt.parse(link)
         assertNotNull(parsed)
         assertEquals("example.com", parsed!!.server)
         assertEquals("vpn", parsed.username)
