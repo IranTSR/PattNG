@@ -26,7 +26,7 @@ internal abstract class EAPClient(protected val bridge: SharedBridge) {
     private var jobAuth: Job? = null
 
     internal fun launchJobAuth() {
-        jobAuth = bridge.service.scope.launch(bridge.handler) {
+        jobAuth = bridge.scope.launch(bridge.handler) {
             while (isActive) {
                 when (val received = mailbox.receive()) {
                     is EAPRequest -> {

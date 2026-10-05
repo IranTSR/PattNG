@@ -29,7 +29,7 @@ internal class OutgoingManager(private val bridge: SharedBridge) {
     private val channel = Channel<ByteBuffer>(0)
 
     internal fun launchJobMain() {
-        jobMain = bridge.service.scope.launch(bridge.handler) {
+        jobMain = bridge.scope.launch(bridge.handler) {
             launchJobRetrieve()
 
             val minCapacity = PREFIX_SIZE + bridge.PPP_MTU
@@ -54,7 +54,7 @@ internal class OutgoingManager(private val bridge: SharedBridge) {
     }
 
     private fun launchJobRetrieve() {
-        jobRetrieve = bridge.service.scope.launch(bridge.handler) {
+        jobRetrieve = bridge.scope.launch(bridge.handler) {
             val bufferAlpha = ByteBuffer.allocate(bridge.PPP_MTU)
             val bufferBeta = ByteBuffer.allocate(bridge.PPP_MTU)
             var isBlockingAlpha = true

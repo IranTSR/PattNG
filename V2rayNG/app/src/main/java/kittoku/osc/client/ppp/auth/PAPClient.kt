@@ -19,7 +19,7 @@ internal class PAPClient(private val bridge: SharedBridge) {
     private var jobAuth: Job? = null
 
     internal fun launchJobAuth() {
-        jobAuth = bridge.service.scope.launch(bridge.handler) {
+        jobAuth = bridge.scope.launch(bridge.handler) {
             val currentID = bridge.allocateNewFrameID()
 
             sendPAPRequest(currentID)

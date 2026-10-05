@@ -104,7 +104,7 @@ internal class IncomingManager(internal val bridge: SharedBridge) {
     }
 
     internal fun launchJobMain() {
-        jobMain = bridge.service.scope.launch(bridge.handler) {
+        jobMain = bridge.scope.launch(bridge.handler) {
             val buffer = ByteBuffer.allocate(bufferSize).also { it.limit(0) }
 
             sstpTimer.tick()
