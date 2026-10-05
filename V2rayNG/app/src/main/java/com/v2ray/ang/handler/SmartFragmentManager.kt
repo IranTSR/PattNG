@@ -17,12 +17,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 object SmartFragmentManager {
 
@@ -97,6 +99,7 @@ object SmartFragmentManager {
             maxSplit = MmkvManager.decodeSettingsString(AppConfig.PREF_FRAGMENT_MAXSPLIT) ?: "10"
         )
         val testUrl = SettingsManager.getDelayTestUrl()
+        val batch = UUID.randomUUID().toString()
         val results = mutableListOf<Pair<FragmentCandidate, Long>>()
         for (candidate in CANDIDATES) {
             try {
@@ -106,7 +109,7 @@ object SmartFragmentManager {
                 MmkvManager.encodeSettings(AppConfig.PREF_FRAGMENT_MAXSPLIT, candidate.maxSplit)
                 val configResult = CoreConfigManager.getV2rayConfig4Speedtest(context, guid)
                 val delayMs = if (configResult.status) {
-                    CoreNativeManager.measureOutboundDelay(configResult.content, testUrl)
+                    CoreNativeManager.measureOutboundDelay(configResult.content, testUrl, batch)
                 } else {
                     -1L
                 }
@@ -200,7 +203,7 @@ object SmartFragmentManager {
     }
 
     private suspend fun healthProbeLoop() {
-        while (coroutineContext.isActive) {
+        while (currentCoroutineContext().isActive) {
             delay(HEALTH_PROBE_INTERVAL_MS)
             if (!canAutoTune()) {
                 consecutiveFailures = 0
@@ -225,7 +228,11 @@ object SmartFragmentManager {
             val configResult =
                 CoreConfigManager.getV2rayConfig4Speedtest(AngApplication.application, guid)
             if (!configResult.status) return@withContext null
-            CoreNativeManager.measureOutboundDelay(configResult.content, SettingsManager.getDelayTestUrl())
+            CoreNativeManager.measureOutboundDelay(
+                configResult.content,
+                SettingsManager.getDelayTestUrl(),
+                UUID.randomUUID().toString()
+            )
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "SmartFragment: health probe failed", e)
             null
