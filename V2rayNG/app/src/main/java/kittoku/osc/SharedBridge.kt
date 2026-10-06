@@ -106,8 +106,12 @@ internal class SharedBridge(
     password: String,
     val events: SstpEvents,
 ) {
-    // Only used when a TUN interface is established; test mode never touches it.
-    val builder: VpnService.Builder get() = vpnService!!.Builder()
+    // Single Builder instance per connection (lazy: test mode never touches it).
+    // NOTE: this must not be a computed getter — each VpnService.Builder()
+    // call returns a fresh builder, so addAddress/addRoute applied through a
+    // getter were silently dropped and establish() failed with
+    // "At least one address must be specified".
+    val builder: VpnService.Builder by lazy { vpnService!!.Builder() }
     lateinit var handler: CoroutineExceptionHandler
 
     val controlMailbox = Channel<ControlMessage>(Channel.BUFFERED)
