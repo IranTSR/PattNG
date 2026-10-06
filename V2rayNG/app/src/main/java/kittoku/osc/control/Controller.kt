@@ -28,6 +28,7 @@ import kittoku.osc.unit.sstp.SSTP_MESSAGE_TYPE_CALL_DISCONNECT
 import kittoku.osc.unit.sstp.SSTP_MESSAGE_TYPE_CALL_DISCONNECT_ACK
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
@@ -226,7 +227,7 @@ internal class Controller(internal val bridge: SharedBridge) {
         kill(false) {
             sstpClient?.sendLastPacket(lastPacketType)
 
-            val header = "${received.from.name}: ${received.result.name}"
+            val header = "${received.from.name}: ${received.result.name} (awaiting ${where.name})"
             var log = header
             if (received.supplement != null) {
                 log += "\n${received.supplement}"
@@ -247,7 +248,13 @@ internal class Controller(internal val bridge: SharedBridge) {
     internal fun kill(isReconnectionRequested: Boolean, cleanup: (suspend () -> Unit)?) {
         if (!mutex.tryLock()) return
 
-        bridge.scope.launch {
+        // NonCancellable: callers (SstpDelayTester, SstpEngine.stop) cancel
+        // bridge.scope right after disconnect(). Without this, the cleanup
+        // below would be cancelled before it runs: CallDisconnect never sent,
+        // socket never closed, and the server keeps the half-open session —
+        // then terminates the *next* connect as a duplicate with
+        // LCP Terminate-Request (PPP: ERR_TERMINATE_REQUESTED).
+        bridge.scope.launch(NonCancellable) {
             jobMain?.cancel()
             cancelClients()
 
