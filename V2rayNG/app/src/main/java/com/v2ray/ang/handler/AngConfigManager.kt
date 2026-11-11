@@ -15,6 +15,7 @@ import com.v2ray.ang.dto.entities.SubscriptionUsageInfo
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.extension.isNotNullEmpty
 import com.v2ray.ang.fmt.AetherFmt
+import com.v2ray.ang.fmt.SstpFmt
 import com.v2ray.ang.fmt.CustomFmt
 import com.v2ray.ang.fmt.CustomOutboundFmt
 import com.v2ray.ang.fmt.Hysteria2Fmt
@@ -56,6 +57,7 @@ object AngConfigManager {
             EConfigType.MASQUE.protocolScheme to MasqueFmt::parse,
             AppConfig.HY2 to Hysteria2Fmt::parse,
             EConfigType.AETHER.protocolScheme to AetherFmt::parse,
+            EConfigType.SSTP.protocolScheme to SstpFmt::parse,
         )
     }
 
@@ -173,6 +175,7 @@ object AngConfigManager {
                 EConfigType.HYSTERIA2 -> Hysteria2Fmt.toUri(config)
                 EConfigType.MASQUE -> MasqueFmt.toUri(config)
                 EConfigType.AETHER -> AetherFmt.toUri(config)
+                EConfigType.SSTP -> SstpFmt.toUri(config)
                 else -> {}
             }
         } catch (e: Exception) {

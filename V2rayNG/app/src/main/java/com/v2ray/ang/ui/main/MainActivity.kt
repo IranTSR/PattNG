@@ -42,6 +42,7 @@ import com.v2ray.ang.ui.server.ServerMasqueActivity
 import com.v2ray.ang.ui.server.ServerProxyChainActivity
 import com.v2ray.ang.ui.server.ServerShadowsocksActivity
 import com.v2ray.ang.ui.server.ServerSocksActivity
+import com.v2ray.ang.ui.server.ServerSstpActivity
 import com.v2ray.ang.ui.server.ServerTrojanActivity
 import com.v2ray.ang.ui.server.ServerVlessActivity
 import com.v2ray.ang.ui.server.ServerVmessActivity
@@ -231,6 +232,7 @@ class MainActivity : HelperBaseComponentActivity() {
             EConfigType.HYSTERIA2.value -> Intent(this, ServerHysteria2Activity::class.java)
             EConfigType.MASQUE.value -> Intent(this, ServerMasqueActivity::class.java)
             EConfigType.AETHER.value -> Intent(this, ServerAetherActivity::class.java)
+            EConfigType.SSTP.value -> Intent(this, ServerSstpActivity::class.java)
             else -> Intent(this, ServerHttpActivity::class.java).apply {
                 putExtra("createConfigType", createConfigType)
             }
@@ -285,6 +287,7 @@ class MainActivity : HelperBaseComponentActivity() {
             EConfigType.HYSTERIA2 -> ServerHysteria2Activity::class.java
             EConfigType.MASQUE -> ServerMasqueActivity::class.java
             EConfigType.AETHER -> ServerAetherActivity::class.java
+            EConfigType.SSTP -> ServerSstpActivity::class.java
             else -> ServerHttpActivity::class.java
         }
         val intent = Intent(this, activityClass).apply {
