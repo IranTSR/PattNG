@@ -14,6 +14,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.yield
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
@@ -26,6 +27,9 @@ import javax.net.ssl.SSLSession
 
 private const val HTTP_DELIMITER = "\r\n"
 private const val HTTP_SUFFIX = "\r\n\r\n"
+
+/** Bound on the TCP connect: a blackholed server must fail visibly instead of hanging. */
+private const val CONNECT_TIMEOUT_MS = 10_000
 
 internal const val SSL_REQUEST_INTERVAL = 10_000L
 
@@ -59,7 +63,10 @@ internal class SSLTerminal(private val bridge: SharedBridge) {
         engine = sslContext.createSSLEngine(bridge.host, bridge.port)
         engine.useClientMode = true
 
-        socket = Socket(bridge.host, bridge.port).also {
+        // The plain Socket(host, port) constructor has no connect timeout, so a blackholed
+        // server hangs here until the OS TCP timeout; bound it so the failure surfaces.
+        socket = Socket().also {
+            it.connect(InetSocketAddress(bridge.host, bridge.port), CONNECT_TIMEOUT_MS)
             socketInputStream = it.getInputStream()
             socketOutputStream = it.getOutputStream()
         }

@@ -54,9 +54,12 @@ internal enum class ReloadOutcome {
          *
          * [stoppedMeanwhile] is whether the service was stopped while the reload ran, as in [of]. Such
          * a reload is only finishing and its service is gone, so a start that follows is a real one.
+         *
+         * [sstpRunning] is whether the SSTP engine runs: SSTP owns its tunnel without Xray, so a
+         * connected SSTP session is a running service even though no core runs.
          */
-        fun serviceRuns(coreRunning: Boolean, reloading: Boolean, stoppedMeanwhile: Boolean): Boolean =
-            coreRunning || (reloading && !stoppedMeanwhile)
+        fun serviceRuns(coreRunning: Boolean, reloading: Boolean, stoppedMeanwhile: Boolean, sstpRunning: Boolean = false): Boolean =
+            sstpRunning || coreRunning || (reloading && !stoppedMeanwhile)
 
         /**
          * Whether a reload goes on to start Xray again once a wait of its own is over: only while [current], the

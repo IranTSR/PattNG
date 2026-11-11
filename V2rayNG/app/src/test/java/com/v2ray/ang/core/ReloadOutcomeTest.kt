@@ -69,4 +69,14 @@ class ReloadOutcomeTest {
         assertTrue(ReloadOutcome.serviceRuns(coreRunning = true, reloading = false, stoppedMeanwhile = true))
         assertTrue(ReloadOutcome.serviceRuns(coreRunning = true, reloading = true, stoppedMeanwhile = true))
     }
+
+    @Test
+    fun aRunningSstpSessionIsARunningServiceThoughNoCoreRuns() {
+        // SSTP owns its tunnel without Xray. A state query must not report it stopped, or the
+        // main screen keeps offering start while the tunnel is up and the next start is swallowed.
+        assertTrue(ReloadOutcome.serviceRuns(coreRunning = false, reloading = false, stoppedMeanwhile = false, sstpRunning = true))
+        assertTrue(ReloadOutcome.serviceRuns(coreRunning = false, reloading = true, stoppedMeanwhile = true, sstpRunning = true))
+        // Without the engine, nothing changed.
+        assertFalse(ReloadOutcome.serviceRuns(coreRunning = false, reloading = false, stoppedMeanwhile = false, sstpRunning = false))
+    }
 }

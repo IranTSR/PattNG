@@ -32,4 +32,18 @@ class LauncherManagerTest {
         assertTrue(LauncherManager.hasUsableServer(profile(EConfigType.VLESS, "162.159.198.1")))
         assertTrue(LauncherManager.hasUsableServer(profile(EConfigType.WIREGUARD, "2606:4700:d0::a29f:c001")))
     }
+
+    @Test
+    fun anSstpProfileStartsWithAHostname() {
+        assertTrue(LauncherManager.hasUsableServer(profile(EConfigType.SSTP, "vpn.example.com")))
+        assertTrue(LauncherManager.hasUsableServer(profile(EConfigType.SSTP, "162.159.198.1")))
+    }
+
+    @Test
+    fun onlySstpProfilesNeedVpnMode() {
+        // SSTP owns a TUN, which only the VPN service provides; other profiles keep their mode.
+        assertTrue(LauncherManager.requiresVpnMode(EConfigType.SSTP))
+        assertFalse(LauncherManager.requiresVpnMode(EConfigType.VLESS))
+        assertFalse(LauncherManager.requiresVpnMode(EConfigType.AETHER))
+    }
 }
