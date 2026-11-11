@@ -14,7 +14,7 @@ class ServerSstpActivity : BaseServerActivity() {
     override val serverConfigType: EConfigType = EConfigType.SSTP
 
     @Composable
-    override fun ScreenContent() {
+    override fun EditorContent() {
         val uiState = rememberSaveable(saver = ServerUiState.Saver) {
             ServerUiState.from(
                 initialConfig = initialConfig

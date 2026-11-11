@@ -95,7 +95,9 @@ object VpnGateImporter {
         if (existing != null) return existing.guid
         val subItem = SubscriptionItem(remarks = GROUP_NAME)
         val guid = Utils.getUuid()
-        MmkvManager.encodeSubscription(guid, subItem)
+        // tryEncodeSubscription stores the item and appends it to the subscription list,
+        // logging a storage refusal itself; keep the old contract of returning the guid.
+        MmkvManager.tryEncodeSubscription(guid, subItem)
         return guid
     }
 }
