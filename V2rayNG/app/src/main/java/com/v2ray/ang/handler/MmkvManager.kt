@@ -284,8 +284,8 @@ object MmkvManager {
         val storedType = JsonUtil.parseString(json)?.get("configType")
         val knownType = when {
             storedType == null -> null
-            storedType.isJsonPrimitive && storedType.isString -> EConfigType.fromName(storedType.asString)
-            storedType.isJsonPrimitive && storedType.isNumber -> EConfigType.fromInt(storedType.asInt)
+            storedType.isJsonPrimitive && storedType.asJsonPrimitive.isString -> EConfigType.fromName(storedType.asString)
+            storedType.isJsonPrimitive && storedType.asJsonPrimitive.isNumber -> EConfigType.fromInt(storedType.asInt)
             else -> null
         }
         if (knownType == null) {
