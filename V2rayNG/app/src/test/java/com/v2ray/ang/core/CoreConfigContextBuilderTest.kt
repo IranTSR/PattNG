@@ -163,16 +163,21 @@ class CoreConfigContextBuilderTest {
     }
 
     @Test
-    fun aRoutingRuleSendsToAnyProfileButACustomConfiguration() {
-        for (type in EConfigType.entries.filter { it != EConfigType.CUSTOM }) {
+    fun aRoutingRuleSendsToAnyProfileButACustomConfigurationOrADnsProfile() {
+        // A DNS profile has no outbound to send to.
+        val excluded = setOf(EConfigType.CUSTOM, EConfigType.DNS)
+        for (type in EConfigType.entries.filter { it !in excluded }) {
             assertTrue(CoreConfigContextBuilder.takesAsRoutingTarget(ProfileItem.create(type)), type.name)
         }
-        assertFalse(CoreConfigContextBuilder.takesAsRoutingTarget(ProfileItem.create(EConfigType.CUSTOM)))
+        for (type in excluded) {
+            assertFalse(CoreConfigContextBuilder.takesAsRoutingTarget(ProfileItem.create(type)), type.name)
+        }
     }
 
     @Test
-    fun aGroupFallsBackToAnyProfileButAGroupOrACustomConfiguration() {
-        val others = setOf(EConfigType.CUSTOM, EConfigType.POLICYGROUP)
+    fun aGroupFallsBackToAnyProfileButAGroupOrACustomConfigurationOrADnsProfile() {
+        // A DNS profile has no outbound to fall back to.
+        val others = setOf(EConfigType.CUSTOM, EConfigType.POLICYGROUP, EConfigType.DNS)
         for (type in EConfigType.entries.filter { it !in others }) {
             assertTrue(CoreConfigContextBuilder.takesAsFallback(ProfileItem.create(type)), type.name)
         }
@@ -210,7 +215,9 @@ class CoreConfigContextBuilderTest {
     @Test
     fun aNameIsToldByTheTypesThatCannotBeUsedThereAndNoOther() {
         // The types a name is told by are those a chain cannot go through, and those a group cannot fall back to.
-        for (type in EConfigType.entries) {
+        // A DNS profile cannot be a fallback either, but has no "told as such" reason: it has no outbound, which no
+        // reason names, so a DNS profile named as a fallback is reported as a name no profile has.
+        for (type in EConfigType.entries.filter { it != EConfigType.DNS }) {
             val profile = ProfileItem.create(type)
             assertEquals(!CoreConfigContextBuilder.takesAsHop(profile), type in CoreConfigContextBuilder.HOP_REASONS.map { it.first }, type.name)
             assertEquals(!CoreConfigContextBuilder.takesAsFallback(profile), type in CoreConfigContextBuilder.FALLBACK_REASONS.map { it.first }, type.name)

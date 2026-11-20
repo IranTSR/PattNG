@@ -691,6 +691,16 @@
     <string name="aether_core_stopped_chain_ended">Tor or Psiphon inside the Aether tunnel ended, so the connection was stopped: %1$s</string>
     <string name="aether_core_connecting">The Aether core is still connecting</string>
     <string name="menu_item_import_config_manually_aether">Add Aether config manually</string>
+    <string name="menu_item_import_config_manually_dns">Add [DNS]</string>
+    <string name="server_lab_dns_transport">Transport</string>
+    <string name="server_lab_dns_path">DoH path</string>
+    <string name="server_lab_dns_preset">Preset</string>
+    <string name="dns_editor_note">Only DNS runs on this profile; all other traffic goes direct.</string>
+    <string name="dns_preset_cloudflare_doh">Cloudflare DoH</string>
+    <string name="dns_preset_cloudflare_udp">Cloudflare UDP</string>
+    <string name="dns_preset_google_doh">Google DoH</string>
+    <string name="dns_preset_quad9_doh">Quad9 DoH</string>
+    <string name="dns_preset_adguard_doq">AdGuard DoQ</string>
     <string name="aether_action_renew_key">Get new WARP keys…</string>
     <string name="aether_action_renewing_key">Getting new WARP keys…</string>
     <string name="aether_log_title">Log</string>

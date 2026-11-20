@@ -683,6 +683,16 @@
     <string name="aether_core_stopped_chain_ended">Aether tunelinin içindəki Tor və ya Psiphon dayandı, ona görə bağlantı dayandırıldı: %1$s</string>
     <string name="aether_core_connecting">Aether nüvəsi hələ qoşulur</string>
     <string name="menu_item_import_config_manually_aether">Aether konfiqurasiyasını əllə əlavə et</string>
+    <string name="menu_item_import_config_manually_dns">Add [DNS]</string>
+    <string name="server_lab_dns_transport">Transport</string>
+    <string name="server_lab_dns_path">DoH path</string>
+    <string name="server_lab_dns_preset">Preset</string>
+    <string name="dns_editor_note">Only DNS runs on this profile; all other traffic goes direct.</string>
+    <string name="dns_preset_cloudflare_doh">Cloudflare DoH</string>
+    <string name="dns_preset_cloudflare_udp">Cloudflare UDP</string>
+    <string name="dns_preset_google_doh">Google DoH</string>
+    <string name="dns_preset_quad9_doh">Quad9 DoH</string>
+    <string name="dns_preset_adguard_doq">AdGuard DoQ</string>
     <string name="aether_action_renew_key">Yeni WARP açarları al…</string>
     <string name="aether_action_renewing_key">Yeni WARP açarları alınır…</string>
     <string name="aether_log_title">Jurnal</string>

@@ -4,6 +4,7 @@ import android.content.Context
 import com.v2ray.ang.core.AetherDelayTester
 import com.v2ray.ang.core.CoreConfigContextBuilder
 import com.v2ray.ang.core.CoreConfigManager
+import com.v2ray.ang.core.DnsDelayTester
 import com.v2ray.ang.core.CoreNativeManager
 import com.v2ray.ang.dto.RealPingEvent
 import com.v2ray.ang.dto.entities.ProfileEntry
@@ -123,6 +124,10 @@ class RealPingWorkerService(
         // other hops: then it is measured as the chain it runs in, as every chained profile is.
         if (config.configType == EConfigType.AETHER && !CoreConfigContextBuilder.isChained(ProfileEntry(guid, config))) {
             return AetherDelayTester.measure(context, guid, config, SettingsManager.getDelayTestUrl())
+        }
+        // DNS has no Xray configuration: the query itself is the test.
+        if (config.configType == EConfigType.DNS) {
+            return DnsDelayTester.measure(context, config)
         }
 
         val configResult = CoreConfigManager.getV2rayConfig4Speedtest(context, guid)

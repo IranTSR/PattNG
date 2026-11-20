@@ -35,6 +35,7 @@ import com.v2ray.ang.enums.AetherTransport
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.enums.NetworkType
 import com.v2ray.ang.extension.nullIfBlank
+import com.v2ray.ang.fmt.DnsFmt
 import com.v2ray.ang.util.JsonUtil
 
 class ServerUiState(
@@ -125,7 +126,8 @@ class ServerUiState(
     aetherTorBridges: String = AetherTorBridges.AUTO.type,
     aetherTorBridgeLines: String = "",
     aetherTorRelays: String = AetherTorRelays.AUTO.type,
-    aetherCommand: String = ""
+    aetherCommand: String = "",
+    dnsTransport: String = DnsFmt.DEFAULT_TRANSPORT
 ) {
     var configType by mutableStateOf(configType)
     var remarks by mutableStateOf(remarks)
@@ -228,6 +230,7 @@ class ServerUiState(
     var aetherTorBridgeLines by mutableStateOf(aetherTorBridgeLines)
     var aetherTorRelays by mutableStateOf(aetherTorRelays)
     var aetherCommand by mutableStateOf(aetherCommand)
+    var dnsTransport by mutableStateOf(dnsTransport)
 
     /**
      * Whether an Aether setting the editor keeps folded away holds a value of its own, so that the
@@ -301,6 +304,7 @@ class ServerUiState(
         val isMasque = configType == EConfigType.MASQUE
         val isHysteria2 = configType == EConfigType.HYSTERIA2
         val isAether = configType == EConfigType.AETHER
+        val isDns = configType == EConfigType.DNS
         val isPsiphon = isAether && aetherPsiphon != AetherPsiphon.OFF.type
         val isTor = isAether && aetherTor != AetherTor.OFF.type
 
@@ -328,6 +332,7 @@ class ServerUiState(
             localAddress = if (isWireguard || isMasque) localAddress else null,
             mtu = if (isWireguard) mtu.toIntOrNull() else null,
             remoteDNS = if (isWireguard || isMasque) remoteDNS else null,
+            dnsTransport = if (isDns) dnsTransport else null,
             obfs = if (isHysteria2) obfs.nullIfBlank() else null,
             obfsPassword = if (isHysteria2) obfsPassword else null,
             minPacketSize = if (isHysteria2) minPacketSize.nullIfBlank() else null,
@@ -515,7 +520,9 @@ class ServerUiState(
                 aetherTorBridges = AetherTorBridges.fromString(initialConfig.aetherTorBridges).type,
                 aetherTorBridgeLines = initialConfig.aetherTorBridgeLines ?: "",
                 aetherTorRelays = AetherTorRelays.fromString(initialConfig.aetherTorRelays).type,
-                aetherCommand = initialConfig.aetherCommand ?: ""
+                aetherCommand = initialConfig.aetherCommand ?: "",
+                // Normalized so the dropdown always holds one of its own values, whatever was persisted.
+                dnsTransport = DnsFmt.normalizeTransport(initialConfig.dnsTransport)
             )
 
         fun from(

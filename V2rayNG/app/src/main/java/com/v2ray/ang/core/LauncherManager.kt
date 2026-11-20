@@ -73,8 +73,17 @@ object LauncherManager {
     internal fun hasUsableServer(config: ProfileItem): Boolean =
         config.configType.isComplexType()
             || config.configType == EConfigType.AETHER
+            || config.configType == EConfigType.DNS
             || Utils.isPureIpAddress(config.server.orEmpty())
             || Utils.isValidUrl(config.server)
+
+    /**
+     * Whether [configType] needs VPN mode: DNS owns no proxy, only the TUN captures the
+     * device's DNS, which only CoreVpnService provides. Root and proxy-only mode have no
+     * DNS branch, so a DNS profile started there would silently run the wrong service instead.
+     */
+    internal fun requiresVpnMode(configType: EConfigType): Boolean =
+        configType == EConfigType.DNS
 
     @Throws(Exception::class)
     private fun startContextService(context: Context) {
@@ -115,6 +124,11 @@ object LauncherManager {
         if (isRootMode && !RootManager.isRootAvailable()) {
             LogUtil.e(AppConfig.TAG, "LauncherManager: root mode requires root but none available")
             error(context.getString(R.string.toast_root_required))
+        }
+
+        if (requiresVpnMode(config.configType) && !SettingsManager.isVpnMode()) {
+            LogUtil.e(AppConfig.TAG, "LauncherManager: DNS needs VPN mode")
+            error(context.getString(R.string.toast_services_failure))
         }
 
         val intent = if (isRootMode) {

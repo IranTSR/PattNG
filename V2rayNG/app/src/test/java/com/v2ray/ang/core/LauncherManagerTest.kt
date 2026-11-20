@@ -32,4 +32,18 @@ class LauncherManagerTest {
         assertTrue(LauncherManager.hasUsableServer(profile(EConfigType.VLESS, "162.159.198.1")))
         assertTrue(LauncherManager.hasUsableServer(profile(EConfigType.WIREGUARD, "2606:4700:d0::a29f:c001")))
     }
+
+    @Test
+    fun aDnsProfileStartsWithAHostname() {
+        assertTrue(LauncherManager.hasUsableServer(profile(EConfigType.DNS, "dns.adguard-dns.com")))
+        assertTrue(LauncherManager.hasUsableServer(profile(EConfigType.DNS, "1.1.1.1")))
+    }
+
+    @Test
+    fun onlyDnsProfilesNeedVpnMode() {
+        // DNS owns no proxy, only the TUN captures the device's DNS, which only the VPN service provides.
+        assertTrue(LauncherManager.requiresVpnMode(EConfigType.DNS))
+        assertFalse(LauncherManager.requiresVpnMode(EConfigType.VLESS))
+        assertFalse(LauncherManager.requiresVpnMode(EConfigType.AETHER))
+    }
 }

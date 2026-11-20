@@ -65,6 +65,9 @@ data class ProfileItem(
     var mtu: Int? = null,
     var remoteDNS: String? = null,
 
+    /** DNS-only profile: the transport of the resolver — "udp" | "doh" | "doq". Null = "doh" for old data (none exists yet). */
+    var dnsTransport: String? = null,
+
     var obfs: String? = null,
     var obfsPassword: String? = null,
     var minPacketSize: String? = null,

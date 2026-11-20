@@ -17,6 +17,7 @@ import com.v2ray.ang.extension.isNotNullEmpty
 import com.v2ray.ang.fmt.AetherFmt
 import com.v2ray.ang.fmt.CustomFmt
 import com.v2ray.ang.fmt.CustomOutboundFmt
+import com.v2ray.ang.fmt.DnsFmt
 import com.v2ray.ang.fmt.Hysteria2Fmt
 import com.v2ray.ang.fmt.MasqueFmt
 import com.v2ray.ang.fmt.ShadowsocksFmt
@@ -56,6 +57,7 @@ object AngConfigManager {
             EConfigType.MASQUE.protocolScheme to MasqueFmt::parse,
             AppConfig.HY2 to Hysteria2Fmt::parse,
             EConfigType.AETHER.protocolScheme to AetherFmt::parse,
+            EConfigType.DNS.protocolScheme to DnsFmt::parse,
         )
     }
 
@@ -173,6 +175,7 @@ object AngConfigManager {
                 EConfigType.HYSTERIA2 -> Hysteria2Fmt.toUri(config)
                 EConfigType.MASQUE -> MasqueFmt.toUri(config)
                 EConfigType.AETHER -> AetherFmt.toUri(config)
+                EConfigType.DNS -> DnsFmt.toUri(config)
                 else -> {}
             }
         } catch (e: Exception) {

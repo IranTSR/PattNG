@@ -406,4 +406,81 @@ class CoreConfigManagerTest {
         assertEquals(domesticDns + domesticDns, asked.map { it.address })
         assertEquals(listOf(listOf(AppConfig.GEOIP_CN), listOf(AppConfig.GEOIP_CN), null, null), asked.map { it.expectIPs })
     }
+
+    @Test
+    fun aDnsOnlyConfigRunsNoProxyAndResolvesThroughTheChosenResolver() {
+        fun template(withTun: Boolean) = V2rayConfig(
+            log = V2rayConfig.LogBean(),
+            inbounds = arrayListOf(
+                V2rayConfig.InboundBean(
+                    tag = "socks", port = 10808, protocol = "socks",
+                    sniffing = V2rayConfig.InboundBean.SniffingBean(true, arrayListOf("http", "tls", "quic", "fakedns")),
+                ),
+                V2rayConfig.InboundBean(tag = "tun", port = null, protocol = "tun"),
+            ).let { if (withTun) it else ArrayList(it.take(1)) },
+            outbounds = ArrayList(listOf(
+                V2rayConfig.OutboundBean(tag = AppConfig.TAG_PROXY, protocol = "vmess"),
+                V2rayConfig.OutboundBean(tag = AppConfig.TAG_DIRECT, protocol = "freedom"),
+                V2rayConfig.OutboundBean(tag = AppConfig.TAG_BLOCKED, protocol = "blackhole"),
+            )),
+            routing = V2rayConfig.RoutingBean(domainStrategy = "AsIs", rules = arrayListOf()),
+        )
+        val profile = ProfileItem.create(EConfigType.DNS).apply {
+            remarks = "Cloudflare DoH"
+            server = "1.1.1.1"
+            serverPort = "443"
+            dnsTransport = "doh"
+            path = "/dns-query"
+        }
+
+        val config = CoreConfigManager.assembleDnsOnlyConfig(template(withTun = true), profile)
+
+        // No proxy outbound at all; direct heads the list, so unmatched traffic goes direct.
+        assertEquals(listOf("direct", "block", "dns-out"), config.outbounds.map { it.tag })
+        assertEquals("dns", config.outbounds.last().protocol)
+        // Exactly the profile's resolver, with no hosts overriding it.
+        assertEquals(listOf("https://1.1.1.1/dns-query"), config.dns?.servers)
+        assertEquals(emptyMap<String, Any>(), config.dns?.hosts)
+        assertEquals("dns-module", config.dns?.tag)
+        assertEquals("UseIP", config.dns?.queryStrategy)
+        // Port 53 from the TUN and the local proxy goes to the dns outbound; the module's own
+        // queries go direct. In this order.
+        assertEquals(
+            listOf(
+                listOf("tun") to "dns-out",
+                listOf("socks") to "dns-out",
+                listOf("dns-module") to "direct",
+            ),
+            config.routing.rules.map { it.inboundTag to it.outboundTag },
+        )
+        assertEquals(listOf("53", "53", null), config.routing.rules.map { it.port })
+        // No fakedns anywhere: fake IPs would be returned instead of real answers.
+        assertFalse(config.inbounds.any { it.sniffing?.destOverride?.contains("fakedns") == true })
+        assertNull(config.fakedns)
+    }
+
+    @Test
+    fun aDnsOnlyConfigWithoutATunInboundHasNoTunRule() {
+        val profile = ProfileItem.create(EConfigType.DNS).apply {
+            remarks = "Cloudflare UDP"
+            server = "1.1.1.1"
+            serverPort = "53"
+            dnsTransport = "udp"
+        }
+        fun template() = V2rayConfig(
+            log = V2rayConfig.LogBean(),
+            inbounds = arrayListOf(V2rayConfig.InboundBean(tag = "socks", port = 10808, protocol = "socks")),
+            outbounds = ArrayList(listOf(
+                V2rayConfig.OutboundBean(tag = AppConfig.TAG_PROXY, protocol = "vmess"),
+                V2rayConfig.OutboundBean(tag = AppConfig.TAG_DIRECT, protocol = "freedom"),
+                V2rayConfig.OutboundBean(tag = AppConfig.TAG_BLOCKED, protocol = "blackhole"),
+            )),
+            routing = V2rayConfig.RoutingBean(domainStrategy = "AsIs", rules = arrayListOf()),
+        )
+
+        val config = CoreConfigManager.assembleDnsOnlyConfig(template(), profile)
+
+        assertEquals(listOf("1.1.1.1"), config.dns?.servers)
+        assertEquals(listOf(listOf("socks"), listOf("dns-module")), config.routing.rules.map { it.inboundTag })
+    }
 }

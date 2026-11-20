@@ -26,6 +26,7 @@ private enum class ImportMenuAction(@StringRes val labelRes: Int, val action: Ma
     Hysteria2(R.string.menu_item_import_config_manually_hysteria2, MainAction.ImportManually(EConfigType.HYSTERIA2.value)),
     Masque(R.string.menu_item_import_config_manually_masque, MainAction.ImportManually(EConfigType.MASQUE.value)),
     Aether(R.string.menu_item_import_config_manually_aether, MainAction.ImportManually(EConfigType.AETHER.value)),
+    Dns(R.string.menu_item_import_config_manually_dns, MainAction.ImportManually(EConfigType.DNS.value))
 }
 
 enum class MainMoreMenuAction(@StringRes val labelRes: Int) {

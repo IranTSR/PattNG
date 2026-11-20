@@ -683,6 +683,16 @@
     <string name="aether_core_stopped_chain_ended">Aether টানেলের ভিতরের Tor বা Psiphon বন্ধ হয়ে গেছে, তাই সংযোগ বন্ধ করা হয়েছে: %1$s</string>
     <string name="aether_core_connecting">Aether কোর এখনও সংযোগ করছে</string>
     <string name="menu_item_import_config_manually_aether">ম্যানুয়ালি Aether কনফিগ যোগ করুন</string>
+    <string name="menu_item_import_config_manually_dns">ম্যানুয়ালি DNS কনফিগ যোগ করুন</string>
+    <string name="server_lab_dns_transport">পরিবহন</string>
+    <string name="server_lab_dns_path">DoH পাথ</string>
+    <string name="server_lab_dns_preset">প্রিসেট</string>
+    <string name="dns_editor_note">এই প্রোফাইলে শুধু DNS চলে; বাকি ট্রাফিক সরাসরি যায়।</string>
+    <string name="dns_preset_cloudflare_doh">Cloudflare DoH</string>
+    <string name="dns_preset_cloudflare_udp">Cloudflare UDP</string>
+    <string name="dns_preset_google_doh">Google DoH</string>
+    <string name="dns_preset_quad9_doh">Quad9 DoH</string>
+    <string name="dns_preset_adguard_doq">AdGuard DoQ</string>
     <string name="aether_action_renew_key">নতুন WARP কী নিন…</string>
     <string name="aether_action_renewing_key">নতুন WARP কী নেওয়া হচ্ছে…</string>
     <string name="aether_log_title">লগ</string>

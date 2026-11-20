@@ -298,6 +298,7 @@ object AppConfig {
     const val HY2 = "hy2://"
     const val V2RAYNFMTS = "v2rayn://"
     const val AETHER = "aether://"
+    const val DNS = "dns://"
 
     /** Give a good name to this, IDK*/
     const val VPN = "VPN"

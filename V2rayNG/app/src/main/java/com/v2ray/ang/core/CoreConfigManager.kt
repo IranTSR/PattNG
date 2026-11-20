@@ -16,6 +16,7 @@ import com.v2ray.ang.enums.BalancerStrategyType
 import com.v2ray.ang.enums.CoreResolvedType
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.extension.isNotNullEmpty
+import com.v2ray.ang.fmt.DnsFmt
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.SettingsManager
 import com.v2ray.ang.util.HttpUtil
@@ -35,6 +36,12 @@ object CoreConfigManager {
      */
     fun getV2rayConfig(context: Context, guid: String): ConfigResult {
         try {
+            // A DNS profile has no outbound, so the resolved-outbound machinery cannot represent
+            // it: branch before it, as the custom path branches after it.
+            val dnsProfile = MmkvManager.decodeServerConfig(guid)
+            if (dnsProfile?.configType == EConfigType.DNS) {
+                return buildDnsOnlyConfig(context, guid, dnsProfile)
+            }
             val configContext = CoreConfigContextBuilder.build(context, guid)
                 ?: return ConfigResult(
                     status = false,
@@ -75,6 +82,95 @@ object CoreConfigManager {
                 errorMessage = "Failed to get V2ray config: ${e.message ?: e.javaClass.simpleName}"
             )
         }
+    }
+
+    /**
+     * Build the runtime configuration for a DNS-only profile: no proxy outbound, no user
+     * routing rules, no fakedns and no remote/domestic DNS settings. Port-53 traffic from
+     * the TUN (and the local proxy, when it is kept) goes to the dns outbound, which hands
+     * it to the dns module; the module's own queries go direct. Everything else goes
+     * direct too, as the first outbound. Only VPN mode captures DNS, see
+     * LauncherManager.requiresVpnMode.
+     */
+    internal fun buildDnsOnlyConfig(context: Context, guid: String, profile: ProfileItem): ConfigResult {
+        val configContext = CoreConfigContext(context, guid)
+        val v2rayConfig = initV2rayConfig(configContext)
+        v2rayConfig.log.loglevel = MmkvManager.decodeSettingsString(AppConfig.PREF_LOGLEVEL) ?: "warning"
+        v2rayConfig.remarks = profile.remarks
+
+        configureInbounds(v2rayConfig)
+        assembleDnsOnlyConfig(v2rayConfig, profile)
+
+        applyObservability(v2rayConfig, emptyList())
+        applySpeedDisabled(v2rayConfig)
+        return toConfigResult(context, configContext, v2rayConfig, null)
+    }
+
+    /**
+     * The DNS-only shape of a template configuration and [profile]: the proxy outbound is
+     * gone, direct is first, the dns section holds exactly the profile's resolver, and the
+     * routing rules steer port 53 to the dns outbound and the module's own queries direct.
+     * Pure over the configuration, so the unit test builds its template by hand.
+     */
+    internal fun assembleDnsOnlyConfig(v2rayConfig: V2rayConfig, profile: ProfileItem): V2rayConfig {
+        // No proxy outbound at all: the template's first entry is removed, as buildUnifiedConfig does.
+        v2rayConfig.outbounds.removeAll { it.tag == AppConfig.TAG_PROXY }
+        // Unmatched traffic goes to the first outbound: direct must head the list.
+        val directIndex = v2rayConfig.outbounds.indexOfFirst { it.tag == AppConfig.TAG_DIRECT }
+        if (directIndex > 0) {
+            val direct = v2rayConfig.outbounds.removeAt(directIndex)
+            v2rayConfig.outbounds.add(0, direct)
+        }
+        // Exactly one server: the profile's resolver. Hosts stay empty on purpose: the Play
+        // Store / Private-DNS hardcodes of the normal path would override the chosen resolver.
+        v2rayConfig.dns = V2rayConfig.DnsBean(
+            servers = arrayListOf(DnsFmt.toXrayAddress(profile)),
+            hosts = emptyMap(),
+            queryStrategy = "UseIP",
+            tag = AppConfig.TAG_DNS,
+        )
+        v2rayConfig.routing.domainStrategy = "AsIs"
+        val rules = arrayListOf<V2rayConfig.RoutingBean.RulesBean>()
+        if (v2rayConfig.inbounds.any { it.tag == "tun" }) {
+            rules.add(
+                V2rayConfig.RoutingBean.RulesBean(
+                    inboundTag = arrayListOf("tun"),
+                    outboundTag = "dns-out",
+                    port = "53",
+                )
+            )
+        }
+        if (v2rayConfig.inbounds.any { it.protocol == "socks" }) {
+            rules.add(
+                V2rayConfig.RoutingBean.RulesBean(
+                    inboundTag = arrayListOf("socks"),
+                    outboundTag = "dns-out",
+                    port = "53",
+                )
+            )
+        }
+        rules.add(
+            V2rayConfig.RoutingBean.RulesBean(
+                inboundTag = arrayListOf(AppConfig.TAG_DNS),
+                outboundTag = AppConfig.TAG_DIRECT,
+            )
+        )
+        v2rayConfig.routing.rules = rules
+        if (v2rayConfig.outbounds.none { it.protocol == "dns" && it.tag == "dns-out" }) {
+            v2rayConfig.outbounds.add(
+                V2rayConfig.OutboundBean(
+                    protocol = "dns",
+                    tag = "dns-out",
+                    settings = V2rayConfig.OutboundBean.OutSettingsBean(userLevel = 12),
+                    streamSettings = null,
+                    mux = null
+                )
+            )
+        }
+        // No fakedns anywhere: fake IPs would be returned instead of real answers.
+        v2rayConfig.inbounds.forEach { it.sniffing?.destOverride?.remove("fakedns") }
+        v2rayConfig.fakedns = null
+        return v2rayConfig
     }
 
     /**

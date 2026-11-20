@@ -681,6 +681,16 @@
     <string name="aether_core_stopped_chain_ended">Tor hoặc Psiphon bên trong đường hầm Aether đã dừng, nên kết nối đã bị dừng: %1$s</string>
     <string name="aether_core_connecting">Lõi Aether vẫn đang kết nối</string>
     <string name="menu_item_import_config_manually_aether">Thêm cấu hình Aether thủ công</string>
+    <string name="menu_item_import_config_manually_dns">Thêm cấu hình DNS thủ công</string>
+    <string name="server_lab_dns_transport">Giao thức</string>
+    <string name="server_lab_dns_path">Đường dẫn DoH</string>
+    <string name="server_lab_dns_preset">Cài đặt sẵn</string>
+    <string name="dns_editor_note">Chỉ DNS chạy trên hồ sơ này; mọi lưu lượng khác đi trực tiếp.</string>
+    <string name="dns_preset_cloudflare_doh">Cloudflare DoH</string>
+    <string name="dns_preset_cloudflare_udp">Cloudflare UDP</string>
+    <string name="dns_preset_google_doh">Google DoH</string>
+    <string name="dns_preset_quad9_doh">Quad9 DoH</string>
+    <string name="dns_preset_adguard_doq">AdGuard DoQ</string>
     <string name="aether_action_renew_key">Lấy khóa WARP mới…</string>
     <string name="aether_action_renewing_key">Đang lấy khóa WARP mới…</string>
     <string name="aether_log_title">Nhật ký</string>

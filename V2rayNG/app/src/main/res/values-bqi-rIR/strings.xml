@@ -683,6 +683,16 @@
     <string name="aether_core_stopped_chain_ended">تور یا سایفون من تونل Aether وستاد، سی همی اتصال وستاده بی: %1$s</string>
     <string name="aether_core_connecting">هسته Aether هونی وصل ابۊ</string>
     <string name="menu_item_import_config_manually_aether">افزودن دستی کانفیگ Aether</string>
+    <string name="menu_item_import_config_manually_dns">افزودن دستی کانفیگ DNS</string>
+    <string name="server_lab_dns_transport">نوع انتقال</string>
+    <string name="server_lab_dns_path">مسیر DoH</string>
+    <string name="server_lab_dns_preset">پیش‌فرض</string>
+    <string name="dns_editor_note">فقط DNS روی این پروفایل اجرا می‌شود؛ بقیهٔ ترافیک مستقیم می‌رود.</string>
+    <string name="dns_preset_cloudflare_doh">Cloudflare DoH</string>
+    <string name="dns_preset_cloudflare_udp">Cloudflare UDP</string>
+    <string name="dns_preset_google_doh">Google DoH</string>
+    <string name="dns_preset_quad9_doh">Quad9 DoH</string>
+    <string name="dns_preset_adguard_doq">AdGuard DoQ</string>
     <string name="aether_action_renew_key">گرفتن کلیدا تازه WARP…</string>
     <string name="aether_action_renewing_key">د حال گرفتن کلیدا تازه WARP…</string>
     <string name="aether_log_title">لاگ</string>

@@ -161,8 +161,9 @@ object CoreConfigContextBuilder {
         return resolvedOutbounds to unresolved
     }
 
-    /** PattNG: whether [profile] can be what a routing rule sends to: any profile but a custom configuration. */
-    internal fun takesAsRoutingTarget(profile: ProfileItem): Boolean = profile.configType != EConfigType.CUSTOM
+    /** PattNG: whether [profile] can be what a routing rule sends to: any profile but a custom configuration or a DNS profile, which has no outbound. */
+    internal fun takesAsRoutingTarget(profile: ProfileItem): Boolean =
+        profile.configType != EConfigType.CUSTOM && profile.configType != EConfigType.DNS
 
     private fun resolvePolicyGroupEntries(entry: ProfileEntry): List<ProfileEntry> {
         try {
@@ -416,9 +417,9 @@ object CoreConfigContextBuilder {
         return fallbacks to unresolved
     }
 
-    /** PattNG: whether [profile] can be the fallback of a policy group: any profile but a group or a custom configuration. */
+    /** PattNG: whether [profile] can be the fallback of a policy group: any profile but a group, a custom configuration or a DNS profile, which has no outbound. */
     internal fun takesAsFallback(profile: ProfileItem): Boolean =
-        profile.configType != EConfigType.CUSTOM && profile.configType != EConfigType.POLICYGROUP
+        profile.configType != EConfigType.CUSTOM && profile.configType != EConfigType.POLICYGROUP && profile.configType != EConfigType.DNS
 
     /**
      * PattNG: the one profile [name], the fallback a policy group names, finds among those that can be a fallback, see
