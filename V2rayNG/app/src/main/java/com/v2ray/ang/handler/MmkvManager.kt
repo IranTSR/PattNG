@@ -280,7 +280,9 @@ object MmkvManager {
         // PattNG: a stored profile whose type was removed (SSTP, value 501 / "SSTP") must not
         // reach callers: Gson decodes an unknown enum name as null, leaving a ProfileItem whose
         // non-null configType is null at runtime, which crashes on the first .name access. The
-        // whole server list still decodes; only the removed profile is skipped.
+        // whole server list still decodes; only the removed profile is skipped. The drop is
+        // silent on purpose: logging here would read the log level out of the settings
+        // storage, which the decode path must never touch.
         val storedType = JsonUtil.parseString(json)?.get("configType")
         val knownType = when {
             storedType == null -> null
@@ -289,7 +291,6 @@ object MmkvManager {
             else -> null
         }
         if (knownType == null) {
-            LogUtil.e(TAG, "MmkvManager: dropping stored profile $guid with unknown configType")
             return null
         }
         return JsonUtil.fromJsonSafe(json, ProfileItem::class.java)

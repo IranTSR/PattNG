@@ -136,7 +136,7 @@ object DnsFmt : FmtBase() {
                 val withSlash = if (path.startsWith("/")) path else "/$path"
                 "https://$host${if (port == 443) "" else ":$port"}$withSlash"
             }
-            TRANSPORT_DOQ -> "quic+local://$host${if (port == 853) "" else ":$port"}"
+            TRANSPORT_DOQ -> "quic+local://$host:$port"
             else -> host
         }
     }

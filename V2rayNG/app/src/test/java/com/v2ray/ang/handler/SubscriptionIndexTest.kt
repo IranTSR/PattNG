@@ -744,6 +744,44 @@ class SubscriptionIndexTest {
         assertEquals(100L, JsonUtil.fromJson(affiliationValues.getValue("p1"), ServerAffiliationInfo::class.java)?.testDelayMillis)
     }
 
+    /**
+     * A profile stored by the release that still had SSTP must not break the server list once the
+     * SSTP enum entry is gone: Gson decodes the unknown "SSTP" name as a null configType, which
+     * would crash callers on the first access. The decode guard drops only that profile.
+     * These tests live here, not in their own class: MmkvManager is a singleton whose storage
+     * handles bind once per JVM, so a second class with its own MMKV mocks would steal them.
+     */
+    @Test
+    fun aStoredSstpProfileIsSkipped() {
+        profileValues["old-sstp"] = """{"configVersion":4,"configType":"SSTP","subscriptionId":"","remarks":"Old SSTP","server":"vpn.example.com","serverPort":"443","username":"u","password":"p"}"""
+
+        assertNull(MmkvManager.decodeServerConfig("old-sstp"))
+    }
+
+    @Test
+    fun aStoredSstpProfileByValueIsSkipped() {
+        profileValues["old-sstp-int"] = """{"configVersion":4,"configType":501,"subscriptionId":"","remarks":"Old SSTP","server":"vpn.example.com","serverPort":"443"}"""
+
+        assertNull(MmkvManager.decodeServerConfig("old-sstp-int"))
+    }
+
+    @Test
+    fun aStoredProfileWithoutATypeIsSkipped() {
+        profileValues["no-type"] = """{"configVersion":4,"subscriptionId":"","remarks":"Typeless","server":"example.com","serverPort":"443"}"""
+
+        assertNull(MmkvManager.decodeServerConfig("no-type"))
+    }
+
+    @Test
+    fun aStoredVlessProfileStillDecodes() {
+        profileValues["vless"] = """{"configVersion":4,"configType":"VLESS","subscriptionId":"","remarks":"Kept","server":"example.com","serverPort":"443"}"""
+
+        val decoded = MmkvManager.decodeServerConfig("vless")
+
+        assertEquals(EConfigType.VLESS, decoded?.configType)
+        assertEquals("example.com", decoded?.server)
+    }
+
     companion object {
         /**
          * A handle as a subclass mock: MMKV's lock, unlock and removeValuesForKeys, which the profile index lock and the
