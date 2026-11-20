@@ -100,14 +100,12 @@ object CoreServiceManager {
     /**
      * Whether the service is up; see [ReloadOutcome.serviceRuns]. [isRunning] is Xray alone, which a
      * reload has stopped for a moment. What answers a state query, or decides between a start and a
-     * stop, goes by this one. The SSTP engine counts too: it owns its tunnel without Xray, so a
-     * connected SSTP session is a running service.
+     * stop, goes by this one.
      */
     fun isServiceRunning() = ReloadOutcome.serviceRuns(
         coreRunning = isRunning(),
         reloading = isReloading,
         stoppedMeanwhile = networkMonitor == null,
-        sstpRunning = SstpEngine.isRunning(),
     )
 
     /**

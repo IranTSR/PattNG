@@ -26,7 +26,6 @@ private enum class ImportMenuAction(@StringRes val labelRes: Int, val action: Ma
     Hysteria2(R.string.menu_item_import_config_manually_hysteria2, MainAction.ImportManually(EConfigType.HYSTERIA2.value)),
     Masque(R.string.menu_item_import_config_manually_masque, MainAction.ImportManually(EConfigType.MASQUE.value)),
     Aether(R.string.menu_item_import_config_manually_aether, MainAction.ImportManually(EConfigType.AETHER.value)),
-    Sstp(R.string.menu_item_import_config_manually_sstp, MainAction.ImportManually(EConfigType.SSTP.value))
 }
 
 enum class MainMoreMenuAction(@StringRes val labelRes: Int) {
@@ -40,7 +39,6 @@ enum class MainMoreMenuAction(@StringRes val labelRes: Int) {
     TestAll(R.string.title_ping_all_server),
     TestAllRealPing(R.string.title_real_ping_all_server),
     UpdateSubscriptions(R.string.title_sub_update),
-    ImportVpnGate(R.string.menu_item_import_vpngate)
 }
 
 internal enum class ServerMenuAction(

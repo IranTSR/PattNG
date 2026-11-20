@@ -20,6 +20,7 @@ import com.v2ray.ang.BuildConfig
 import com.v2ray.ang.dto.entities.AssetUrlCache
 import com.v2ray.ang.dto.entities.AssetUrlItem
 import com.v2ray.ang.dto.entities.ProfileItem
+import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.extension.isGroupType
 import com.v2ray.ang.extension.moveItem
 import com.v2ray.ang.dto.entities.RulesetItem
@@ -274,6 +275,21 @@ object MmkvManager {
         }
         val json = profileFullStorage.decodeString(guid)
         if (json.isNullOrBlank()) {
+            return null
+        }
+        // PattNG: a stored profile whose type was removed (SSTP, value 501 / "SSTP") must not
+        // reach callers: Gson decodes an unknown enum name as null, leaving a ProfileItem whose
+        // non-null configType is null at runtime, which crashes on the first .name access. The
+        // whole server list still decodes; only the removed profile is skipped.
+        val storedType = JsonUtil.parseString(json)?.get("configType")
+        val knownType = when {
+            storedType == null -> null
+            storedType.isJsonPrimitive && storedType.isString -> EConfigType.fromName(storedType.asString)
+            storedType.isJsonPrimitive && storedType.isNumber -> EConfigType.fromInt(storedType.asInt)
+            else -> null
+        }
+        if (knownType == null) {
+            LogUtil.e(TAG, "MmkvManager: dropping stored profile $guid with unknown configType")
             return null
         }
         return JsonUtil.fromJsonSafe(json, ProfileItem::class.java)
